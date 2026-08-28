@@ -244,6 +244,59 @@ collection:
           "page_number": 1,
           "page_size": 50
         }
+- name: Unavailable operations
+  meta:
+    id: fld_b0a03ce36c48d7916b95168d4e0a9ce5
+    description: These documented operations currently return Not Implemented.
+  authentication:
+    type: bearer
+    token: '{{ api_key }}'
+    prefix: Bearer
+  children:
+  - name: Archive a financial account — unavailable
+    url: '{{ base_url }}/financial_accounts/archive'
+    method: POST
+    meta:
+      id: req_c758b1d78c69cbc191ad34a13f584a40
+      description: 'Public reference: https://studio.zebo.dev/financial-accounts#archive-a-financial-account'
+    headers:
+    - name: Content-Type
+      value: application/json
+    - name: Idempotency-Key
+      value: '{{ idempotency_key }}'
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "account_id": "{{ financial_account_id }}"
+        }
+    scripts:
+      afterResponse: |-
+        insomnia.test('Returns the documented unavailable status', () => {
+          insomnia.expect([501]).to.include(insomnia.response.code);
+        });
+  - name: Verify a financial account — unavailable
+    url: '{{ base_url }}/financial_accounts/verify'
+    method: POST
+    meta:
+      id: req_d538b35ad0053e25e9417ff094453b60
+      description: 'Public reference: https://studio.zebo.dev/financial-accounts#verify-a-financial-account'
+    headers:
+    - name: Content-Type
+      value: application/json
+    - name: Idempotency-Key
+      value: '{{ idempotency_key }}'
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "account_id": "{{ financial_account_id }}"
+        }
+    scripts:
+      afterResponse: |-
+        insomnia.test('Returns the documented unavailable status', () => {
+          insomnia.expect([501]).to.include(insomnia.response.code);
+        });
 environments:
   name: Base Environment
   meta:

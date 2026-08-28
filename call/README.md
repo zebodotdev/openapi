@@ -1,6 +1,6 @@
 # Commerce API for Insomnia
 
-This directory contains the public HTTP collections for the Commerce API. The files use Insomnia's native v5 YAML format and collectively cover all 106 HTTP operations in the public API reference. They deliberately contain no MCP client configuration, credentials, cookies, live capability URLs, or private infrastructure details.
+This directory contains the public HTTP collections for the Commerce API. The files use Insomnia's native v5 YAML format and collectively cover all 119 HTTP operations in the public API reference. They deliberately contain no MCP client configuration, credentials, cookies, live capability URLs, or private infrastructure details.
 
 ## Collections
 
@@ -62,7 +62,7 @@ Do not use `--printOptions`, shell tracing, or plaintext result output while pas
 
 The Checkout and Orders collection is ordered as a workflow:
 
-1. **Create an order** sends `POST /orders/new` with `finalize: true`, inline customer data, and an inline product. It does not set `execute_payment`, so merely sending the request does not charge the customer.
+1. **Create an order** sends `POST /orders/create` with `finalize: true`, inline customer data, and an inline product. It does not set `execute_payment`, so merely sending the request does not charge the customer. `/orders/new` remains available as a compatibility route with the same contract.
 2. Its after-response script stores `order_id` and the hosted `checkout_url`.
 3. Open `checkout_url` in a browser and let the customer complete payment, or use **Lookup an order** to poll the order state.
 4. Use **Pay for an order**, **Request confirmation**, and **Confirm a payment** only when implementing a custom payment flow. These operations can initiate a real payment attempt.
@@ -93,6 +93,22 @@ Unavailable operations live beside their resource: payment-method verification a
 
 ## Maintenance
 
-Every file conforms to Insomnia's v5 format with schema revision `5.1`. Insomnia publishes the format and its JSON Schema in the [import and export reference](https://developer.konghq.com/insomnia/import-export/). When an API contract changes, update the public Studio reference and the affected collection together, then validate every YAML file against Insomnia's published schema before release.
+Every file conforms to Insomnia's v5 format with schema revision `5.1`. Insomnia publishes the format and its JSON Schema in the [import and export reference](https://developer.konghq.com/insomnia/import-export/).
+
+`commerce.yml` and Call are one reviewed contract. A contract change must update both the OpenAPI operation and its matching primary Call request. From the repository root, run:
+
+```sh
+npm ci
+npm test
+```
+
+The parity test requires exactly one primary Call request for every OpenAPI operation, rejects undocumented Call requests and duplicate mappings, and validates each Call request example against its OpenAPI request schema. It also checks `openapi.lock.json`, which records the reviewed digest of both artifact sets. A one-sided change cannot refresh that lock.
+
+After updating and reviewing both sides, refresh the paired digest and rerun the test:
+
+```sh
+npm run contract:update
+npm test
+```
 
 Run `./scripts/validate.sh` from this directory to validate every public artifact against the pinned v5.1 schema. The script downloads the schema into a temporary directory and does not modify the collections.

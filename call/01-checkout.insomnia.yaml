@@ -27,7 +27,7 @@ collection:
       });
   children:
   - name: Create an order
-    url: '{{ base_url }}/orders/new'
+    url: '{{ base_url }}/orders/create'
     method: POST
     meta:
       id: req_b9eabb5dcab52ea543d7359be9172d38
@@ -86,6 +86,50 @@ collection:
           insomnia.test('Returns a hosted checkout URL', () => {
             insomnia.expect(checkout_url).to.be.a('string').and.match(/^https?:\/\//);
           });
+        }
+  - name: Create an order using the compatibility route
+    url: '{{ base_url }}/orders/new'
+    method: POST
+    meta:
+      id: req_0f0b946d6b8fd64a43a408076c074f97
+      description: |-
+        Public reference: https://studio.zebo.dev/orders#create-an-order
+        Compatibility route for the same create-order contract. Choose either this request or Create an order; do not send both for one logical order.
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "request_meta": {
+            "idempotency_key": "{{ idempotency_key }}"
+          },
+          "number": "{{ order_number }}",
+          "finalize": true,
+          "checkout_settings": {
+            "redirect_url": "{{ checkout_success_url }}",
+            "cancel_url": "{{ checkout_cancel_url }}"
+          },
+          "customer_data": {
+            "name": "{{ customer_name }}",
+            "email_address": "{{ customer_email }}",
+            "phone_number": "{{ customer_phone }}"
+          },
+          "line_items": [
+            {
+              "type": "product",
+              "product": {
+                "type": "physical",
+                "name": "{{ product_name }}",
+                "quantity": 1,
+                "price": {
+                  "currency": "{{ currency }}",
+                  "value": 20000
+                }
+              }
+            }
+          ]
         }
   - name: Pay for an order
     url: '{{ base_url }}/orders/pay'

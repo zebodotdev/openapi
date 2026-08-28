@@ -1355,12 +1355,22 @@ paths:
                             type: object
                             required:
                                 - order_id
+                                - payment_id
+                                - confirmation_id
                                 - token
                             properties:
                                 order_id:
                                     type: string
                                     description: Unique identifier of the order
                                     example: "JoPtqOmsjgZKwkPvqTrqGsopu07wfC7ttoWqmfwt"
+                                payment_id:
+                                    type: string
+                                    description: Unique identifier of the payment being confirmed
+                                    example: "pay_123"
+                                confirmation_id:
+                                    type: string
+                                    description: Unique identifier of the confirmation challenge
+                                    example: "conf_123"
                                 token:
                                     type: string
                                     description: Verification token (OTP) sent to customer
@@ -1420,6 +1430,13 @@ paths:
                                 order_id:
                                     type: string
                                     description: Unique identifier of the order to cancel
+                                reason:
+                                    type: string
+                                    description: Optional reason for cancelling the order
+                                execute_refund:
+                                    type: boolean
+                                    description: Whether to refund any captured payment while cancelling the order
+                                    default: false
             responses:
                 '200':
                     description: Order cancelled successfully
@@ -2433,7 +2450,6 @@ paths:
                                 - type
                                 - reference
                                 - currency
-                                - owner
                             properties:
                                 label:
                                     type: string
@@ -2727,8 +2743,12 @@ paths:
                     application/json:
                         schema:
                             type: object
-                            description: Archive parameters (to be defined)
-                            properties: {}
+                            required:
+                                - account_id
+                            properties:
+                                account_id:
+                                    type: string
+                                    description: Unique identifier of the financial account to archive
             responses:
                 '501':
                     description: Not Implemented
@@ -2786,8 +2806,12 @@ paths:
                     application/json:
                         schema:
                             type: object
-                            description: Verification parameters (to be defined)
-                            properties: {}
+                            required:
+                                - account_id
+                            properties:
+                                account_id:
+                                    type: string
+                                    description: Unique identifier of the financial account to verify
             responses:
                 '501':
                     description: Not Implemented
@@ -2812,7 +2836,6 @@ paths:
                                 - type
                                 - reference
                                 - currency
-                                - owner
                             properties:
                                 label:
                                     type: string
@@ -3662,6 +3685,76 @@ paths:
                                 properties:
                                     error:
                                         $ref: '#/components/schemas/Error'
+    /balance_transactions/lookup:
+        post:
+            summary: Look up a balance transaction
+            description: Retrieves one balance transaction by its unique identifier.
+            operationId: lookupBalanceTransaction
+            tags:
+                - Balance Transactions
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            required:
+                                - transaction_id
+                            properties:
+                                transaction_id:
+                                    type: string
+                                    description: Unique identifier of the balance transaction
+            responses:
+                '200':
+                    description: Balance transaction retrieved successfully
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    transaction:
+                                        type: object
+                                        properties:
+                                            id:
+                                                type: string
+                                            payment_id:
+                                                type: string
+                                            payout_id:
+                                                type: string
+                                            order_id:
+                                                type: string
+                                            amount:
+                                                $ref: '#/components/schemas/Money'
+                                            created_at:
+                                                type: string
+                                                format: date-time
+                                            available_at:
+                                                type: string
+                                                format: date-time
+                                            claimed_at:
+                                                type: string
+                                                format: date-time
+                                            paid_at:
+                                                type: string
+                                                format: date-time
+                '401':
+                    description: Unauthorized - invalid or missing API key
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                '404':
+                    description: Balance transaction not found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                '422':
+                    description: Unprocessable entity - invalid parameters
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
     /balance_transactions/page:
         post:
             summary: Page through balance transactions
@@ -4827,18 +4920,62 @@ paths:
                             type: object
                             required:
                                 - customer_id
-                                - payment_method_data
+                                - type
+                                - mobile_money
+                                - owner
                             properties:
                                 customer_id:
                                     type: string
                                     description: Customer who will own this payment method
                                     example: "cus_a1b2c3d4e5"
-                                payment_method_data:
-                                    $ref: '#/components/schemas/PaymentMethodData'
-                                verify_immediately:
-                                    type: boolean
-                                    description: Send verification OTP immediately after tokenization
-                                    default: false
+                                type:
+                                    type: string
+                                    enum: [mobile_money]
+                                    description: Payment method type
+                                mobile_money:
+                                    type: object
+                                    required:
+                                        - network
+                                        - account_number
+                                    properties:
+                                        network:
+                                            type: string
+                                            enum: [mtn, telecel, airteltigo]
+                                        account_number:
+                                            type: string
+                                owner:
+                                    type: object
+                                    required:
+                                        - name
+                                        - address
+                                    properties:
+                                        name:
+                                            type: string
+                                        address:
+                                            type: object
+                                            required:
+                                                - country
+                                            properties:
+                                                name:
+                                                    type: string
+                                                phone_number:
+                                                    type: string
+                                                line1:
+                                                    type: string
+                                                line2:
+                                                    type: string
+                                                city:
+                                                    type: string
+                                                region:
+                                                    type: string
+                                                post_code:
+                                                    type: string
+                                                country:
+                                                    type: string
+                                custom_data:
+                                    type: object
+                                    additionalProperties:
+                                        type: string
             responses:
                 '200':
                     description: Payment method tokenized successfully
@@ -5048,6 +5185,7 @@ paths:
                                     type: object
                                     additionalProperties:
                                         type: string
+                                        nullable: true
                                     description: Key-value metadata to merge into the payment method. Use JSON null to delete a key.
                                     example:
                                         segment: "vip"
@@ -6039,7 +6177,6 @@ paths:
                         schema:
                             type: object
                             required:
-                                - currency
                                 - amount
                             properties:
                                 product_id:
@@ -6054,15 +6191,8 @@ paths:
                                     type: string
                                     description: Longer description of this price (max 500 characters)
                                     example: "Standard pricing for individual customers"
-                                currency:
-                                    type: string
-                                    description: Three-letter ISO currency code
-                                    example: "USD"
                                 amount:
-                                    type: integer
-                                    format: int64
-                                    description: Amount in smallest currency unit (e.g., cents for USD)
-                                    example: 1999
+                                    $ref: '#/components/schemas/Money'
             responses:
                 '200':
                     description: Price created successfully
@@ -6949,13 +7079,10 @@ components:
                     type: string
                     description: Optional display title for the file.
                     example: Hero product image
-                metadata:
+                custom_data:
                     type: string
                     description: JSON object encoded as a string. Values must be strings.
                     example: '{"product_id":"prod_123"}'
-                idempotency_key:
-                    type: string
-                    description: Optional idempotency key. Can also be supplied in the `idempotency-key` header.
         LookupFileRequest:
             type: object
             required:
@@ -7101,8 +7228,14 @@ components:
                     $ref: '#/components/schemas/FileDelivery'
                 latest_error:
                     $ref: '#/components/schemas/FileLatestError'
+                custom_data:
+                    type: object
+                    additionalProperties:
+                        type: string
                 metadata:
                     type: object
+                    readOnly: true
+                    description: System-managed metadata associated with the file
                     additionalProperties:
                         type: string
                 created_at:
@@ -7420,7 +7553,7 @@ components:
                     $ref: '#/components/schemas/FileActor'
                 attempts:
                     $ref: '#/components/schemas/UploadRequestAttempts'
-                metadata:
+                custom_data:
                     type: object
                     additionalProperties:
                         type: string
@@ -7882,10 +8015,13 @@ components:
                     type: boolean
                     description: Whether to explicitly finalize the order. When true, the order is finalized regardless of payment state. When false or omitted, finalization follows default heuristics (finalize if payment is executable).
                     default: false
-                idempotency_key:
-                    type: string
-                    format: uuid
-                    description: Unique key to prevent duplicate order creation
+                request_meta:
+                    type: object
+                    description: Optional metadata controlling request processing
+                    properties:
+                        idempotency_key:
+                            type: string
+                            description: Unique key to prevent duplicate order creation
                 checkout_settings:
                     type: object
                     description: Checkout and payment flow configuration. Strongly recommended to provide both redirect_url and cancel_url for a delightful customer experience.
@@ -7956,10 +8092,13 @@ components:
                     type: boolean
                     description: Whether to explicitly finalize the order. When true, the order is finalized regardless of payment state. When false or omitted, finalization follows default heuristics (finalize if payment is executable).
                     default: false
-                idempotency_key:
-                    type: string
-                    format: uuid
-                    description: Unique key to prevent duplicate order creation
+                request_meta:
+                    type: object
+                    description: Optional metadata controlling request processing
+                    properties:
+                        idempotency_key:
+                            type: string
+                            description: Unique key to prevent duplicate order creation
                 checkout_settings:
                     type: object
                     description: Checkout and payment flow configuration. Strongly recommended to provide both redirect_url and cancel_url for a delightful customer experience.
@@ -8259,11 +8398,12 @@ components:
                     example: "Premium Cotton T-Shirt"
                 description:
                     type: string
-                    maxLength: 500
+                    maxLength: 200
                     description: Short product description or tagline
                     example: "Comfortable everyday wear"
                 about:
                     type: string
+                    maxLength: 5000
                     description: Full product description with details and features
                     example: "Made from 100% organic cotton, this premium t-shirt..."
                 tax_code:
@@ -8272,35 +8412,9 @@ components:
                     description: Tax classification code for tax calculations
                     example: "TXCD001"
                 category:
-                    type: object
+                    type: string
+                    maxLength: 100
                     description: Product category for organization
-                    properties:
-                        id:
-                            type: string
-                            description: Category identifier
-                        name:
-                            type: string
-                            description: Category display name
-                        slug:
-                            type: string
-                            description: URL-friendly category slug
-                price:
-                    type: object
-                    required:
-                        - amount
-                        - currency
-                    properties:
-                        amount:
-                            type: integer
-                            minimum: 0
-                            description: Price in smallest currency unit (cents, pesewas)
-                            example: 5000
-                        currency:
-                            type: string
-                            minLength: 3
-                            maxLength: 3
-                            description: Three-letter ISO currency code
-                            example: "GHS"
                 shipment:
                     type: object
                     description: Shipment details (required for physical products)
@@ -8329,24 +8443,47 @@ components:
                                     type: number
                                     description: Weight in grams
                 media:
-                    type: array
+                    type: object
                     description: Product images and videos
+                    properties:
+                        hero_image:
+                            type: string
+                        thumbnail:
+                            type: string
+                        web_page_url:
+                            type: string
+                        brand_logo:
+                            type: string
+                        infographic:
+                            type: string
+                        promo_video:
+                            type: string
+                        demo_video:
+                            type: string
+                        gallery:
+                            type: array
+                            items:
+                                type: string
+                        downloads:
+                            type: array
+                            items:
+                                type: string
+                attributes:
+                    type: array
+                    description: Product attributes (size, color, material, etc.)
                     items:
                         type: object
+                        required:
+                            - name
+                            - value
                         properties:
-                            url:
+                            name:
                                 type: string
-                                format: uri
-                                description: Media file URL
-                            type:
+                            value:
                                 type: string
-                                enum: [image, video]
-                                description: Media type
-                attributes:
-                    type: object
-                    description: Product attributes (size, color, material, etc.)
-                    additionalProperties:
-                        type: string
+                publish:
+                    type: boolean
+                    description: Whether to publish the product immediately
                 custom_data:
                     type: object
                     description: Custom key-value metadata
@@ -8381,51 +8518,69 @@ components:
                 name:
                     type: string
                     minLength: 1
-                    maxLength: 200
+                    maxLength: 100
                     description: Product name
                 description:
                     type: string
-                    maxLength: 500
+                    maxLength: 200
                     description: Short description
                 about:
                     type: string
+                    maxLength: 5000
                     description: Full description
                 tax_code:
                     type: string
                     maxLength: 50
                     description: Tax classification code
                 category:
-                    type: object
+                    type: string
+                    maxLength: 100
                     description: Product category
-                    properties:
-                        id:
-                            type: string
-                        name:
-                            type: string
-                        slug:
-                            type: string
-                price:
-                    type: object
-                    description: Updated pricing
-                    properties:
-                        amount:
-                            type: integer
-                            minimum: 0
-                        currency:
-                            type: string
-                            minLength: 3
-                            maxLength: 3
                 shipment:
                     type: object
                     description: Updated shipment details
                 media:
-                    type: array
-                    description: Product media
-                attributes:
                     type: object
+                    description: Product media
+                    properties:
+                        hero_image:
+                            type: string
+                        thumbnail:
+                            type: string
+                        web_page_url:
+                            type: string
+                        brand_logo:
+                            type: string
+                        infographic:
+                            type: string
+                        promo_video:
+                            type: string
+                        demo_video:
+                            type: string
+                        gallery:
+                            type: array
+                            items:
+                                type: string
+                        downloads:
+                            type: array
+                            items:
+                                type: string
+                attributes:
+                    type: array
                     description: Product attributes
-                    additionalProperties:
-                        type: string
+                    items:
+                        type: object
+                        required:
+                            - name
+                            - value
+                        properties:
+                            name:
+                                type: string
+                            value:
+                                type: string
+                publish:
+                    type: boolean
+                    description: Whether to publish the product
                 custom_data:
                     type: object
                     description: Custom metadata
@@ -11919,7 +12074,7 @@ components:
                     $ref: '#/components/schemas/ChimeEmailMessageInput'
                 message_template:
                     $ref: '#/components/schemas/MessageTemplateReference'
-                sender:
+                sender_id:
                     type: string
                     description: Sender identifier shown to recipient. Uses default sender if not provided.
                     example: "YourBrand"
@@ -11935,16 +12090,25 @@ components:
                     example:
                         user_id: "usr_123"
                         flow: "signup"
-                idempotency_key:
-                    type: string
-                    description: Unique key to prevent duplicate sends. Auto-generated if not provided.
-                    example: "chime_send_20231214_abc123"
+                request_meta:
+                    type: object
+                    description: Optional metadata controlling request processing
+                    properties:
+                        idempotency_key:
+                            type: string
+                            description: Unique key to prevent duplicate sends
+                            example: "chime_send_20231214_abc123"
         ChimeRecipient:
             type: object
-            description: Recipient contact information. Use `transport` to select sms or email delivery.
-            required:
-                - transport
+            description: Recipient contact information. Use either `type` or `transport` to select SMS or email delivery.
+            oneOf:
+                - required: [type]
+                - required: [transport]
             properties:
+                type:
+                    type: string
+                    enum: [phone, email]
+                    description: Recipient kind when using the phone/email form
                 transport:
                     type: string
                     enum: [sms, email]
@@ -12656,17 +12820,10 @@ components:
         InitiateOTPRequest:
             type: object
             required:
-                - idempotency_key
                 - recipient
                 - sender
                 - service_name
             properties:
-                idempotency_key:
-                    type: string
-                    description: Unique key to prevent duplicate OTP sends (16-128 characters)
-                    minLength: 16
-                    maxLength: 128
-                    example: "txn_67890_otp_20231215"
                 recipient:
                     type: string
                     description: Phone number in international format (E.164)

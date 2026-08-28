@@ -20,7 +20,7 @@ collection:
       });
   children:
   - name: Create hosted checkout
-    url: '{{ base_url }}/orders/new'
+    url: '{{ base_url }}/orders/create'
     method: POST
     meta:
       id: req_e541038be0344630962df1d0058d7acf

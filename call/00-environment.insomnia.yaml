@@ -28,6 +28,7 @@ environments:
     otp_sender: Example
     otp_code: ''
     confirmation_token: ''
+    secret_key_id: ''
     customer_id: ''
     product_id: ''
     price_id: ''

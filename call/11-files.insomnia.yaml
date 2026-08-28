@@ -122,6 +122,47 @@ collection:
         {
           "file_id": "{{ file_id }}"
         }
+- name: File references
+  meta:
+    id: fld_37004252081a034da357797866396418
+    description: Reconcile the files referenced by a Commerce resource.
+  authentication:
+    type: bearer
+    token: '{{ api_key }}'
+    prefix: Bearer
+  scripts:
+    afterResponse: |-
+      insomnia.test('Returns a successful HTTP status', () => {
+        insomnia.expect(insomnia.response.code).to.be.within(200, 299);
+      });
+  children:
+  - name: Reconcile file references
+    url: '{{ base_url }}/file_references/reconcile'
+    method: POST
+    meta:
+      id: req_a07268dcd9a7e3125c2455fbc85f0e6a
+      description: 'Public reference: https://studio.zebo.dev/file-references#reconcile-file-references'
+    headers:
+    - name: Content-Type
+      value: application/json
+    - name: Idempotency-Key
+      value: '{{ idempotency_key }}'
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "resource_type": "product",
+          "resource_id": "{{ product_id }}",
+          "references": [
+            {
+              "file_id": "{{ file_id }}",
+              "field": "media.gallery[0]",
+              "reference": "{{ file_id }}",
+              "reference_kind": "file",
+              "purpose": "product_image"
+            }
+          ]
+        }
 - name: File links
   meta:
     id: fld_83f0c5aaccd660df059f60e317873268
@@ -239,7 +280,9 @@ collection:
     method: GET
     meta:
       id: req_aac02bc019259917588008020cdeb5cb
-      description: 'Public reference: https://studio.zebo.dev/file-links#open-a-file-link'
+      description: |-
+        Public reference: https://studio.zebo.dev/file-links#open-a-file-link
+        OpenAPI operation: GET /file_links/open
     authentication:
       type: none
 - name: Upload requests
@@ -321,7 +364,9 @@ collection:
     method: POST
     meta:
       id: req_695a515dfb3f34f61642000ac2411c6f
-      description: 'Public reference: https://studio.zebo.dev/file-uploads#fulfill-an-upload-request'
+      description: |-
+        Public reference: https://studio.zebo.dev/file-uploads#fulfill-an-upload-request
+        OpenAPI operation: POST /upload_requests/upload
     authentication:
       type: none
     body:

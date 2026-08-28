@@ -113,6 +113,97 @@ collection:
         {
           "label": "checkout-api"
         }
+    scripts:
+      afterResponse: |-
+        if (insomnia.response.code >= 200 && insomnia.response.code < 300) {
+          const jsonBody = insomnia.response.json();
+          const secret_key_id = jsonBody?.key?.id;
+          insomnia.test('Returns key.id', () => {
+            insomnia.expect(secret_key_id).to.be.a('string').and.not.be.empty;
+          });
+          if (secret_key_id) insomnia.globals.set("secret_key_id", secret_key_id);
+        }
+  - name: Page API keys
+    url: '{{ base_url }}/keys/page'
+    method: POST
+    meta:
+      id: req_936830ebf528540b8b0077ec9afad3fe
+      description: 'Public reference: https://studio.zebo.dev/keys#page-api-keys'
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "page": 1,
+          "size": 20
+        }
+  - name: Lookup an API key
+    url: '{{ base_url }}/keys/lookup'
+    method: POST
+    meta:
+      id: req_6111ed9b8c8e090da84727f54da5ea54
+      description: 'Public reference: https://studio.zebo.dev/keys#lookup-an-api-key'
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "secret_key_id": "{{ secret_key_id }}"
+        }
+  - name: Update an API key
+    url: '{{ base_url }}/keys/update'
+    method: POST
+    meta:
+      id: req_7b5bd8380ce18cdbe70d43c05e8d16ae
+      description: 'Public reference: https://studio.zebo.dev/keys#update-an-api-key'
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "secret_key_id": "{{ secret_key_id }}",
+          "label": "checkout-api-primary"
+        }
+  - name: Revoke an API key
+    url: '{{ base_url }}/keys/destroy'
+    method: POST
+    meta:
+      id: req_8b9f5db19f8c9c0d502f5c0a1c838d17
+      description: 'Public reference: https://studio.zebo.dev/keys#revoke-an-api-key'
+    headers:
+    - name: Content-Type
+      value: application/json
+    - name: Idempotency-Key
+      value: '{{ idempotency_key }}'
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "secret_key_id": "{{ secret_key_id }}"
+        }
+  - name: Retrieve API key usage
+    url: '{{ base_url }}/keys/usage'
+    method: POST
+    meta:
+      id: req_7002ea69b5a938c1a5de20ab6b3888d2
+      description: 'Public reference: https://studio.zebo.dev/keys#retrieve-api-key-usage'
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "secret_key_id": "{{ secret_key_id }}",
+          "page": 1,
+          "size": 20
+        }
 - name: Reference data
   meta:
     id: fld_e45d4cbade71ec65c6bf518246dc9bd7
@@ -160,9 +251,6 @@ collection:
     headers:
     - name: Content-Type
       value: application/json
-    body:
-      mimeType: application/json
-      text: '{}'
     scripts:
       afterResponse: |-
         insomnia.test('Returns the documented unavailable status', () => {

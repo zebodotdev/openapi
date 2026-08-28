@@ -104,6 +104,66 @@ collection:
             }
           }
         }
+  - name: Activate payment method
+    url: '{{ base_url }}/payment_methods/activate'
+    method: POST
+    meta:
+      id: req_2d066dda97871f1a3e8ceccedbdad0aa
+      description: 'Public reference: https://studio.zebo.dev/payment-methods#activate-payment-method'
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "payment_method_id": "{{ payment_method_id }}"
+        }
+  - name: Deactivate payment method
+    url: '{{ base_url }}/payment_methods/disactivate'
+    method: POST
+    meta:
+      id: req_c682e11973d39d2bae2a1347c6885260
+      description: 'Public reference: https://studio.zebo.dev/payment-methods#deactivate-payment-method'
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "payment_method_id": "{{ payment_method_id }}"
+        }
+  - name: Archive payment method
+    url: '{{ base_url }}/payment_methods/archive'
+    method: POST
+    meta:
+      id: req_5f8372e98df3b90099730fdbbec08d94
+      description: 'Public reference: https://studio.zebo.dev/payment-methods#archive-payment-method'
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "payment_method_id": "{{ payment_method_id }}"
+        }
+  - name: Unarchive payment method
+    url: '{{ base_url }}/payment_methods/unarchive'
+    method: POST
+    meta:
+      id: req_a0b8dcefd1a0c13a2b7207cba8bd7158
+      description: 'Public reference: https://studio.zebo.dev/payment-methods#unarchive-payment-method'
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "payment_method_id": "{{ payment_method_id }}"
+        }
   - name: Page through payment methods
     url: '{{ base_url }}/payment_methods/page'
     method: POST
@@ -150,7 +210,10 @@ collection:
       value: application/json
     body:
       mimeType: application/json
-      text: '{}'
+      text: |-
+        {
+          "payment_method_id": "{{ payment_method_id }}"
+        }
     scripts:
       afterResponse: |-
         insomnia.test('Returns the documented unavailable status', () => {
@@ -171,7 +234,10 @@ collection:
       value: application/json
     body:
       mimeType: application/json
-      text: '{}'
+      text: |-
+        {
+          "payment_method_id": "{{ payment_method_id }}"
+        }
     scripts:
       afterResponse: |-
         insomnia.test('Returns the documented unavailable status', () => {
