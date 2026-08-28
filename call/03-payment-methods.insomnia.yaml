@@ -1,0 +1,184 @@
+type: collection.insomnia.rest/5.0
+schema_version: '5.1'
+name: Commerce API — Payment Methods
+meta:
+  id: wrk_83c6db85b1be332d8a8f369beb270a92
+  description: Tokenize and manage saved payment methods, with unavailable operations documented explicitly. Uses the shared
+    Commerce API global environment.
+collection:
+- name: Payment methods
+  meta:
+    id: fld_4bbde67a08615712132677b0b6259154
+    description: Tokenize and manage saved payment methods. Operations that are not implemented are listed separately.
+  authentication:
+    type: bearer
+    token: '{{ api_key }}'
+    prefix: Bearer
+  scripts:
+    preRequest: |-
+      insomnia.variables.set(
+        'future_timestamp',
+        new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      );
+    afterResponse: |-
+      insomnia.test('Returns a successful HTTP status', () => {
+        insomnia.expect(insomnia.response.code).to.be.within(200, 299);
+      });
+  children:
+  - name: Tokenize payment method
+    url: '{{ base_url }}/payment_methods/tokenize'
+    method: POST
+    meta:
+      id: req_c973e6b68c60d1f8d89ae9cc1fa76f01
+      description: 'Public reference: https://studio.zebo.dev/payment-methods#tokenize-payment-method'
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "customer_id": "{{ customer_id }}",
+          "type": "mobile_money",
+          "mobile_money": {
+            "account_number": "{{ mobile_money_account_number }}",
+            "network": "mtn"
+          },
+          "owner": {
+            "name": "Jane Mensah",
+            "address": {
+              "country": "GH"
+            }
+          }
+        }
+    scripts:
+      afterResponse: |-
+        if (insomnia.response.code >= 200 && insomnia.response.code < 300) {
+          const jsonBody = insomnia.response.json();
+          const payment_method_id = jsonBody?.payment_method?.id;
+          insomnia.test('Returns payment_method.id', () => {
+            insomnia.expect(payment_method_id).to.be.a('string').and.not.be.empty;
+          });
+          if (payment_method_id) insomnia.globals.set("payment_method_id", payment_method_id);
+        }
+  - name: Lookup payment method
+    url: '{{ base_url }}/payment_methods/lookup'
+    method: POST
+    meta:
+      id: req_d0594afeb5315c59974c892511ce0a5a
+      description: 'Public reference: https://studio.zebo.dev/payment-methods#lookup-payment-method'
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "payment_method_id": "{{ payment_method_id }}"
+        }
+  - name: Update payment method
+    url: '{{ base_url }}/payment_methods/update'
+    method: POST
+    meta:
+      id: req_06b47afd3e4a49a1378117d5c638535a
+      description: 'Public reference: https://studio.zebo.dev/payment-methods#update-payment-method'
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "payment_method_id": "{{ payment_method_id }}",
+          "active": true,
+          "custom_data": {
+            "segment": "vip",
+            "legacy_note": null
+          },
+          "owner": {
+            "name": "Jane Mensah",
+            "address": {
+              "country": "GH",
+              "line1": "1 High Street",
+              "region": "Greater Accra"
+            }
+          }
+        }
+  - name: Page through payment methods
+    url: '{{ base_url }}/payment_methods/page'
+    method: POST
+    meta:
+      id: req_129b36278769a46eab595870f3237ecc
+      description: 'Public reference: https://studio.zebo.dev/payment-methods#page-through-payment-methods'
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "customer_id": "{{ customer_id }}",
+          "page_number": 1,
+          "page_size": 50
+        }
+  - name: Payment method settings
+    url: '{{ base_url }}/payment_methods/settings'
+    method: POST
+    meta:
+      id: req_6ba89052975ddf77e984e0a6207d5af4
+      description: 'Public reference: https://studio.zebo.dev/payment-methods#payment-method-settings'
+    headers:
+    - name: Content-Type
+      value: application/json
+- name: Unavailable operations
+  meta:
+    id: fld_3c546159279586da4f5711892d44094a
+    description: These operations are part of the documented surface but are not currently implemented.
+  children:
+  - name: Verify payment method — unavailable
+    url: '{{ base_url }}/payment_methods/verify'
+    method: POST
+    meta:
+      id: req_11f14bffe1f0568563fdbdd74a20ba1d
+      description: This operation is not implemented. It is included only to make the current public surface explicit.
+    authentication:
+      type: bearer
+      token: '{{ api_key }}'
+      prefix: Bearer
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: '{}'
+    scripts:
+      afterResponse: |-
+        insomnia.test('Returns the documented unavailable status', () => {
+          insomnia.expect([501]).to.include(insomnia.response.code);
+        });
+  - name: Delete payment method — unavailable
+    url: '{{ base_url }}/payment_methods/delete'
+    method: POST
+    meta:
+      id: req_6b157c5d4ceef285a414da68a5b79556
+      description: This operation is not implemented. Set active to false with Update payment method instead.
+    authentication:
+      type: bearer
+      token: '{{ api_key }}'
+      prefix: Bearer
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: '{}'
+    scripts:
+      afterResponse: |-
+        insomnia.test('Returns the documented unavailable status', () => {
+          insomnia.expect([501]).to.include(insomnia.response.code);
+        });
+environments:
+  name: Base Environment
+  meta:
+    id: env_207984056bff575095c9d54bde4d0e48
+  data: {}

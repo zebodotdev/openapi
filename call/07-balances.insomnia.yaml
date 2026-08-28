@@ -1,0 +1,93 @@
+type: collection.insomnia.rest/5.0
+schema_version: '5.1'
+name: Commerce API — Balances
+meta:
+  id: wrk_bd7a529b5b969e2c2fd1042a34e9dc06
+  description: Read balance snapshots and balance ledger entries. Uses the shared Commerce API global environment.
+collection:
+- name: Balances
+  meta:
+    id: fld_ca75286f2c7875b8b5d80d59c8bce4a6
+    description: Retrieve the current balance snapshot.
+  authentication:
+    type: bearer
+    token: '{{ api_key }}'
+    prefix: Bearer
+  scripts:
+    preRequest: |-
+      insomnia.variables.set(
+        'future_timestamp',
+        new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      );
+    afterResponse: |-
+      insomnia.test('Returns a successful HTTP status', () => {
+        insomnia.expect(insomnia.response.code).to.be.within(200, 299);
+      });
+  children:
+  - name: Retrieve your balance
+    url: '{{ base_url }}/balances'
+    method: POST
+    meta:
+      id: req_8434d934d8d31744f7ead74bee162f47
+      description: 'Public reference: https://studio.zebo.dev/balances#retrieve-your-balance'
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: '{}'
+- name: Balance transactions
+  meta:
+    id: fld_84e7274fb3af07e83c4ce4581d331f28
+    description: Retrieve and page balance ledger entries.
+  authentication:
+    type: bearer
+    token: '{{ api_key }}'
+    prefix: Bearer
+  scripts:
+    preRequest: |-
+      insomnia.variables.set(
+        'future_timestamp',
+        new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      );
+    afterResponse: |-
+      insomnia.test('Returns a successful HTTP status', () => {
+        insomnia.expect(insomnia.response.code).to.be.within(200, 299);
+      });
+  children:
+  - name: Look up a balance transaction
+    url: '{{ base_url }}/balance_transactions/lookup'
+    method: POST
+    meta:
+      id: req_636e1bbcff797682033df08daa0073b8
+      description: 'Public reference: https://studio.zebo.dev/balance-transactions#look-up-a-balance-transaction'
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "transaction_id": "{{ balance_transaction_id }}"
+        }
+  - name: Page through balance transactions
+    url: '{{ base_url }}/balance_transactions/page'
+    method: POST
+    meta:
+      id: req_c615c76cf9ec3a45bef47c853fc8e23a
+      description: 'Public reference: https://studio.zebo.dev/balance-transactions#page-through-balance-transactions'
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "page_number": 0,
+          "page_size": 2
+        }
+environments:
+  name: Base Environment
+  meta:
+    id: env_03c8e94c50cceda77c408faa002626a9
+  data: {}

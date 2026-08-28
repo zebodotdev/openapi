@@ -1,0 +1,391 @@
+type: collection.insomnia.rest/5.0
+schema_version: '5.1'
+name: Commerce API — Files
+meta:
+  id: wrk_04259d4595b906c6593491bbec5fde83
+  description: Upload files and manage file-link and third-party upload capabilities. Uses the shared Commerce API global
+    environment.
+collection:
+- name: Files
+  meta:
+    id: fld_3d7db37d08f9140fd09f12b9621cd095
+    description: Upload, retrieve, download, page, and delete files.
+  authentication:
+    type: bearer
+    token: '{{ api_key }}'
+    prefix: Bearer
+  scripts:
+    preRequest: |-
+      insomnia.variables.set(
+        'future_timestamp',
+        new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      );
+    afterResponse: |-
+      insomnia.test('Returns a successful HTTP status', () => {
+        insomnia.expect(insomnia.response.code).to.be.within(200, 299);
+      });
+  children:
+  - name: Upload a file
+    url: '{{ base_url }}/files/create'
+    method: POST
+    meta:
+      id: req_f2b58f1e773730deac56d1e69ef77399
+      description: 'Public reference: https://studio.zebo.dev/files#upload-a-file'
+    headers:
+    - name: Idempotency-Key
+      value: '{{ idempotency_key }}'
+    body:
+      mimeType: multipart/form-data
+      params:
+      - name: purpose
+        value: product_image
+      - name: title
+        value: Hero image
+      - name: custom_data
+        value: '{"product_ref":"SKU-12345"}'
+      - name: file
+        type: file
+        fileName: '{{ upload_file_path }}'
+    scripts:
+      afterResponse: |-
+        if (insomnia.response.code >= 200 && insomnia.response.code < 300) {
+          const jsonBody = insomnia.response.json();
+          const file_id = jsonBody?.file?.id;
+          insomnia.test('Returns file.id', () => {
+            insomnia.expect(file_id).to.be.a('string').and.not.be.empty;
+          });
+          if (file_id) insomnia.globals.set("file_id", file_id);
+        }
+  - name: Lookup a file
+    url: '{{ base_url }}/files/lookup'
+    method: POST
+    meta:
+      id: req_0beb8979d7b02e5b1cdc1dccd0bd9784
+      description: 'Public reference: https://studio.zebo.dev/files#lookup-a-file'
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "file_id": "{{ file_id }}"
+        }
+  - name: Page files
+    url: '{{ base_url }}/files/page'
+    method: POST
+    meta:
+      id: req_2c875cc898dff62075e5912f22777a87
+      description: 'Public reference: https://studio.zebo.dev/files#page-files'
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "purpose": "product_image",
+          "status": "available",
+          "page_number": 1,
+          "page_size": 25
+        }
+  - name: Download file contents
+    url: '{{ base_url }}/files/contents'
+    method: POST
+    meta:
+      id: req_08ab061aabbc79e725141e7478736af6
+      description: 'Public reference: https://studio.zebo.dev/files#download-file-contents'
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "file_id": "{{ file_id }}",
+          "disposition": "attachment"
+        }
+  - name: Delete a file
+    url: '{{ base_url }}/files/delete'
+    method: POST
+    meta:
+      id: req_cab3bbaa56570eb14f58f0247eff5274
+      description: 'Public reference: https://studio.zebo.dev/files#delete-a-file'
+    headers:
+    - name: Idempotency-Key
+      value: '{{ idempotency_key }}'
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "file_id": "{{ file_id }}"
+        }
+- name: File links
+  meta:
+    id: fld_83f0c5aaccd660df059f60e317873268
+    description: Create and manage capability URLs for file delivery. Open uses the complete returned URL without API-key
+      authentication.
+  authentication:
+    type: bearer
+    token: '{{ api_key }}'
+    prefix: Bearer
+  scripts:
+    preRequest: |-
+      insomnia.variables.set(
+        'future_timestamp',
+        new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      );
+    afterResponse: |-
+      insomnia.test('Returns a successful HTTP status', () => {
+        insomnia.expect(insomnia.response.code).to.be.within(200, 299);
+      });
+  children:
+  - name: Create a file link
+    url: '{{ base_url }}/file_links/create'
+    method: POST
+    meta:
+      id: req_22b2f599aab35b3274717aa03074236d
+      description: 'Public reference: https://studio.zebo.dev/file-links#create-a-file-link'
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "file_id": "{{ file_id }}",
+          "delivery": {
+            "mode": "inline"
+          },
+          "access": {
+            "allow_download": true,
+            "max_accesses": 100
+          },
+          "expires_at": "{{ future_timestamp }}"
+        }
+    scripts:
+      afterResponse: |-
+        if (insomnia.response.code >= 200 && insomnia.response.code < 300) {
+          const jsonBody = insomnia.response.json();
+          const file_link_id = jsonBody?.file_link?.id;
+          if (file_link_id) insomnia.globals.set("file_link_id", file_link_id);
+          const file_link_url = jsonBody?.url;
+          if (file_link_url) insomnia.globals.set("file_link_url", file_link_url);
+          insomnia.test('Returns file_link.id', () => {
+            insomnia.expect(file_link_id).to.be.a('string').and.not.be.empty;
+          });
+          insomnia.test('Returns a file-link capability URL', () => {
+            insomnia.expect(file_link_url).to.be.a('string').and.match(/^https?:\/\//);
+          });
+        }
+  - name: Lookup a file link
+    url: '{{ base_url }}/file_links/lookup'
+    method: POST
+    meta:
+      id: req_748172dacaa487ee9ec8af15d495bb23
+      description: 'Public reference: https://studio.zebo.dev/file-links#lookup-a-file-link'
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "id": "{{ file_link_id }}"
+        }
+  - name: Page file links
+    url: '{{ base_url }}/file_links/page'
+    method: POST
+    meta:
+      id: req_eb6a41e1e54487dd2e40cdf12c63ad40
+      description: 'Public reference: https://studio.zebo.dev/file-links#page-file-links'
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "file_id": "{{ file_id }}",
+          "status": "active",
+          "page_number": 1,
+          "page_size": 25
+        }
+  - name: Revoke a file link
+    url: '{{ base_url }}/file_links/revoke'
+    method: POST
+    meta:
+      id: req_5dd69cbbf654f505d8e4fe321d700caf
+      description: 'Public reference: https://studio.zebo.dev/file-links#revoke-a-file-link'
+    headers:
+    - name: Idempotency-Key
+      value: '{{ idempotency_key }}'
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "id": "{{ file_link_id }}",
+          "revoked_by": {
+            "type": "user",
+            "id": "{{ file_link_id }}"
+          }
+        }
+  - name: Open a file link
+    url: '{{ file_link_url }}'
+    method: GET
+    meta:
+      id: req_aac02bc019259917588008020cdeb5cb
+      description: 'Public reference: https://studio.zebo.dev/file-links#open-a-file-link'
+    authentication:
+      type: none
+- name: Upload requests
+  meta:
+    id: fld_a51e7cdf00e53d44019a9ef291c47a57
+    description: Create and manage capability URLs for third-party uploads. Fulfillment uses the complete returned URL without
+      API-key authentication.
+  authentication:
+    type: bearer
+    token: '{{ api_key }}'
+    prefix: Bearer
+  scripts:
+    preRequest: |-
+      insomnia.variables.set(
+        'future_timestamp',
+        new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      );
+    afterResponse: |-
+      insomnia.test('Returns a successful HTTP status', () => {
+        insomnia.expect(insomnia.response.code).to.be.within(200, 299);
+      });
+  children:
+  - name: Create an upload request
+    url: '{{ base_url }}/upload_requests/create'
+    method: POST
+    meta:
+      id: req_5422c34722b13c93710eee1ddf0a36fe
+      description: 'Public reference: https://studio.zebo.dev/file-uploads#create-an-upload-request'
+    headers:
+    - name: Idempotency-Key
+      value: '{{ idempotency_key }}'
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "purpose": "support_document",
+          "constraints": {
+            "content_types": [
+              "application/pdf"
+            ],
+            "max_size": 10485760
+          },
+          "display": {
+            "title": "Upload dispute evidence",
+            "help_text": "Attach a PDF under 10 MB."
+          },
+          "recipient": {
+            "type": "customer",
+            "email": "ama@example.com"
+          },
+          "resource": {
+            "type": "dispute",
+            "id": "{{ upload_request_id }}"
+          },
+          "custom_data": {
+            "case_id": "CASE-1001"
+          },
+          "expires_at": "{{ future_timestamp }}"
+        }
+    scripts:
+      afterResponse: |-
+        if (insomnia.response.code >= 200 && insomnia.response.code < 300) {
+          const jsonBody = insomnia.response.json();
+          const upload_request_id = jsonBody?.upload_request?.id;
+          if (upload_request_id) insomnia.globals.set("upload_request_id", upload_request_id);
+          const upload_url = jsonBody?.upload_request?.upload_url;
+          if (upload_url) insomnia.globals.set("upload_url", upload_url);
+          insomnia.test('Returns upload_request.id', () => {
+            insomnia.expect(upload_request_id).to.be.a('string').and.not.be.empty;
+          });
+          insomnia.test('Returns an upload capability URL', () => {
+            insomnia.expect(upload_url).to.be.a('string').and.match(/^https?:\/\//);
+          });
+        }
+  - name: Fulfill an upload request
+    url: '{{ upload_url }}'
+    method: POST
+    meta:
+      id: req_695a515dfb3f34f61642000ac2411c6f
+      description: 'Public reference: https://studio.zebo.dev/file-uploads#fulfill-an-upload-request'
+    authentication:
+      type: none
+    body:
+      mimeType: multipart/form-data
+      params:
+      - name: file
+        type: file
+        fileName: '{{ upload_file_path }}'
+  - name: Lookup an upload request
+    url: '{{ base_url }}/upload_requests/lookup'
+    method: POST
+    meta:
+      id: req_9735709b897f3c7020183281c4a345f5
+      description: 'Public reference: https://studio.zebo.dev/file-uploads#lookup-an-upload-request'
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "id": "{{ upload_request_id }}"
+        }
+  - name: Page upload requests
+    url: '{{ base_url }}/upload_requests/page'
+    method: POST
+    meta:
+      id: req_5cd0750e55c2eddb2cf2ae9cb2ea7b0b
+      description: 'Public reference: https://studio.zebo.dev/file-uploads#page-upload-requests'
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "purpose": "support_document",
+          "status": "pending",
+          "page_number": 1,
+          "page_size": 25
+        }
+  - name: Cancel an upload request
+    url: '{{ base_url }}/upload_requests/cancel'
+    method: POST
+    meta:
+      id: req_4f7d3d27159271927c54d8ccfcd8ef93
+      description: 'Public reference: https://studio.zebo.dev/file-uploads#cancel-an-upload-request'
+    headers:
+    - name: Idempotency-Key
+      value: '{{ idempotency_key }}'
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "id": "{{ upload_request_id }}",
+          "canceled_by": {
+            "type": "user",
+            "id": "{{ upload_request_id }}"
+          }
+        }
+environments:
+  name: Base Environment
+  meta:
+    id: env_023d5da9b4ecf20bde7167f63fc4ce43
+  data: {}

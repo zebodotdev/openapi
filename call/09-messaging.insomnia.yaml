@@ -1,0 +1,423 @@
+type: collection.insomnia.rest/5.0
+schema_version: '5.1'
+name: Commerce API — Messaging
+meta:
+  id: wrk_eeeebdcddf83a3b0163bfe601a778060
+  description: Send notifications and manage reusable message templates. Uses the shared Commerce API global environment.
+collection:
+- name: Messages
+  meta:
+    id: fld_208ecd7e4b53afa7138c898bdb0c4d70
+    description: Send, schedule, broadcast, retrieve, and cancel customer notifications.
+  authentication:
+    type: bearer
+    token: '{{ api_key }}'
+    prefix: Bearer
+  scripts:
+    preRequest: |-
+      insomnia.variables.set(
+        'future_timestamp',
+        new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      );
+    afterResponse: |-
+      insomnia.test('Returns a successful HTTP status', () => {
+        insomnia.expect(insomnia.response.code).to.be.within(200, 299);
+      });
+  children:
+  - name: Send Chime
+    url: '{{ base_url }}/chimes/send'
+    method: POST
+    meta:
+      id: req_aaf236bc944071d6c312202d008ea30b
+      description: 'Public reference: https://studio.zebo.dev/chimes#send-chime'
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "request_meta": {
+            "idempotency_key": "{{ idempotency_key }}"
+          },
+          "recipient": {
+            "customer_id": "{{ customer_id }}",
+            "transport": "sms"
+          },
+          "full_message": "Your order #OR-12345 has been shipped and will arrive in 2-3 business days.",
+          "sender_id": "YourBrand",
+          "purpose": "shipping_update",
+          "custom_data": {
+            "order_id": "{{ order_id }}",
+            "fulfillment_id": "ffl_xyz789"
+          }
+        }
+    scripts:
+      afterResponse: |-
+        if (insomnia.response.code >= 200 && insomnia.response.code < 300) {
+          const jsonBody = insomnia.response.json();
+          const chime_id = jsonBody?.chime?.id;
+          insomnia.test('Returns chime.id', () => {
+            insomnia.expect(chime_id).to.be.a('string').and.not.be.empty;
+          });
+          if (chime_id) insomnia.globals.set("chime_id", chime_id);
+        }
+  - name: Lookup Chime
+    url: '{{ base_url }}/chimes/lookup'
+    method: POST
+    meta:
+      id: req_63ee4d961712f09350bff3b24cd8d733
+      description: 'Public reference: https://studio.zebo.dev/chimes#lookup-chime'
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "chime_id": "{{ chime_id }}"
+        }
+  - name: Page Chimes
+    url: '{{ base_url }}/chimes/page'
+    method: POST
+    meta:
+      id: req_47b711339a13a1e40025d45837539d7b
+      description: 'Public reference: https://studio.zebo.dev/chimes#page-chimes'
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "page_number": 1,
+          "page_size": 25,
+          "customer_id": "{{ customer_id }}"
+        }
+  - name: Schedule Chime
+    url: '{{ base_url }}/chimes/schedule'
+    method: POST
+    meta:
+      id: req_ab91e60d9232a72d6943f0d1da151622
+      description: 'Public reference: https://studio.zebo.dev/chimes#schedule-chime'
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "recipients": [
+            {
+              "customer_id": "{{ customer_id }}",
+              "transport": "sms"
+            },
+            {
+              "type": "phone",
+              "phone": {
+                "number": "{{ customer_phone }}"
+              },
+              "name": "Backup Contact"
+            }
+          ],
+          "full_message": "Reminder: Your subscription renews tomorrow. Visit https://example.com/billing to update payment details.",
+          "send_after": "{{ future_timestamp }}",
+          "sender_id": "YourBrand",
+          "purpose": "reminder"
+        }
+    scripts:
+      afterResponse: |-
+        if (insomnia.response.code >= 200 && insomnia.response.code < 300) {
+          const jsonBody = insomnia.response.json();
+          const schedule_id = jsonBody?.scheduled_chime?.id;
+          insomnia.test('Returns scheduled_chime.id', () => {
+            insomnia.expect(schedule_id).to.be.a('string').and.not.be.empty;
+          });
+          if (schedule_id) insomnia.globals.set("schedule_id", schedule_id);
+        }
+  - name: Lookup a scheduled Chime
+    url: '{{ base_url }}/schedules/lookup'
+    method: POST
+    meta:
+      id: req_44757313b25f2ea376842245b0168a75
+      description: 'Public reference: https://studio.zebo.dev/chimes#lookup-a-scheduled-chime'
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "schedule_id": "{{ schedule_id }}"
+        }
+  - name: Cancel a scheduled Chime
+    url: '{{ base_url }}/schedules/cancel'
+    method: POST
+    meta:
+      id: req_0ef3d410f4ecd98dea9f337f3cdc6e94
+      description: 'Public reference: https://studio.zebo.dev/chimes#cancel-a-scheduled-chime'
+    headers:
+    - name: Content-Type
+      value: application/json
+    - name: Idempotency-Key
+      value: '{{ idempotency_key }}'
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "schedule_id": "{{ schedule_id }}"
+        }
+  - name: Broadcast Chimes
+    url: '{{ base_url }}/chimes/broadcast'
+    method: POST
+    meta:
+      id: req_0d54d0a8414928f8f3a87072e4145848
+      description: 'Public reference: https://studio.zebo.dev/chimes#broadcast-chimes'
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "recipients": [
+            {
+              "customer_id": "{{ customer_id }}",
+              "transport": "email"
+            },
+            {
+              "type": "email",
+              "email": {
+                "address": "{{ customer_email }}"
+              },
+              "name": "Backup Contact"
+            }
+          ],
+          "email": {
+            "subject": "Your order #12345 has shipped",
+            "text": "Your order #12345 has shipped. Track it at https://track.shop.com/abc123.",
+            "from": {
+              "address": "shipping@shop.example"
+            }
+          },
+          "sender": "ShopName",
+          "purpose": "order_notification"
+        }
+    scripts:
+      afterResponse: |-
+        if (insomnia.response.code >= 200 && insomnia.response.code < 300) {
+          const jsonBody = insomnia.response.json();
+          const broadcast_id = jsonBody?.broadcast?.id;
+          insomnia.test('Returns broadcast.id', () => {
+            insomnia.expect(broadcast_id).to.be.a('string').and.not.be.empty;
+          });
+          if (broadcast_id) insomnia.globals.set("broadcast_id", broadcast_id);
+        }
+  - name: Lookup a broadcast
+    url: '{{ base_url }}/broadcasts/lookup'
+    method: POST
+    meta:
+      id: req_4d77d71c9764dbc446afabc3dec50eb2
+      description: 'Public reference: https://studio.zebo.dev/chimes#lookup-a-broadcast'
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "broadcast_id": "{{ broadcast_id }}"
+        }
+  - name: Cancel a broadcast
+    url: '{{ base_url }}/broadcasts/cancel'
+    method: POST
+    meta:
+      id: req_f7aca48f4375b3c53a0f88de2283b860
+      description: 'Public reference: https://studio.zebo.dev/chimes#cancel-a-broadcast'
+    headers:
+    - name: Content-Type
+      value: application/json
+    - name: Idempotency-Key
+      value: '{{ idempotency_key }}'
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "broadcast_id": "{{ broadcast_id }}"
+        }
+- name: Message templates
+  meta:
+    id: fld_5a6d29abd83a29f2dc4c6a56d8de5555
+    description: Create and manage reusable message templates.
+  authentication:
+    type: bearer
+    token: '{{ api_key }}'
+    prefix: Bearer
+  scripts:
+    preRequest: |-
+      insomnia.variables.set(
+        'future_timestamp',
+        new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      );
+    afterResponse: |-
+      insomnia.test('Returns a successful HTTP status', () => {
+        insomnia.expect(insomnia.response.code).to.be.within(200, 299);
+      });
+  children:
+  - name: Create a message template
+    url: '{{ base_url }}/message_templates/create'
+    method: POST
+    meta:
+      id: req_22ba7b11791a95fed0f0e9c79503160f
+      description: 'Public reference: https://studio.zebo.dev/message-templates#create-a-message-template'
+    headers:
+    - name: Idempotency-Key
+      value: '{{ idempotency_key }}'
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "name": "Shipping update SMS",
+          "channel": "sms",
+          "purpose": "shipping_update",
+          "variables": [
+            {
+              "name": "customer_name",
+              "type": "string",
+              "required": true
+            },
+            {
+              "name": "tracking_url",
+              "type": "url",
+              "required": true
+            }
+          ],
+          "sms": {
+            "message_template": "{% raw %}Hi {{customer_name}}, your order shipped. Track it: {{tracking_url}}{% endraw %}"
+          }
+        }
+    scripts:
+      afterResponse: |-
+        if (insomnia.response.code >= 200 && insomnia.response.code < 300) {
+          const jsonBody = insomnia.response.json();
+          const message_template_id = jsonBody?.message_template?.id;
+          insomnia.test('Returns message_template.id', () => {
+            insomnia.expect(message_template_id).to.be.a('string').and.not.be.empty;
+          });
+          if (message_template_id) insomnia.globals.set("message_template_id", message_template_id);
+        }
+  - name: Update a message template
+    url: '{{ base_url }}/message_templates/update'
+    method: POST
+    meta:
+      id: req_e1865455e3e11941085ea10228e81431
+      description: 'Public reference: https://studio.zebo.dev/message-templates#update-a-message-template'
+    headers:
+    - name: Idempotency-Key
+      value: '{{ idempotency_key }}'
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "id": "{{ message_template_id }}",
+          "sms": {
+            "message_template": "{% raw %}Hi {{customer_name}}, your order shipped. Track: {{tracking_url}}{% endraw %}"
+          }
+        }
+  - name: Publish a message template
+    url: '{{ base_url }}/message_templates/publish'
+    method: POST
+    meta:
+      id: req_1f4be766b1691809eab172b5a054f694
+      description: 'Public reference: https://studio.zebo.dev/message-templates#publish-a-message-template'
+    headers:
+    - name: Idempotency-Key
+      value: '{{ idempotency_key }}'
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "id": "{{ message_template_id }}"
+        }
+  - name: Archive a message template
+    url: '{{ base_url }}/message_templates/archive'
+    method: POST
+    meta:
+      id: req_13dfeb3837213de04fafb1c1d0c1525b
+      description: 'Public reference: https://studio.zebo.dev/message-templates#archive-a-message-template'
+    headers:
+    - name: Idempotency-Key
+      value: '{{ idempotency_key }}'
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "id": "{{ message_template_id }}"
+        }
+  - name: Look up a message template
+    url: '{{ base_url }}/message_templates/lookup'
+    method: POST
+    meta:
+      id: req_a9c278d00ae4c585a4d29cf4d00a3dcf
+      description: 'Public reference: https://studio.zebo.dev/message-templates#look-up-a-message-template'
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "id": "{{ message_template_id }}"
+        }
+  - name: Page message templates
+    url: '{{ base_url }}/message_templates/page'
+    method: POST
+    meta:
+      id: req_187bbd53c06847bb7a03fed7902ce3eb
+      description: 'Public reference: https://studio.zebo.dev/message-templates#page-message-templates'
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "page": 1,
+          "size": 25,
+          "channel": "sms",
+          "status": "published"
+        }
+  - name: Render a message template preview
+    url: '{{ base_url }}/message_templates/render_preview'
+    method: POST
+    meta:
+      id: req_1bad9d18274e42c3fe2c878145162590
+      description: 'Public reference: https://studio.zebo.dev/message-templates#render-a-message-template-preview'
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "message_template": {
+            "template_id": "{{ message_template_id }}",
+            "variables": {
+              "customer_name": "Gloria",
+              "tracking_url": "https://track.example.com/OR-12345"
+            }
+          }
+        }
+environments:
+  name: Base Environment
+  meta:
+    id: env_dd99832a7892a50a812fd2c389d4d77d
+  data: {}

@@ -1,0 +1,131 @@
+type: collection.insomnia.rest/5.0
+schema_version: '5.1'
+name: Commerce API — Purchase Intents
+meta:
+  id: wrk_58c7ca51085b0cd81acec439ba4e5004
+  description: Create and manage reusable Buy link offers. Uses the shared Commerce API global environment.
+collection:
+- name: Purchase intents
+  meta:
+    id: fld_05a6405eca2a778e4933e2935bd0ab16
+    description: Create and manage Buy link offers. Lookup is intentionally public and does not use API-key authentication.
+  authentication:
+    type: bearer
+    token: '{{ api_key }}'
+    prefix: Bearer
+  scripts:
+    preRequest: |-
+      insomnia.variables.set(
+        'future_timestamp',
+        new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      );
+    afterResponse: |-
+      insomnia.test('Returns a successful HTTP status', () => {
+        insomnia.expect(insomnia.response.code).to.be.within(200, 299);
+      });
+  children:
+  - name: Create a purchase intent
+    url: '{{ base_url }}/purchase_intents/create'
+    method: POST
+    meta:
+      id: req_0e251f24e9acaf6bf90dacc5c4c677f0
+      description: 'Public reference: https://studio.zebo.dev/purchase-intents#create-a-purchase-intent'
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "product_id": "{{ product_id }}",
+          "price_id": "{{ price_id }}",
+          "quantity": {
+            "max": 5,
+            "min": 1
+          },
+          "usage": {
+            "multi_use": true
+          },
+          "expires_at": "{{ future_timestamp }}"
+        }
+    scripts:
+      afterResponse: |-
+        if (insomnia.response.code >= 200 && insomnia.response.code < 300) {
+          const jsonBody = insomnia.response.json();
+          const purchase_intent_id = jsonBody?.purchase_intent?.id;
+          insomnia.test('Returns purchase_intent.id', () => {
+            insomnia.expect(purchase_intent_id).to.be.a('string').and.not.be.empty;
+          });
+          if (purchase_intent_id) insomnia.globals.set("purchase_intent_id", purchase_intent_id);
+        }
+  - name: Update a purchase intent
+    url: '{{ base_url }}/purchase_intents/update'
+    method: POST
+    meta:
+      id: req_1cfdea1cbf0f4ac9e63dc86aefcf24ef
+      description: 'Public reference: https://studio.zebo.dev/purchase-intents#update-a-purchase-intent'
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "id": "{{ purchase_intent_id }}",
+          "minimum_quantity": 2,
+          "maximum_quantity": 8,
+          "reactivate": true
+        }
+  - name: Cancel a purchase intent
+    url: '{{ base_url }}/purchase_intents/cancel'
+    method: POST
+    meta:
+      id: req_b7fac209482b6ae3195aef98a9c86902
+      description: 'Public reference: https://studio.zebo.dev/purchase-intents#cancel-a-purchase-intent'
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "id": "{{ purchase_intent_id }}"
+        }
+  - name: Lookup a purchase intent
+    url: '{{ base_url }}/purchase_intents/lookup'
+    method: POST
+    meta:
+      id: req_cba29a8d3ae9b7976236bf8103482596
+      description: 'Public reference: https://studio.zebo.dev/purchase-intents#lookup-a-purchase-intent'
+    authentication:
+      type: none
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "id": "{{ purchase_intent_id }}"
+        }
+  - name: Page purchase intents
+    url: '{{ base_url }}/purchase_intents/page'
+    method: POST
+    meta:
+      id: req_5ccaf3e6fe2da71439905661caf4dfab
+      description: 'Public reference: https://studio.zebo.dev/purchase-intents#page-purchase-intents'
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "page_number": 1,
+          "page_size": 20
+        }
+environments:
+  name: Base Environment
+  meta:
+    id: env_3e38ab502f6faab83975cd615d8b00c3
+  data: {}

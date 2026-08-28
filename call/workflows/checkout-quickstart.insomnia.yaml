@@ -1,0 +1,152 @@
+type: collection.insomnia.rest/5.0
+schema_version: '5.1'
+name: Commerce API — Checkout Quickstart
+meta:
+  id: wrk_3858a0fbd62d4f64ab2f80e2f58ef702
+  description: Create a hosted checkout and look it up without requesting or confirming payment. Includes portable defaults for desktop and Inso CLI use.
+collection:
+- name: Safe checkout workflow
+  meta:
+    id: fld_b4cefa8bce014c1cb50c9897db53f1ad
+    description: Run these two requests in order. The first stores order_id and checkout_url for the lookup request.
+  authentication:
+    type: bearer
+    token: '{{ api_key }}'
+    prefix: Bearer
+  scripts:
+    afterResponse: |-
+      insomnia.test('Returns a successful HTTP status', () => {
+        insomnia.expect(insomnia.response.code).to.be.within(200, 299);
+      });
+  children:
+  - name: Create hosted checkout
+    url: '{{ base_url }}/orders/new'
+    method: POST
+    meta:
+      id: req_e541038be0344630962df1d0058d7acf
+      description: Creates and finalizes an order so the response contains a hosted checkout URL. This request does not execute payment.
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "request_meta": {
+            "idempotency_key": "{{ idempotency_key }}"
+          },
+          "number": "{{ order_number }}",
+          "finalize": true,
+          "checkout_settings": {
+            "redirect_url": "{{ checkout_success_url }}",
+            "cancel_url": "{{ checkout_cancel_url }}"
+          },
+          "customer_data": {
+            "name": "{{ customer_name }}",
+            "email_address": "{{ customer_email }}",
+            "phone_number": "{{ customer_phone }}"
+          },
+          "line_items": [
+            {
+              "type": "product",
+              "product": {
+                "type": "physical",
+                "name": "{{ product_name }}",
+                "quantity": 1,
+                "price": {
+                  "currency": "{{ currency }}",
+                  "value": 20000
+                }
+              }
+            }
+          ]
+        }
+    scripts:
+      afterResponse: |-
+        if (insomnia.response.code >= 200 && insomnia.response.code < 300) {
+          const jsonBody = insomnia.response.json();
+          const orderId = jsonBody?.order?.id;
+          const checkoutUrl = jsonBody?.order?.invoice?.format?.web?.url;
+
+          insomnia.test('Returns an order identifier', () => {
+            insomnia.expect(orderId).to.be.a('string').and.not.be.empty;
+          });
+          insomnia.test('Returns a hosted checkout URL', () => {
+            insomnia.expect(checkoutUrl).to.be.a('string').and.match(/^https?:\/\//);
+          });
+
+          if (orderId) insomnia.environment.set('order_id', orderId);
+          if (checkoutUrl) insomnia.environment.set('checkout_url', checkoutUrl);
+        }
+  - name: Look up created order
+    url: '{{ base_url }}/orders/lookup'
+    method: POST
+    meta:
+      id: req_ee1ea10b0ee848f1baf3da69cb784d2b
+      description: Looks up the order captured by Create hosted checkout and verifies that the same order is returned.
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "order_id": "{{ order_id }}"
+        }
+    scripts:
+      afterResponse: |-
+        if (insomnia.response.code >= 200 && insomnia.response.code < 300) {
+          const jsonBody = insomnia.response.json();
+          const expectedOrderId = insomnia.variables.get('order_id');
+          insomnia.test('Returns the created order', () => {
+            insomnia.expect(jsonBody?.order?.id).to.equal(expectedOrderId);
+          });
+        }
+environments:
+  name: Base Environment
+  meta:
+    id: env_3f43933245a647c58229caf42509d775
+  data:
+    base_url: https://api.zebo.dev
+    api_key: ''
+    idempotency_key: ''
+    checkout_success_url: https://example.com/checkout/success
+    checkout_cancel_url: https://example.com/checkout/cancel
+    order_number: INSOMNIA-ORDER-001
+    product_name: Example product
+    currency: ghs
+    customer_name: Example Customer
+    customer_email: customer@example.com
+    customer_phone: '+233241234567'
+    order_id: ''
+    checkout_url: ''
+testSuites:
+- name: Hosted checkout contract
+  meta:
+    id: uts_8eefc0e0a2504d94bc64e14d026ba0f0
+    description: Safe smoke checks for creating and retrieving a hosted checkout without executing payment.
+  tests:
+  - name: Create returns an order and checkout URL
+    meta:
+      id: ut_61e1ed845e0543668e553b5ce39bd0b5
+    requestId: req_e541038be0344630962df1d0058d7acf
+    code: |-
+      const response = await insomnia.send();
+      const body = JSON.parse(response.data);
+
+      expect(response.status).to.be.within(200, 299);
+      expect(body).to.be.an('object');
+      expect(body.order).to.be.an('object');
+      expect(body.order.id).to.be.a('string').and.not.be.empty;
+      expect(body.order.invoice?.format?.web?.url).to.match(/^https?:\/\//);
+  - name: Lookup returns the captured order
+    meta:
+      id: ut_01d2009f54384546b1f1a8d489470585
+    requestId: req_ee1ea10b0ee848f1baf3da69cb784d2b
+    code: |-
+      const response = await insomnia.send();
+      const body = JSON.parse(response.data);
+      const expectedOrderId = insomnia.variables.get('order_id');
+
+      expect(response.status).to.be.within(200, 299);
+      expect(body.order?.id).to.equal(expectedOrderId);

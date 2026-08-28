@@ -1,0 +1,175 @@
+type: collection.insomnia.rest/5.0
+schema_version: '5.1'
+name: Commerce API — Platform
+meta:
+  id: wrk_121f2abc744770c94ae151cf354b7e28
+  description: Manage applications and keys, retrieve reference data, and understand platform-managed access boundaries. Uses
+    the shared Commerce API global environment.
+collection:
+- name: Apps
+  meta:
+    id: fld_d56f6359d240f69e4164425b599d0886
+    description: Create, retrieve, and update applications when the calling key has the required authority.
+  authentication:
+    type: bearer
+    token: '{{ api_key }}'
+    prefix: Bearer
+  scripts:
+    preRequest: |-
+      insomnia.variables.set(
+        'future_timestamp',
+        new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      );
+    afterResponse: |-
+      insomnia.test('Returns a successful HTTP status', () => {
+        insomnia.expect(insomnia.response.code).to.be.within(200, 299);
+      });
+  children:
+  - name: Create an app
+    url: '{{ base_url }}/apps/create'
+    method: POST
+    meta:
+      id: req_7f080b18c7e45eb3362ab100269289a4
+      description: 'Public reference: https://studio.zebo.dev/apps#create-an-app'
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "alias": "acme-prod-api",
+          "description": "Production Commerce API for Acme Marketplace",
+          "legal_entity_type": "business",
+          "name": "Acme Production API"
+        }
+    scripts:
+      afterResponse: |-
+        if (insomnia.response.code >= 200 && insomnia.response.code < 300) {
+          const jsonBody = insomnia.response.json();
+          const app_id = jsonBody?.app?.id;
+          insomnia.test('Returns app.id', () => {
+            insomnia.expect(app_id).to.be.a('string').and.not.be.empty;
+          });
+          if (app_id) insomnia.globals.set("app_id", app_id);
+        }
+  - name: Lookup an app
+    url: '{{ base_url }}/apps/lookup'
+    method: POST
+    meta:
+      id: req_1370f932d5a2962b288e930b109c058f
+      description: 'Public reference: https://studio.zebo.dev/apps#lookup-an-app'
+  - name: Update an app
+    url: '{{ base_url }}/apps/update'
+    method: POST
+    meta:
+      id: req_b870ad365624f1e9cf59535fee8f8989
+      description: 'Public reference: https://studio.zebo.dev/apps#update-an-app'
+    headers:
+    - name: Idempotency-Key
+      value: '{{ idempotency_key }}'
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "alias": "acme-checkout-api",
+          "description": "Checkout API for Acme Marketplace",
+          "legal_entity_type": "business",
+          "name": "Acme Checkout API"
+        }
+- name: API keys
+  meta:
+    id: fld_48a53f0774c8ceff574a1fdcb0d470db
+    description: Generate an API key. The returned token is shown once; never store it in this collection.
+  authentication:
+    type: bearer
+    token: '{{ api_key }}'
+    prefix: Bearer
+  scripts:
+    preRequest: |-
+      insomnia.variables.set(
+        'future_timestamp',
+        new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      );
+    afterResponse: |-
+      insomnia.test('Returns a successful HTTP status', () => {
+        insomnia.expect(insomnia.response.code).to.be.within(200, 299);
+      });
+  children:
+  - name: Generate a key
+    url: '{{ base_url }}/keys/generate'
+    method: POST
+    meta:
+      id: req_d3a02579122d4ea2770c0db0e0d6704d
+      description: 'Public reference: https://studio.zebo.dev/keys#generate-a-key'
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "label": "checkout-api"
+        }
+- name: Reference data
+  meta:
+    id: fld_e45d4cbade71ec65c6bf518246dc9bd7
+    description: Retrieve public country and payment-method specifications.
+  authentication:
+    type: bearer
+    token: '{{ api_key }}'
+    prefix: Bearer
+  scripts:
+    preRequest: |-
+      insomnia.variables.set(
+        'future_timestamp',
+        new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      );
+    afterResponse: |-
+      insomnia.test('Returns a successful HTTP status', () => {
+        insomnia.expect(insomnia.response.code).to.be.within(200, 299);
+      });
+  children:
+  - name: Get country specifications
+    url: '{{ base_url }}/spec/countries'
+    method: POST
+    meta:
+      id: req_8345faf03dbded455bf8b60df52f7468
+      description: 'Public reference: https://studio.zebo.dev/countries#get-country-specifications'
+    authentication:
+      type: none
+    headers:
+    - name: Content-Type
+      value: application/json
+- name: Access boundaries
+  meta:
+    id: fld_99cbf398369adc038998d86b52adf12c
+    description: These entries document platform-managed operations and are not ordinary API-key integration steps.
+  children:
+  - name: Create a session — platform-managed only
+    url: '{{ base_url }}/sessions/new'
+    method: POST
+    meta:
+      id: req_a3f77403f159f70374983186a28a5207
+      description: This route is reserved for platform-managed authentication. Ordinary API-key integrations must send their
+        API key directly to the endpoint they want to call.
+    authentication:
+      type: none
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: '{}'
+    scripts:
+      afterResponse: |-
+        insomnia.test('Returns the documented unavailable status', () => {
+          insomnia.expect([401, 403]).to.include(insomnia.response.code);
+        });
+environments:
+  name: Base Environment
+  meta:
+    id: env_900a29cd4a33e0828257b045766592ce
+  data: {}

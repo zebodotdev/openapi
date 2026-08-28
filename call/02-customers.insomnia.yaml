@@ -1,0 +1,95 @@
+type: collection.insomnia.rest/5.0
+schema_version: '5.1'
+name: Commerce API — Customers
+meta:
+  id: wrk_584fcff54163c843eb640247b717a86a
+  description: Create, retrieve, and page customer records. Uses the shared Commerce API global environment.
+collection:
+- name: Customers
+  meta:
+    id: fld_21eb2153dd1483cd67a621fb2c7b2f65
+    description: Create, retrieve, and list customer records.
+  authentication:
+    type: bearer
+    token: '{{ api_key }}'
+    prefix: Bearer
+  scripts:
+    preRequest: |-
+      insomnia.variables.set(
+        'future_timestamp',
+        new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      );
+    afterResponse: |-
+      insomnia.test('Returns a successful HTTP status', () => {
+        insomnia.expect(insomnia.response.code).to.be.within(200, 299);
+      });
+  children:
+  - name: Create customer
+    url: '{{ base_url }}/customers/create'
+    method: POST
+    meta:
+      id: req_6c0520c6f42bee7c2ef256a6b8025a64
+      description: 'Public reference: https://studio.zebo.dev/customers#create-customer'
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "name": "Jane Mensah",
+          "title": "Ms.",
+          "reference": "user_123456",
+          "email_address": "{{ customer_email }}",
+          "phone_number": "{{ customer_phone }}",
+          "custom_data": {
+            "loyalty_tier": "gold",
+            "account_manager": "am_789"
+          }
+        }
+    scripts:
+      afterResponse: |-
+        if (insomnia.response.code >= 200 && insomnia.response.code < 300) {
+          const jsonBody = insomnia.response.json();
+          const customer_id = jsonBody?.customer?.id;
+          insomnia.test('Returns customer.id', () => {
+            insomnia.expect(customer_id).to.be.a('string').and.not.be.empty;
+          });
+          if (customer_id) insomnia.globals.set("customer_id", customer_id);
+        }
+  - name: Lookup customer
+    url: '{{ base_url }}/customers/lookup'
+    method: POST
+    meta:
+      id: req_bae580c845a925882e98ba293674e643
+      description: 'Public reference: https://studio.zebo.dev/customers#lookup-customer'
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "customer_id": "{{ customer_id }}"
+        }
+  - name: Page through customers
+    url: '{{ base_url }}/customers/page'
+    method: POST
+    meta:
+      id: req_073ac11a4cd034d12098f8bd44f0ab0e
+      description: 'Public reference: https://studio.zebo.dev/customers#page-through-customers'
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "page_number": 1,
+          "page_size": 50
+        }
+environments:
+  name: Base Environment
+  meta:
+    id: env_6640a9b3d09d942b4f280911141502bd
+  data: {}

@@ -1,0 +1,334 @@
+type: collection.insomnia.rest/5.0
+schema_version: '5.1'
+name: Commerce API — Catalog
+meta:
+  id: wrk_260fc3dcee7afa1e9132f8696556869e
+  description: Create and manage products and prices. Uses the shared Commerce API global environment.
+collection:
+- name: Products
+  meta:
+    id: fld_0a3e27b8ca818264d75c8d816c12922c
+    description: Create and manage products in the catalog.
+  authentication:
+    type: bearer
+    token: '{{ api_key }}'
+    prefix: Bearer
+  scripts:
+    preRequest: |-
+      insomnia.variables.set(
+        'future_timestamp',
+        new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      );
+    afterResponse: |-
+      insomnia.test('Returns a successful HTTP status', () => {
+        insomnia.expect(insomnia.response.code).to.be.within(200, 299);
+      });
+  children:
+  - name: Create a product
+    url: '{{ base_url }}/products/create'
+    method: POST
+    meta:
+      id: req_f425e96e754cec2194c451d2e3407a24
+      description: 'Public reference: https://studio.zebo.dev/products#create-a-product'
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "name": "Premium Cotton T-Shirt",
+          "type": "physical",
+          "description": "Comfortable everyday wear",
+          "about": "Our premium cotton t-shirt is made from 100% organic cotton...",
+          "category": "clothing",
+          "attributes": [
+            {
+              "name": "Size",
+              "value": "Medium"
+            },
+            {
+              "name": "Color",
+              "value": "Blue"
+            }
+          ],
+          "media": {
+            "hero_image": "file_abc123",
+            "gallery": [
+              "file_def456",
+              "file_ghi789"
+            ]
+          },
+          "custom_data": {
+            "season": "summer",
+            "material": "organic_cotton"
+          }
+        }
+    scripts:
+      afterResponse: |-
+        if (insomnia.response.code >= 200 && insomnia.response.code < 300) {
+          const jsonBody = insomnia.response.json();
+          const product_id = jsonBody?.product?.id;
+          insomnia.test('Returns product.id', () => {
+            insomnia.expect(product_id).to.be.a('string').and.not.be.empty;
+          });
+          if (product_id) insomnia.globals.set("product_id", product_id);
+        }
+  - name: Lookup a product
+    url: '{{ base_url }}/products/lookup'
+    method: POST
+    meta:
+      id: req_d3f536c6b931a94a39b20909ad39c063
+      description: 'Public reference: https://studio.zebo.dev/products#lookup-a-product'
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "product_id": "{{ product_id }}"
+        }
+  - name: Add a price to a product
+    url: '{{ base_url }}/products/add_price'
+    method: POST
+    meta:
+      id: req_12345083dabf30e819783fa191cba34e
+      description: 'Public reference: https://studio.zebo.dev/products#add-a-price-to-a-product'
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "product_id": "{{ product_id }}",
+          "label": "Wholesale",
+          "about": "Preferred rate for repeat buyers",
+          "amount": {
+            "currency": "ghs",
+            "value": 85000
+          }
+        }
+    scripts:
+      afterResponse: |-
+        if (insomnia.response.code >= 200 && insomnia.response.code < 300) {
+          const jsonBody = insomnia.response.json();
+          const price_id = jsonBody?.price?.id;
+          insomnia.test('Returns price.id', () => {
+            insomnia.expect(price_id).to.be.a('string').and.not.be.empty;
+          });
+          if (price_id) insomnia.globals.set("price_id", price_id);
+        }
+  - name: Update a product
+    url: '{{ base_url }}/products/update'
+    method: POST
+    meta:
+      id: req_af182e02c8057e11132b44425369b485
+      description: 'Public reference: https://studio.zebo.dev/products#update-a-product'
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "product_id": "{{ product_id }}",
+          "description": "Premium everyday comfort",
+          "category": "apparel"
+        }
+  - name: Publish a product
+    url: '{{ base_url }}/products/publish'
+    method: POST
+    meta:
+      id: req_2854e514c69fbb215d19b7e69b57899b
+      description: 'Public reference: https://studio.zebo.dev/products#publish-a-product'
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "product_id": "{{ product_id }}"
+        }
+  - name: Unpublish a product
+    url: '{{ base_url }}/products/unpublish'
+    method: POST
+    meta:
+      id: req_d26dde2c01ef63f6b53601cf115bf07d
+      description: 'Public reference: https://studio.zebo.dev/products#unpublish-a-product'
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "product_id": "{{ product_id }}"
+        }
+  - name: Archive a product
+    url: '{{ base_url }}/products/archive'
+    method: POST
+    meta:
+      id: req_61448b22f9f5da5c07c79b9f55b0a5e8
+      description: 'Public reference: https://studio.zebo.dev/products#archive-a-product'
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "product_id": "{{ product_id }}"
+        }
+  - name: Page through products
+    url: '{{ base_url }}/products/page'
+    method: POST
+    meta:
+      id: req_9b5837cc437243e2f03f3c26447eca24
+      description: 'Public reference: https://studio.zebo.dev/products#page-through-products'
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "page_number": 1,
+          "page_size": 50
+        }
+- name: Prices
+  meta:
+    id: fld_fe81f9390ffe3dc8daa4888a7dc430ce
+    description: Create and manage catalog prices.
+  authentication:
+    type: bearer
+    token: '{{ api_key }}'
+    prefix: Bearer
+  scripts:
+    preRequest: |-
+      insomnia.variables.set(
+        'future_timestamp',
+        new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      );
+    afterResponse: |-
+      insomnia.test('Returns a successful HTTP status', () => {
+        insomnia.expect(insomnia.response.code).to.be.within(200, 299);
+      });
+  children:
+  - name: Create a price
+    url: '{{ base_url }}/prices/create'
+    method: POST
+    meta:
+      id: req_5abe8256745950f437a871b7b00f5ef5
+      description: 'Public reference: https://studio.zebo.dev/prices#create-a-price'
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "amount": {
+            "currency": "usd",
+            "value": 2999
+          },
+          "label": "Monthly",
+          "about": "Standard monthly subscription price",
+          "product_id": "{{ product_id }}"
+        }
+    scripts:
+      afterResponse: |-
+        if (insomnia.response.code >= 200 && insomnia.response.code < 300) {
+          const jsonBody = insomnia.response.json();
+          const price_id = jsonBody?.price?.id;
+          insomnia.test('Returns price.id', () => {
+            insomnia.expect(price_id).to.be.a('string').and.not.be.empty;
+          });
+          if (price_id) insomnia.globals.set("price_id", price_id);
+        }
+  - name: Lookup a price
+    url: '{{ base_url }}/prices/lookup'
+    method: POST
+    meta:
+      id: req_9ce51b5c6936d2fc636b566ea919608c
+      description: 'Public reference: https://studio.zebo.dev/prices#lookup-a-price'
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "price_id": "{{ price_id }}"
+        }
+  - name: Page through prices
+    url: '{{ base_url }}/prices/page'
+    method: POST
+    meta:
+      id: req_6a8792982e746ce165c3a3c0f80afcb2
+      description: 'Public reference: https://studio.zebo.dev/prices#page-through-prices'
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "page_number": 1,
+          "page_size": 2,
+          "product_id": "{{ product_id }}"
+        }
+  - name: Update a price
+    url: '{{ base_url }}/prices/update'
+    method: POST
+    meta:
+      id: req_b4ec521adb7ab61d361b5e98b589bbfa
+      description: 'Public reference: https://studio.zebo.dev/prices#update-a-price'
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "price_id": "{{ price_id }}",
+          "label": "Monthly (discounted)",
+          "about": "Promotional monthly rate for early adopters"
+        }
+  - name: Activate a price
+    url: '{{ base_url }}/prices/activate'
+    method: POST
+    meta:
+      id: req_0d1b196e83777fca6a68a3d3daeca405
+      description: 'Public reference: https://studio.zebo.dev/prices#activate-a-price'
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "price_id": "{{ price_id }}"
+        }
+  - name: Deactivate a price
+    url: '{{ base_url }}/prices/deactivate'
+    method: POST
+    meta:
+      id: req_860ee88149eff79be9b69928f5dfe1ea
+      description: 'Public reference: https://studio.zebo.dev/prices#deactivate-a-price'
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "price_id": "{{ price_id }}"
+        }
+environments:
+  name: Base Environment
+  meta:
+    id: env_a35ceb466bf4ab18e6500c5c39c90426
+  data: {}

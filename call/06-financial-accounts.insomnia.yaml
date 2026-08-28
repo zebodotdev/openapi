@@ -1,0 +1,251 @@
+type: collection.insomnia.rest/5.0
+schema_version: '5.1'
+name: Commerce API — Financial Accounts
+meta:
+  id: wrk_0700f57d65690d63abfb75b5780103cf
+  description: Connect and manage collection and payout accounts. Uses the shared Commerce API global environment.
+collection:
+- name: Financial accounts
+  meta:
+    id: fld_75291cc715ff020ca94e2344442cbd91
+    description: Connect and manage financial accounts used for collections and payouts.
+  authentication:
+    type: bearer
+    token: '{{ api_key }}'
+    prefix: Bearer
+  scripts:
+    preRequest: |-
+      insomnia.variables.set(
+        'future_timestamp',
+        new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      );
+    afterResponse: |-
+      insomnia.test('Returns a successful HTTP status', () => {
+        insomnia.expect(insomnia.response.code).to.be.within(200, 299);
+      });
+  children:
+  - name: Connect a financial account
+    url: '{{ base_url }}/financial_accounts/connect'
+    method: POST
+    meta:
+      id: req_9ecfaaca325ffa9329aca8c00d8d6009
+      description: 'Public reference: https://studio.zebo.dev/financial-accounts#connect-a-financial-account'
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "label": "Konadu Tailoring Collections",
+          "reference": "KONADU-MOMO-SETTLEMENT",
+          "description": "Primary settlement wallet for Konadu B2C operations.",
+          "type": "wallet",
+          "currency": "ghs",
+          "wallet": {
+            "type": "mobile_money",
+            "mobile_money": {
+              "network": "mtn",
+              "account_number": "{{ mobile_money_account_number }}"
+            }
+          },
+          "push_configuration": {
+            "enabled": true
+          },
+          "pull_configuration": {
+            "enabled": false
+          }
+        }
+    scripts:
+      afterResponse: |-
+        if (insomnia.response.code >= 200 && insomnia.response.code < 300) {
+          const jsonBody = insomnia.response.json();
+          const financial_account_id = jsonBody?.account?.id;
+          insomnia.test('Returns account.id', () => {
+            insomnia.expect(financial_account_id).to.be.a('string').and.not.be.empty;
+          });
+          if (financial_account_id) insomnia.globals.set("financial_account_id", financial_account_id);
+        }
+  - name: Disconnect a financial account
+    url: '{{ base_url }}/financial_accounts/disconnect'
+    method: POST
+    meta:
+      id: req_dcec4dd2f35c4437016823c8173f8031
+      description: 'Public reference: https://studio.zebo.dev/financial-accounts#disconnect-a-financial-account'
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "account_id": "{{ financial_account_id }}",
+          "unset_as_payout_destination": true
+        }
+  - name: Reconnect a financial account
+    url: '{{ base_url }}/financial_accounts/reconnect'
+    method: POST
+    meta:
+      id: req_e9485a36ee8616eeaa751a7faf6cac9b
+      description: 'Public reference: https://studio.zebo.dev/financial-accounts#reconnect-a-financial-account'
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "account_id": "{{ financial_account_id }}"
+        }
+  - name: Create a financial account
+    url: '{{ base_url }}/financial_accounts/create'
+    method: POST
+    meta:
+      id: req_ef5359a57d64d92aeb7964a94d7b5de5
+      description: 'Public reference: https://studio.zebo.dev/financial-accounts#create-a-financial-account'
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "label": "Marketplace Seller Sub-Account",
+          "reference": "SELLER-001-COLLECTION",
+          "description": "Dedicated collection account for seller 001.",
+          "type": "wallet",
+          "currency": "ghs",
+          "wallet": {
+            "type": "mobile_money",
+            "mobile_money": {
+              "network": "mtn",
+              "account_number": "{{ mobile_money_account_number }}"
+            }
+          }
+        }
+    scripts:
+      afterResponse: |-
+        if (insomnia.response.code >= 200 && insomnia.response.code < 300) {
+          const jsonBody = insomnia.response.json();
+          const financial_account_id = jsonBody?.account?.id;
+          insomnia.test('Returns account.id', () => {
+            insomnia.expect(financial_account_id).to.be.a('string').and.not.be.empty;
+          });
+          if (financial_account_id) insomnia.globals.set("financial_account_id", financial_account_id);
+        }
+  - name: Lookup a financial account
+    url: '{{ base_url }}/financial_accounts/lookup'
+    method: POST
+    meta:
+      id: req_fa8842fb987dc7c966123de6567f62e5
+      description: 'Public reference: https://studio.zebo.dev/financial-accounts#lookup-a-financial-account'
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "account_id": "{{ financial_account_id }}"
+        }
+  - name: Update a financial account
+    url: '{{ base_url }}/financial_accounts/update'
+    method: POST
+    meta:
+      id: req_34d5088481309e355b574426b12a0356
+      description: 'Public reference: https://studio.zebo.dev/financial-accounts#update-a-financial-account'
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "account_id": "{{ financial_account_id }}",
+          "label": "Konadu Tailoring - Primary",
+          "custom_data": {
+            "vendor_id": "VNDR-001",
+            "region": "Greater Accra"
+          }
+        }
+  - name: Enable pull capability
+    url: '{{ base_url }}/financial_accounts/enable_pull'
+    method: POST
+    meta:
+      id: req_c0446ee677008916b1c1f6ad7ea10cdb
+      description: 'Public reference: https://studio.zebo.dev/financial-accounts#enable-pull-capability'
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "account_id": "{{ financial_account_id }}"
+        }
+  - name: Disable pull capability
+    url: '{{ base_url }}/financial_accounts/disable_pull'
+    method: POST
+    meta:
+      id: req_719022004c16489add33b7bb8c30a88f
+      description: 'Public reference: https://studio.zebo.dev/financial-accounts#disable-pull-capability'
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "account_id": "{{ financial_account_id }}"
+        }
+  - name: Enable push capability
+    url: '{{ base_url }}/financial_accounts/enable_push'
+    method: POST
+    meta:
+      id: req_64948e03bcbebfc1f5dd5a4073683b39
+      description: 'Public reference: https://studio.zebo.dev/financial-accounts#enable-push-capability'
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "account_id": "{{ financial_account_id }}"
+        }
+  - name: Disable push capability
+    url: '{{ base_url }}/financial_accounts/disable_push'
+    method: POST
+    meta:
+      id: req_d2f53baee83b947c815893abdeadac36
+      description: 'Public reference: https://studio.zebo.dev/financial-accounts#disable-push-capability'
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "account_id": "{{ financial_account_id }}"
+        }
+  - name: Page through financial accounts
+    url: '{{ base_url }}/financial_accounts/page'
+    method: POST
+    meta:
+      id: req_76bdd4a6b462bb250295dd544c4da8b3
+      description: 'Public reference: https://studio.zebo.dev/financial-accounts#page-through-financial-accounts'
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "page_number": 1,
+          "page_size": 50
+        }
+environments:
+  name: Base Environment
+  meta:
+    id: env_4f505baa86b4b85e51337e8932500313
+  data: {}

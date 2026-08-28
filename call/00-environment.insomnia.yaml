@@ -1,0 +1,55 @@
+type: environment.insomnia.rest/5.0
+schema_version: '5.1'
+name: Commerce API
+meta:
+  id: env_ca035205b796c97c6dbee40c32101d65
+  description: Shared variables for the public Commerce API collections. Create and select a private sub-environment before
+    adding real credentials or capability URLs.
+environments:
+  name: Base Environment
+  meta:
+    id: env_4441cc5f612fb445ed9428bf08deba0e
+  data:
+    base_url: https://api.zebo.dev
+    api_key: ''
+    idempotency_key: ''
+    future_timestamp: ''
+    checkout_success_url: https://example.com/checkout/success
+    checkout_cancel_url: https://example.com/checkout/cancel
+    order_number: INSOMNIA-ORDER-001
+    product_name: Example product
+    currency: ghs
+    customer_name: Example Customer
+    customer_email: customer@example.com
+    customer_phone: '+233241234567'
+    mobile_money_account_number: '0241234567'
+    bank_account_number: '0012345678'
+    otp_service_name: Example Store
+    otp_sender: Example
+    otp_code: ''
+    confirmation_token: ''
+    customer_id: ''
+    product_id: ''
+    price_id: ''
+    purchase_intent_id: ''
+    variant_set_id: ''
+    financial_account_id: ''
+    balance_transaction_id: ''
+    payment_method_id: ''
+    order_id: ''
+    payment_id: ''
+    confirmation_id: ''
+    checkout_url: ''
+    payout_id: ''
+    chime_id: ''
+    schedule_id: ''
+    broadcast_id: ''
+    otp_transaction_id: ''
+    message_template_id: ''
+    file_id: ''
+    file_link_id: ''
+    file_link_url: ''
+    upload_request_id: ''
+    upload_url: ''
+    upload_file_path: ./replace-with-a-local-file
+    app_id: ''

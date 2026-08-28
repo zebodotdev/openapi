@@ -1,0 +1,152 @@
+type: collection.insomnia.rest/5.0
+schema_version: '5.1'
+name: Commerce API — Payouts
+meta:
+  id: wrk_dc5c3c1e99e3b3c6a25ad51700809d40
+  description: Configure, schedule, retrieve, and cancel payouts. Uses the shared Commerce API global environment.
+collection:
+- name: Payouts
+  meta:
+    id: fld_92026d2711e8562e97e4159bebbecb51
+    description: Configure and manage payouts. Scheduling or changing settings can move money or alter payout behavior.
+  authentication:
+    type: bearer
+    token: '{{ api_key }}'
+    prefix: Bearer
+  scripts:
+    preRequest: |-
+      insomnia.variables.set(
+        'future_timestamp',
+        new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      );
+    afterResponse: |-
+      insomnia.test('Returns a successful HTTP status', () => {
+        insomnia.expect(insomnia.response.code).to.be.within(200, 299);
+      });
+  children:
+  - name: Schedule a payout
+    url: '{{ base_url }}/payouts/schedule'
+    method: POST
+    meta:
+      id: req_ef065fee1250f1a7a22149bbe1efe3bf
+      description: 'Public reference: https://studio.zebo.dev/payouts#schedule-a-payout'
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "destination_id": "{{ financial_account_id }}",
+          "reference": "PAYOUT-APR-15",
+          "max_amount": 250000,
+          "execute_after": "{{ future_timestamp }}"
+        }
+    scripts:
+      afterResponse: |-
+        if (insomnia.response.code >= 200 && insomnia.response.code < 300) {
+          const jsonBody = insomnia.response.json();
+          const payout_id = jsonBody?.payout?.id;
+          insomnia.test('Returns payout.id', () => {
+            insomnia.expect(payout_id).to.be.a('string').and.not.be.empty;
+          });
+          if (payout_id) insomnia.globals.set("payout_id", payout_id);
+        }
+  - name: Lookup a payout
+    url: '{{ base_url }}/payouts/lookup'
+    method: POST
+    meta:
+      id: req_906e9731529b14ca10c23af68e77d08e
+      description: 'Public reference: https://studio.zebo.dev/payouts#lookup-a-payout'
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "payout_id": "{{ payout_id }}"
+        }
+  - name: Cancel a payout
+    url: '{{ base_url }}/payouts/cancel'
+    method: POST
+    meta:
+      id: req_e9af885d940a3100e6a8aa577cb2d7e1
+      description: 'Public reference: https://studio.zebo.dev/payouts#cancel-a-payout'
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "payout_id": "{{ payout_id }}"
+        }
+  - name: Get payout settings
+    url: '{{ base_url }}/payouts/settings'
+    method: POST
+    meta:
+      id: req_13e8fc72d1a773843bd23977863c548c
+      description: 'Public reference: https://studio.zebo.dev/payouts#get-payout-settings'
+  - name: Set payout destinations
+    url: '{{ base_url }}/payouts/set_destinations'
+    method: POST
+    meta:
+      id: req_8870942afeafe63976bfdeb027602537
+      description: 'Public reference: https://studio.zebo.dev/payouts#set-payout-destinations'
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "destinations": {
+            "ghs": "fa_H3cNv7pQf9WbLt2mJs6yXrPq4Kz1Vd5G0aEiUo"
+          }
+        }
+  - name: Disable automatic payouts
+    url: '{{ base_url }}/payouts/disable'
+    method: POST
+    meta:
+      id: req_1f0e3b9b16c75c2b8e625ed6fd0e41f3
+      description: 'Public reference: https://studio.zebo.dev/payouts#disable-automatic-payouts'
+  - name: Enable automatic payouts
+    url: '{{ base_url }}/payouts/enable'
+    method: POST
+    meta:
+      id: req_d88ee4b818162c45e923a3ee709a9e95
+      description: 'Public reference: https://studio.zebo.dev/payouts#enable-automatic-payouts'
+  - name: Enable FX conversion
+    url: '{{ base_url }}/payouts/enable_fx'
+    method: POST
+    meta:
+      id: req_4bceb44c4d862d16ece9e5564ffde29e
+      description: 'Public reference: https://studio.zebo.dev/payouts#enable-fx-conversion'
+  - name: Disable FX conversion
+    url: '{{ base_url }}/payouts/disable_fx'
+    method: POST
+    meta:
+      id: req_05f176e6bae5166fff7b6f344dc4b032
+      description: 'Public reference: https://studio.zebo.dev/payouts#disable-fx-conversion'
+  - name: Page through payouts
+    url: '{{ base_url }}/payouts/page'
+    method: POST
+    meta:
+      id: req_a85395d32e591c142d9b4762e0508c9a
+      description: 'Public reference: https://studio.zebo.dev/payouts#page-through-payouts'
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "page_number": 1,
+          "page_size": 25
+        }
+environments:
+  name: Base Environment
+  meta:
+    id: env_398c183f0891e1aa7d4e5326202e727f
+  data: {}
