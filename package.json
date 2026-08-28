@@ -1,0 +1,13 @@
+{
+  "name": "@zebo/commerce-openapi",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node scripts/check-contract.mjs",
+    "contract:update": "node scripts/check-contract.mjs --update"
+  },
+  "devDependencies": {
+    "yaml": "2.9.0"
+  }
+}

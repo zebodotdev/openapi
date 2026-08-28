@@ -30,6 +30,24 @@ cd call
 ./scripts/validate.sh
 ```
 
+## Keep OpenAPI and Call in sync
+
+The repository treats `commerce.yml` and the primary Call collections as one public contract. CI requires exact operation coverage, validates Call request examples against the OpenAPI request schemas, and checks a paired digest that cannot be refreshed after a one-sided change.
+
+Run the same contract gate locally:
+
+```sh
+npm ci
+npm test
+```
+
+When intentionally changing the API contract, update both artifacts, review them together, and then refresh their shared digest:
+
+```sh
+npm run contract:update
+npm test
+```
+
 ## License
 
 Released under the [MIT License](LICENSE).
