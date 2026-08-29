@@ -30,7 +30,7 @@ collection:
     method: POST
     meta:
       id: req_7f080b18c7e45eb3362ab100269289a4
-      description: 'Public reference: https://studio.zebo.dev/apps#create-an-app'
+      description: 'Public reference: https://studio.inttegro.com/apps#create-an-app'
     headers:
     - name: Content-Type
       value: application/json
@@ -58,13 +58,13 @@ collection:
     method: POST
     meta:
       id: req_1370f932d5a2962b288e930b109c058f
-      description: 'Public reference: https://studio.zebo.dev/apps#lookup-an-app'
+      description: 'Public reference: https://studio.inttegro.com/apps#lookup-an-app'
   - name: Update an app
     url: '{{ base_url }}/apps/update'
     method: POST
     meta:
       id: req_b870ad365624f1e9cf59535fee8f8989
-      description: 'Public reference: https://studio.zebo.dev/apps#update-an-app'
+      description: 'Public reference: https://studio.inttegro.com/apps#update-an-app'
     headers:
     - name: Idempotency-Key
       value: '{{ idempotency_key }}'
@@ -103,7 +103,7 @@ collection:
     method: POST
     meta:
       id: req_d3a02579122d4ea2770c0db0e0d6704d
-      description: 'Public reference: https://studio.zebo.dev/keys#generate-a-key'
+      description: 'Public reference: https://studio.inttegro.com/keys#generate-a-key'
     headers:
     - name: Content-Type
       value: application/json
@@ -128,7 +128,7 @@ collection:
     method: POST
     meta:
       id: req_936830ebf528540b8b0077ec9afad3fe
-      description: 'Public reference: https://studio.zebo.dev/keys#page-api-keys'
+      description: 'Public reference: https://studio.inttegro.com/keys#page-api-keys'
     headers:
     - name: Content-Type
       value: application/json
@@ -144,7 +144,7 @@ collection:
     method: POST
     meta:
       id: req_6111ed9b8c8e090da84727f54da5ea54
-      description: 'Public reference: https://studio.zebo.dev/keys#lookup-an-api-key'
+      description: 'Public reference: https://studio.inttegro.com/keys#lookup-an-api-key'
     headers:
     - name: Content-Type
       value: application/json
@@ -159,7 +159,7 @@ collection:
     method: POST
     meta:
       id: req_7b5bd8380ce18cdbe70d43c05e8d16ae
-      description: 'Public reference: https://studio.zebo.dev/keys#update-an-api-key'
+      description: 'Public reference: https://studio.inttegro.com/keys#update-an-api-key'
     headers:
     - name: Content-Type
       value: application/json
@@ -175,7 +175,7 @@ collection:
     method: POST
     meta:
       id: req_8b9f5db19f8c9c0d502f5c0a1c838d17
-      description: 'Public reference: https://studio.zebo.dev/keys#revoke-an-api-key'
+      description: 'Public reference: https://studio.inttegro.com/keys#revoke-an-api-key'
     headers:
     - name: Content-Type
       value: application/json
@@ -192,7 +192,7 @@ collection:
     method: POST
     meta:
       id: req_7002ea69b5a938c1a5de20ab6b3888d2
-      description: 'Public reference: https://studio.zebo.dev/keys#retrieve-api-key-usage'
+      description: 'Public reference: https://studio.inttegro.com/keys#retrieve-api-key-usage'
     headers:
     - name: Content-Type
       value: application/json
@@ -228,7 +228,7 @@ collection:
     method: POST
     meta:
       id: req_8345faf03dbded455bf8b60df52f7468
-      description: 'Public reference: https://studio.zebo.dev/countries#get-country-specifications'
+      description: 'Public reference: https://studio.inttegro.com/countries#get-country-specifications'
     authentication:
       type: none
     headers:

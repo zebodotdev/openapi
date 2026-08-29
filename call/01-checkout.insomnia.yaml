@@ -31,7 +31,7 @@ collection:
     method: POST
     meta:
       id: req_b9eabb5dcab52ea543d7359be9172d38
-      description: 'Public reference: https://studio.zebo.dev/orders#create-an-order'
+      description: 'Public reference: https://studio.inttegro.com/orders#create-an-order'
     headers:
     - name: Content-Type
       value: application/json
@@ -93,7 +93,7 @@ collection:
     meta:
       id: req_0f0b946d6b8fd64a43a408076c074f97
       description: |-
-        Public reference: https://studio.zebo.dev/orders#create-an-order
+        Public reference: https://studio.inttegro.com/orders#create-an-order
         Compatibility route for the same create-order contract. Choose either this request or Create an order; do not send both for one logical order.
     headers:
     - name: Content-Type
@@ -136,7 +136,7 @@ collection:
     method: POST
     meta:
       id: req_17973aff414d87c35f53f896d0efc411
-      description: 'Public reference: https://studio.zebo.dev/orders#pay-for-an-order'
+      description: 'Public reference: https://studio.inttegro.com/orders#pay-for-an-order'
     headers:
     - name: Content-Type
       value: application/json
@@ -167,7 +167,7 @@ collection:
     method: POST
     meta:
       id: req_38bb6f1168e91d79d90a734c8635a93c
-      description: 'Public reference: https://studio.zebo.dev/orders#confirm-a-payment'
+      description: 'Public reference: https://studio.inttegro.com/orders#confirm-a-payment'
     headers:
     - name: Content-Type
       value: application/json
@@ -185,7 +185,7 @@ collection:
     method: POST
     meta:
       id: req_26e6325af60dab964f16ab1ee05656e0
-      description: 'Public reference: https://studio.zebo.dev/orders#request-confirmation'
+      description: 'Public reference: https://studio.inttegro.com/orders#request-confirmation'
     headers:
     - name: Content-Type
       value: application/json
@@ -209,7 +209,7 @@ collection:
     method: POST
     meta:
       id: req_23d54d4eb5703e09c5438c0bd55fcf06
-      description: 'Public reference: https://studio.zebo.dev/orders#update-an-order'
+      description: 'Public reference: https://studio.inttegro.com/orders#update-an-order'
     headers:
     - name: Content-Type
       value: application/json
@@ -255,7 +255,7 @@ collection:
     method: POST
     meta:
       id: req_440d3be66b72eeb649744c6536fa38cd
-      description: 'Public reference: https://studio.zebo.dev/orders#finalize-an-order'
+      description: 'Public reference: https://studio.inttegro.com/orders#finalize-an-order'
     headers:
     - name: Content-Type
       value: application/json
@@ -270,7 +270,7 @@ collection:
     method: POST
     meta:
       id: req_f05c7e422151fa011fcfad883cd58c8b
-      description: 'Public reference: https://studio.zebo.dev/orders#send-an-invoice'
+      description: 'Public reference: https://studio.inttegro.com/orders#send-an-invoice'
     headers:
     - name: Content-Type
       value: application/json
@@ -287,7 +287,7 @@ collection:
     method: POST
     meta:
       id: req_3272a2c3a2217b9f92eff637053b2dbe
-      description: 'Public reference: https://studio.zebo.dev/orders#send-a-receipt'
+      description: 'Public reference: https://studio.inttegro.com/orders#send-a-receipt'
     headers:
     - name: Content-Type
       value: application/json
@@ -304,7 +304,7 @@ collection:
     method: POST
     meta:
       id: req_4d656a29aa1dfc57595c93b08ea6484f
-      description: 'Public reference: https://studio.zebo.dev/orders#complete-an-order'
+      description: 'Public reference: https://studio.inttegro.com/orders#complete-an-order'
     headers:
     - name: Content-Type
       value: application/json
@@ -319,7 +319,7 @@ collection:
     method: POST
     meta:
       id: req_f527be43cb09f4aa441f0fb536748616
-      description: 'Public reference: https://studio.zebo.dev/orders#lookup-an-order'
+      description: 'Public reference: https://studio.inttegro.com/orders#lookup-an-order'
     headers:
     - name: Content-Type
       value: application/json
@@ -334,7 +334,7 @@ collection:
     method: POST
     meta:
       id: req_0940d0b487c63851610fd1c2e8ae1b9c
-      description: 'Public reference: https://studio.zebo.dev/orders#cancel-an-order'
+      description: 'Public reference: https://studio.inttegro.com/orders#cancel-an-order'
     headers:
     - name: Content-Type
       value: application/json
@@ -351,7 +351,7 @@ collection:
     method: POST
     meta:
       id: req_33211617adf2f14d3239261650169c52
-      description: 'Public reference: https://studio.zebo.dev/orders#page-through-orders'
+      description: 'Public reference: https://studio.inttegro.com/orders#page-through-orders'
     headers:
     - name: Content-Type
       value: application/json

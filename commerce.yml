@@ -7,7 +7,7 @@ info:
     contact:
         name: Zebo Engineering
         url: "https://zebocommerce.com"
-        email: "engineering@zebo.dev"
+        email: "engineering@inttegro.com"
 servers:
     - url: "https://api.zebo.dev"
 security:
@@ -7331,7 +7331,7 @@ components:
                     type: string
                     format: uri
                     description: Unsigned CDN URL for public-safe assets such as product images.
-                    example: https://assets.zebo.dev/public/assets/file_2xC7k9gK5yQnZ4w8P1sT6vR3/original
+                    example: https://assets.inttegro.com/public/assets/file_2xC7k9gK5yQnZ4w8P1sT6vR3/original
                 cache_control:
                     type: string
                     example: public, max-age=31536000, immutable
@@ -10071,7 +10071,7 @@ components:
             additionalProperties: true
             example:
                 customer_name: "Akua"
-                receipt_url: "https://pay.zebo.dev/receipts/123"
+                receipt_url: "https://pay.inttegro.com/receipts/123"
         MessageTemplateAttachmentIDs:
             type: array
             description: File IDs to attach when rendering or sending an email template.
@@ -11097,7 +11097,7 @@ components:
                     type: string
                     format: uri
                     description: Link to error reference documentation with detailed explanation, common causes, and resolution guidance.
-                    example: "https://studio.zebo.dev/e/invalid_payment_method"
+                    example: "https://studio.inttegro.com/e/invalid_payment_method"
         FinancialAccount:
             type: object
             description: Financial account that can serve as source or destination for funds
@@ -12315,7 +12315,7 @@ components:
                     type: string
                     format: email
                     description: Email address
-                    example: "notifications@zebo.dev"
+                    example: "notifications@inttegro.com"
         ChimeEmailSafetyResult:
             type: object
             description: Result of the email safety scan

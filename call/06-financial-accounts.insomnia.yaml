@@ -29,7 +29,7 @@ collection:
     method: POST
     meta:
       id: req_9ecfaaca325ffa9329aca8c00d8d6009
-      description: 'Public reference: https://studio.zebo.dev/financial-accounts#connect-a-financial-account'
+      description: 'Public reference: https://studio.inttegro.com/financial-accounts#connect-a-financial-account'
     headers:
     - name: Content-Type
       value: application/json
@@ -71,7 +71,7 @@ collection:
     method: POST
     meta:
       id: req_dcec4dd2f35c4437016823c8173f8031
-      description: 'Public reference: https://studio.zebo.dev/financial-accounts#disconnect-a-financial-account'
+      description: 'Public reference: https://studio.inttegro.com/financial-accounts#disconnect-a-financial-account'
     headers:
     - name: Content-Type
       value: application/json
@@ -87,7 +87,7 @@ collection:
     method: POST
     meta:
       id: req_e9485a36ee8616eeaa751a7faf6cac9b
-      description: 'Public reference: https://studio.zebo.dev/financial-accounts#reconnect-a-financial-account'
+      description: 'Public reference: https://studio.inttegro.com/financial-accounts#reconnect-a-financial-account'
     headers:
     - name: Content-Type
       value: application/json
@@ -102,7 +102,7 @@ collection:
     method: POST
     meta:
       id: req_ef5359a57d64d92aeb7964a94d7b5de5
-      description: 'Public reference: https://studio.zebo.dev/financial-accounts#create-a-financial-account'
+      description: 'Public reference: https://studio.inttegro.com/financial-accounts#create-a-financial-account'
     headers:
     - name: Content-Type
       value: application/json
@@ -138,7 +138,7 @@ collection:
     method: POST
     meta:
       id: req_fa8842fb987dc7c966123de6567f62e5
-      description: 'Public reference: https://studio.zebo.dev/financial-accounts#lookup-a-financial-account'
+      description: 'Public reference: https://studio.inttegro.com/financial-accounts#lookup-a-financial-account'
     headers:
     - name: Content-Type
       value: application/json
@@ -153,7 +153,7 @@ collection:
     method: POST
     meta:
       id: req_34d5088481309e355b574426b12a0356
-      description: 'Public reference: https://studio.zebo.dev/financial-accounts#update-a-financial-account'
+      description: 'Public reference: https://studio.inttegro.com/financial-accounts#update-a-financial-account'
     headers:
     - name: Content-Type
       value: application/json
@@ -173,7 +173,7 @@ collection:
     method: POST
     meta:
       id: req_c0446ee677008916b1c1f6ad7ea10cdb
-      description: 'Public reference: https://studio.zebo.dev/financial-accounts#enable-pull-capability'
+      description: 'Public reference: https://studio.inttegro.com/financial-accounts#enable-pull-capability'
     headers:
     - name: Content-Type
       value: application/json
@@ -188,7 +188,7 @@ collection:
     method: POST
     meta:
       id: req_719022004c16489add33b7bb8c30a88f
-      description: 'Public reference: https://studio.zebo.dev/financial-accounts#disable-pull-capability'
+      description: 'Public reference: https://studio.inttegro.com/financial-accounts#disable-pull-capability'
     headers:
     - name: Content-Type
       value: application/json
@@ -203,7 +203,7 @@ collection:
     method: POST
     meta:
       id: req_64948e03bcbebfc1f5dd5a4073683b39
-      description: 'Public reference: https://studio.zebo.dev/financial-accounts#enable-push-capability'
+      description: 'Public reference: https://studio.inttegro.com/financial-accounts#enable-push-capability'
     headers:
     - name: Content-Type
       value: application/json
@@ -218,7 +218,7 @@ collection:
     method: POST
     meta:
       id: req_d2f53baee83b947c815893abdeadac36
-      description: 'Public reference: https://studio.zebo.dev/financial-accounts#disable-push-capability'
+      description: 'Public reference: https://studio.inttegro.com/financial-accounts#disable-push-capability'
     headers:
     - name: Content-Type
       value: application/json
@@ -233,7 +233,7 @@ collection:
     method: POST
     meta:
       id: req_76bdd4a6b462bb250295dd544c4da8b3
-      description: 'Public reference: https://studio.zebo.dev/financial-accounts#page-through-financial-accounts'
+      description: 'Public reference: https://studio.inttegro.com/financial-accounts#page-through-financial-accounts'
     headers:
     - name: Content-Type
       value: application/json
@@ -258,7 +258,7 @@ collection:
     method: POST
     meta:
       id: req_c758b1d78c69cbc191ad34a13f584a40
-      description: 'Public reference: https://studio.zebo.dev/financial-accounts#archive-a-financial-account'
+      description: 'Public reference: https://studio.inttegro.com/financial-accounts#archive-a-financial-account'
     headers:
     - name: Content-Type
       value: application/json
@@ -280,7 +280,7 @@ collection:
     method: POST
     meta:
       id: req_d538b35ad0053e25e9417ff094453b60
-      description: 'Public reference: https://studio.zebo.dev/financial-accounts#verify-a-financial-account'
+      description: 'Public reference: https://studio.inttegro.com/financial-accounts#verify-a-financial-account'
     headers:
     - name: Content-Type
       value: application/json

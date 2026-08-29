@@ -29,7 +29,7 @@ collection:
     method: POST
     meta:
       id: req_6c0520c6f42bee7c2ef256a6b8025a64
-      description: 'Public reference: https://studio.zebo.dev/customers#create-customer'
+      description: 'Public reference: https://studio.inttegro.com/customers#create-customer'
     headers:
     - name: Content-Type
       value: application/json
@@ -52,8 +52,12 @@ collection:
         if (insomnia.response.code >= 200 && insomnia.response.code < 300) {
           const jsonBody = insomnia.response.json();
           const customer_id = jsonBody?.customer?.id;
+          const balance = jsonBody?.customer?.balance;
           insomnia.test('Returns customer.id', () => {
             insomnia.expect(customer_id).to.be.a('string').and.not.be.empty;
+          });
+          insomnia.test('Returns customer.balance as an object', () => {
+            insomnia.expect(balance).to.be.an('object');
           });
           if (customer_id) insomnia.globals.set("customer_id", customer_id);
         }
@@ -62,7 +66,7 @@ collection:
     method: POST
     meta:
       id: req_bae580c845a925882e98ba293674e643
-      description: 'Public reference: https://studio.zebo.dev/customers#lookup-customer'
+      description: 'Public reference: https://studio.inttegro.com/customers#lookup-customer'
     headers:
     - name: Content-Type
       value: application/json
@@ -72,12 +76,20 @@ collection:
         {
           "customer_id": "{{ customer_id }}"
         }
+    scripts:
+      afterResponse: |-
+        if (insomnia.response.code >= 200 && insomnia.response.code < 300) {
+          const jsonBody = insomnia.response.json();
+          insomnia.test('Returns customer.balance as an object', () => {
+            insomnia.expect(jsonBody?.customer?.balance).to.be.an('object');
+          });
+        }
   - name: Page through customers
     url: '{{ base_url }}/customers/page'
     method: POST
     meta:
       id: req_073ac11a4cd034d12098f8bd44f0ab0e
-      description: 'Public reference: https://studio.zebo.dev/customers#page-through-customers'
+      description: 'Public reference: https://studio.inttegro.com/customers#page-through-customers'
     headers:
     - name: Content-Type
       value: application/json
@@ -87,6 +99,18 @@ collection:
         {
           "page_number": 1,
           "page_size": 50
+        }
+    scripts:
+      afterResponse: |-
+        if (insomnia.response.code >= 200 && insomnia.response.code < 300) {
+          const jsonBody = insomnia.response.json();
+          const customers = jsonBody?.page?.customers;
+          insomnia.test('Returns customer balances as objects', () => {
+            insomnia.expect(customers).to.be.an('array');
+            for (const customer of customers) {
+              insomnia.expect(customer?.balance).to.be.an('object');
+            }
+          });
         }
 environments:
   name: Base Environment

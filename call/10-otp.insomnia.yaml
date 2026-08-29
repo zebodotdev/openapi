@@ -30,7 +30,7 @@ collection:
     method: POST
     meta:
       id: req_080a4f8ee9820ee4242e101ed4c802f0
-      description: 'Public reference: https://studio.zebo.dev/otps#initiate-otp-transaction'
+      description: 'Public reference: https://studio.inttegro.com/otps#initiate-otp-transaction'
     headers:
     - name: Content-Type
       value: application/json
@@ -64,7 +64,7 @@ collection:
     method: POST
     meta:
       id: req_3eaf8a80375083ba90ecbfc096ce196d
-      description: 'Public reference: https://studio.zebo.dev/otps#verify-otp'
+      description: 'Public reference: https://studio.inttegro.com/otps#verify-otp'
     headers:
     - name: Content-Type
       value: application/json
@@ -89,7 +89,7 @@ collection:
     method: POST
     meta:
       id: req_b8adc18c57d29c176669f2f0a3fe03d9
-      description: 'Public reference: https://studio.zebo.dev/otps#lookup-otp-transaction'
+      description: 'Public reference: https://studio.inttegro.com/otps#lookup-otp-transaction'
     headers:
     - name: Content-Type
       value: application/json
@@ -104,7 +104,7 @@ collection:
     method: POST
     meta:
       id: req_e7ce2fd318bc316aa162282ddf57f244
-      description: 'Public reference: https://studio.zebo.dev/otps#cancel-otp-transaction'
+      description: 'Public reference: https://studio.inttegro.com/otps#cancel-otp-transaction'
     headers:
     - name: Content-Type
       value: application/json

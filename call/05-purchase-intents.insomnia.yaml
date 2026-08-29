@@ -29,7 +29,7 @@ collection:
     method: POST
     meta:
       id: req_0e251f24e9acaf6bf90dacc5c4c677f0
-      description: 'Public reference: https://studio.zebo.dev/purchase-intents#create-a-purchase-intent'
+      description: 'Public reference: https://studio.inttegro.com/purchase-intents#create-a-purchase-intent'
     headers:
     - name: Content-Type
       value: application/json
@@ -63,7 +63,7 @@ collection:
     method: POST
     meta:
       id: req_1cfdea1cbf0f4ac9e63dc86aefcf24ef
-      description: 'Public reference: https://studio.zebo.dev/purchase-intents#update-a-purchase-intent'
+      description: 'Public reference: https://studio.inttegro.com/purchase-intents#update-a-purchase-intent'
     headers:
     - name: Content-Type
       value: application/json
@@ -81,7 +81,7 @@ collection:
     method: POST
     meta:
       id: req_b7fac209482b6ae3195aef98a9c86902
-      description: 'Public reference: https://studio.zebo.dev/purchase-intents#cancel-a-purchase-intent'
+      description: 'Public reference: https://studio.inttegro.com/purchase-intents#cancel-a-purchase-intent'
     headers:
     - name: Content-Type
       value: application/json
@@ -96,7 +96,7 @@ collection:
     method: POST
     meta:
       id: req_cba29a8d3ae9b7976236bf8103482596
-      description: 'Public reference: https://studio.zebo.dev/purchase-intents#lookup-a-purchase-intent'
+      description: 'Public reference: https://studio.inttegro.com/purchase-intents#lookup-a-purchase-intent'
     authentication:
       type: none
     headers:
@@ -113,7 +113,7 @@ collection:
     method: POST
     meta:
       id: req_5ccaf3e6fe2da71439905661caf4dfab
-      description: 'Public reference: https://studio.zebo.dev/purchase-intents#page-purchase-intents'
+      description: 'Public reference: https://studio.inttegro.com/purchase-intents#page-purchase-intents'
     headers:
     - name: Content-Type
       value: application/json

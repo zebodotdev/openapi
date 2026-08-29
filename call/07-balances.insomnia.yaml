@@ -29,7 +29,7 @@ collection:
     method: POST
     meta:
       id: req_8434d934d8d31744f7ead74bee162f47
-      description: 'Public reference: https://studio.zebo.dev/balances#retrieve-your-balance'
+      description: 'Public reference: https://studio.inttegro.com/balances#retrieve-your-balance'
     headers:
     - name: Content-Type
       value: application/json
@@ -60,7 +60,7 @@ collection:
     method: POST
     meta:
       id: req_636e1bbcff797682033df08daa0073b8
-      description: 'Public reference: https://studio.zebo.dev/balance-transactions#look-up-a-balance-transaction'
+      description: 'Public reference: https://studio.inttegro.com/balance-transactions#look-up-a-balance-transaction'
     headers:
     - name: Content-Type
       value: application/json
@@ -75,7 +75,7 @@ collection:
     method: POST
     meta:
       id: req_c615c76cf9ec3a45bef47c853fc8e23a
-      description: 'Public reference: https://studio.zebo.dev/balance-transactions#page-through-balance-transactions'
+      description: 'Public reference: https://studio.inttegro.com/balance-transactions#page-through-balance-transactions'
     headers:
     - name: Content-Type
       value: application/json

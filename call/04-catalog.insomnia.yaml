@@ -29,7 +29,7 @@ collection:
     method: POST
     meta:
       id: req_f425e96e754cec2194c451d2e3407a24
-      description: 'Public reference: https://studio.zebo.dev/products#create-a-product'
+      description: 'Public reference: https://studio.inttegro.com/products#create-a-product'
     headers:
     - name: Content-Type
       value: application/json
@@ -79,7 +79,7 @@ collection:
     method: POST
     meta:
       id: req_d3f536c6b931a94a39b20909ad39c063
-      description: 'Public reference: https://studio.zebo.dev/products#lookup-a-product'
+      description: 'Public reference: https://studio.inttegro.com/products#lookup-a-product'
     headers:
     - name: Content-Type
       value: application/json
@@ -94,7 +94,7 @@ collection:
     method: POST
     meta:
       id: req_12345083dabf30e819783fa191cba34e
-      description: 'Public reference: https://studio.zebo.dev/products#add-a-price-to-a-product'
+      description: 'Public reference: https://studio.inttegro.com/products#add-a-price-to-a-product'
     headers:
     - name: Content-Type
       value: application/json
@@ -125,7 +125,7 @@ collection:
     method: POST
     meta:
       id: req_af182e02c8057e11132b44425369b485
-      description: 'Public reference: https://studio.zebo.dev/products#update-a-product'
+      description: 'Public reference: https://studio.inttegro.com/products#update-a-product'
     headers:
     - name: Content-Type
       value: application/json
@@ -142,7 +142,7 @@ collection:
     method: POST
     meta:
       id: req_2854e514c69fbb215d19b7e69b57899b
-      description: 'Public reference: https://studio.zebo.dev/products#publish-a-product'
+      description: 'Public reference: https://studio.inttegro.com/products#publish-a-product'
     headers:
     - name: Content-Type
       value: application/json
@@ -157,7 +157,7 @@ collection:
     method: POST
     meta:
       id: req_d26dde2c01ef63f6b53601cf115bf07d
-      description: 'Public reference: https://studio.zebo.dev/products#unpublish-a-product'
+      description: 'Public reference: https://studio.inttegro.com/products#unpublish-a-product'
     headers:
     - name: Content-Type
       value: application/json
@@ -172,7 +172,7 @@ collection:
     method: POST
     meta:
       id: req_61448b22f9f5da5c07c79b9f55b0a5e8
-      description: 'Public reference: https://studio.zebo.dev/products#archive-a-product'
+      description: 'Public reference: https://studio.inttegro.com/products#archive-a-product'
     headers:
     - name: Content-Type
       value: application/json
@@ -187,7 +187,7 @@ collection:
     method: POST
     meta:
       id: req_9b5837cc437243e2f03f3c26447eca24
-      description: 'Public reference: https://studio.zebo.dev/products#page-through-products'
+      description: 'Public reference: https://studio.inttegro.com/products#page-through-products'
     headers:
     - name: Content-Type
       value: application/json
@@ -222,7 +222,7 @@ collection:
     method: POST
     meta:
       id: req_5abe8256745950f437a871b7b00f5ef5
-      description: 'Public reference: https://studio.zebo.dev/prices#create-a-price'
+      description: 'Public reference: https://studio.inttegro.com/prices#create-a-price'
     headers:
     - name: Content-Type
       value: application/json
@@ -253,7 +253,7 @@ collection:
     method: POST
     meta:
       id: req_9ce51b5c6936d2fc636b566ea919608c
-      description: 'Public reference: https://studio.zebo.dev/prices#lookup-a-price'
+      description: 'Public reference: https://studio.inttegro.com/prices#lookup-a-price'
     headers:
     - name: Content-Type
       value: application/json
@@ -268,7 +268,7 @@ collection:
     method: POST
     meta:
       id: req_6a8792982e746ce165c3a3c0f80afcb2
-      description: 'Public reference: https://studio.zebo.dev/prices#page-through-prices'
+      description: 'Public reference: https://studio.inttegro.com/prices#page-through-prices'
     headers:
     - name: Content-Type
       value: application/json
@@ -285,7 +285,7 @@ collection:
     method: POST
     meta:
       id: req_b4ec521adb7ab61d361b5e98b589bbfa
-      description: 'Public reference: https://studio.zebo.dev/prices#update-a-price'
+      description: 'Public reference: https://studio.inttegro.com/prices#update-a-price'
     headers:
     - name: Content-Type
       value: application/json
@@ -302,7 +302,7 @@ collection:
     method: POST
     meta:
       id: req_0d1b196e83777fca6a68a3d3daeca405
-      description: 'Public reference: https://studio.zebo.dev/prices#activate-a-price'
+      description: 'Public reference: https://studio.inttegro.com/prices#activate-a-price'
     headers:
     - name: Content-Type
       value: application/json
@@ -317,7 +317,7 @@ collection:
     method: POST
     meta:
       id: req_860ee88149eff79be9b69928f5dfe1ea
-      description: 'Public reference: https://studio.zebo.dev/prices#deactivate-a-price'
+      description: 'Public reference: https://studio.inttegro.com/prices#deactivate-a-price'
     headers:
     - name: Content-Type
       value: application/json

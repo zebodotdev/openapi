@@ -29,7 +29,7 @@ collection:
     method: POST
     meta:
       id: req_ef065fee1250f1a7a22149bbe1efe3bf
-      description: 'Public reference: https://studio.zebo.dev/payouts#schedule-a-payout'
+      description: 'Public reference: https://studio.inttegro.com/payouts#schedule-a-payout'
     headers:
     - name: Content-Type
       value: application/json
@@ -57,7 +57,7 @@ collection:
     method: POST
     meta:
       id: req_906e9731529b14ca10c23af68e77d08e
-      description: 'Public reference: https://studio.zebo.dev/payouts#lookup-a-payout'
+      description: 'Public reference: https://studio.inttegro.com/payouts#lookup-a-payout'
     headers:
     - name: Content-Type
       value: application/json
@@ -72,7 +72,7 @@ collection:
     method: POST
     meta:
       id: req_e9af885d940a3100e6a8aa577cb2d7e1
-      description: 'Public reference: https://studio.zebo.dev/payouts#cancel-a-payout'
+      description: 'Public reference: https://studio.inttegro.com/payouts#cancel-a-payout'
     headers:
     - name: Content-Type
       value: application/json
@@ -87,13 +87,13 @@ collection:
     method: POST
     meta:
       id: req_13e8fc72d1a773843bd23977863c548c
-      description: 'Public reference: https://studio.zebo.dev/payouts#get-payout-settings'
+      description: 'Public reference: https://studio.inttegro.com/payouts#get-payout-settings'
   - name: Set payout destinations
     url: '{{ base_url }}/payouts/set_destinations'
     method: POST
     meta:
       id: req_8870942afeafe63976bfdeb027602537
-      description: 'Public reference: https://studio.zebo.dev/payouts#set-payout-destinations'
+      description: 'Public reference: https://studio.inttegro.com/payouts#set-payout-destinations'
     headers:
     - name: Content-Type
       value: application/json
@@ -110,31 +110,31 @@ collection:
     method: POST
     meta:
       id: req_1f0e3b9b16c75c2b8e625ed6fd0e41f3
-      description: 'Public reference: https://studio.zebo.dev/payouts#disable-automatic-payouts'
+      description: 'Public reference: https://studio.inttegro.com/payouts#disable-automatic-payouts'
   - name: Enable automatic payouts
     url: '{{ base_url }}/payouts/enable'
     method: POST
     meta:
       id: req_d88ee4b818162c45e923a3ee709a9e95
-      description: 'Public reference: https://studio.zebo.dev/payouts#enable-automatic-payouts'
+      description: 'Public reference: https://studio.inttegro.com/payouts#enable-automatic-payouts'
   - name: Enable FX conversion
     url: '{{ base_url }}/payouts/enable_fx'
     method: POST
     meta:
       id: req_4bceb44c4d862d16ece9e5564ffde29e
-      description: 'Public reference: https://studio.zebo.dev/payouts#enable-fx-conversion'
+      description: 'Public reference: https://studio.inttegro.com/payouts#enable-fx-conversion'
   - name: Disable FX conversion
     url: '{{ base_url }}/payouts/disable_fx'
     method: POST
     meta:
       id: req_05f176e6bae5166fff7b6f344dc4b032
-      description: 'Public reference: https://studio.zebo.dev/payouts#disable-fx-conversion'
+      description: 'Public reference: https://studio.inttegro.com/payouts#disable-fx-conversion'
   - name: Page through payouts
     url: '{{ base_url }}/payouts/page'
     method: POST
     meta:
       id: req_a85395d32e591c142d9b4762e0508c9a
-      description: 'Public reference: https://studio.zebo.dev/payouts#page-through-payouts'
+      description: 'Public reference: https://studio.inttegro.com/payouts#page-through-payouts'
     headers:
     - name: Content-Type
       value: application/json

@@ -30,7 +30,7 @@ collection:
     method: POST
     meta:
       id: req_c973e6b68c60d1f8d89ae9cc1fa76f01
-      description: 'Public reference: https://studio.zebo.dev/payment-methods#tokenize-payment-method'
+      description: 'Public reference: https://studio.inttegro.com/payment-methods#tokenize-payment-method'
     headers:
     - name: Content-Type
       value: application/json
@@ -66,7 +66,7 @@ collection:
     method: POST
     meta:
       id: req_d0594afeb5315c59974c892511ce0a5a
-      description: 'Public reference: https://studio.zebo.dev/payment-methods#lookup-payment-method'
+      description: 'Public reference: https://studio.inttegro.com/payment-methods#lookup-payment-method'
     headers:
     - name: Content-Type
       value: application/json
@@ -81,7 +81,7 @@ collection:
     method: POST
     meta:
       id: req_06b47afd3e4a49a1378117d5c638535a
-      description: 'Public reference: https://studio.zebo.dev/payment-methods#update-payment-method'
+      description: 'Public reference: https://studio.inttegro.com/payment-methods#update-payment-method'
     headers:
     - name: Content-Type
       value: application/json
@@ -109,7 +109,7 @@ collection:
     method: POST
     meta:
       id: req_2d066dda97871f1a3e8ceccedbdad0aa
-      description: 'Public reference: https://studio.zebo.dev/payment-methods#activate-payment-method'
+      description: 'Public reference: https://studio.inttegro.com/payment-methods#activate-payment-method'
     headers:
     - name: Content-Type
       value: application/json
@@ -124,7 +124,7 @@ collection:
     method: POST
     meta:
       id: req_c682e11973d39d2bae2a1347c6885260
-      description: 'Public reference: https://studio.zebo.dev/payment-methods#deactivate-payment-method'
+      description: 'Public reference: https://studio.inttegro.com/payment-methods#deactivate-payment-method'
     headers:
     - name: Content-Type
       value: application/json
@@ -139,7 +139,7 @@ collection:
     method: POST
     meta:
       id: req_5f8372e98df3b90099730fdbbec08d94
-      description: 'Public reference: https://studio.zebo.dev/payment-methods#archive-payment-method'
+      description: 'Public reference: https://studio.inttegro.com/payment-methods#archive-payment-method'
     headers:
     - name: Content-Type
       value: application/json
@@ -154,7 +154,7 @@ collection:
     method: POST
     meta:
       id: req_a0b8dcefd1a0c13a2b7207cba8bd7158
-      description: 'Public reference: https://studio.zebo.dev/payment-methods#unarchive-payment-method'
+      description: 'Public reference: https://studio.inttegro.com/payment-methods#unarchive-payment-method'
     headers:
     - name: Content-Type
       value: application/json
@@ -169,7 +169,7 @@ collection:
     method: POST
     meta:
       id: req_129b36278769a46eab595870f3237ecc
-      description: 'Public reference: https://studio.zebo.dev/payment-methods#page-through-payment-methods'
+      description: 'Public reference: https://studio.inttegro.com/payment-methods#page-through-payment-methods'
     headers:
     - name: Content-Type
       value: application/json
@@ -186,7 +186,7 @@ collection:
     method: POST
     meta:
       id: req_6ba89052975ddf77e984e0a6207d5af4
-      description: 'Public reference: https://studio.zebo.dev/payment-methods#payment-method-settings'
+      description: 'Public reference: https://studio.inttegro.com/payment-methods#payment-method-settings'
     headers:
     - name: Content-Type
       value: application/json

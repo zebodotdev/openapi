@@ -30,7 +30,7 @@ collection:
     method: POST
     meta:
       id: req_f2b58f1e773730deac56d1e69ef77399
-      description: 'Public reference: https://studio.zebo.dev/files#upload-a-file'
+      description: 'Public reference: https://studio.inttegro.com/files#upload-a-file'
     headers:
     - name: Idempotency-Key
       value: '{{ idempotency_key }}'
@@ -61,7 +61,7 @@ collection:
     method: POST
     meta:
       id: req_0beb8979d7b02e5b1cdc1dccd0bd9784
-      description: 'Public reference: https://studio.zebo.dev/files#lookup-a-file'
+      description: 'Public reference: https://studio.inttegro.com/files#lookup-a-file'
     headers:
     - name: Content-Type
       value: application/json
@@ -76,7 +76,7 @@ collection:
     method: POST
     meta:
       id: req_2c875cc898dff62075e5912f22777a87
-      description: 'Public reference: https://studio.zebo.dev/files#page-files'
+      description: 'Public reference: https://studio.inttegro.com/files#page-files'
     headers:
     - name: Content-Type
       value: application/json
@@ -94,7 +94,7 @@ collection:
     method: POST
     meta:
       id: req_08ab061aabbc79e725141e7478736af6
-      description: 'Public reference: https://studio.zebo.dev/files#download-file-contents'
+      description: 'Public reference: https://studio.inttegro.com/files#download-file-contents'
     headers:
     - name: Content-Type
       value: application/json
@@ -110,7 +110,7 @@ collection:
     method: POST
     meta:
       id: req_cab3bbaa56570eb14f58f0247eff5274
-      description: 'Public reference: https://studio.zebo.dev/files#delete-a-file'
+      description: 'Public reference: https://studio.inttegro.com/files#delete-a-file'
     headers:
     - name: Idempotency-Key
       value: '{{ idempotency_key }}'
@@ -141,7 +141,7 @@ collection:
     method: POST
     meta:
       id: req_a07268dcd9a7e3125c2455fbc85f0e6a
-      description: 'Public reference: https://studio.zebo.dev/file-references#reconcile-file-references'
+      description: 'Public reference: https://studio.inttegro.com/file-references#reconcile-file-references'
     headers:
     - name: Content-Type
       value: application/json
@@ -188,7 +188,7 @@ collection:
     method: POST
     meta:
       id: req_22b2f599aab35b3274717aa03074236d
-      description: 'Public reference: https://studio.zebo.dev/file-links#create-a-file-link'
+      description: 'Public reference: https://studio.inttegro.com/file-links#create-a-file-link'
     headers:
     - name: Content-Type
       value: application/json
@@ -226,7 +226,7 @@ collection:
     method: POST
     meta:
       id: req_748172dacaa487ee9ec8af15d495bb23
-      description: 'Public reference: https://studio.zebo.dev/file-links#lookup-a-file-link'
+      description: 'Public reference: https://studio.inttegro.com/file-links#lookup-a-file-link'
     headers:
     - name: Content-Type
       value: application/json
@@ -241,7 +241,7 @@ collection:
     method: POST
     meta:
       id: req_eb6a41e1e54487dd2e40cdf12c63ad40
-      description: 'Public reference: https://studio.zebo.dev/file-links#page-file-links'
+      description: 'Public reference: https://studio.inttegro.com/file-links#page-file-links'
     headers:
     - name: Content-Type
       value: application/json
@@ -259,7 +259,7 @@ collection:
     method: POST
     meta:
       id: req_5dd69cbbf654f505d8e4fe321d700caf
-      description: 'Public reference: https://studio.zebo.dev/file-links#revoke-a-file-link'
+      description: 'Public reference: https://studio.inttegro.com/file-links#revoke-a-file-link'
     headers:
     - name: Idempotency-Key
       value: '{{ idempotency_key }}'
@@ -281,7 +281,7 @@ collection:
     meta:
       id: req_aac02bc019259917588008020cdeb5cb
       description: |-
-        Public reference: https://studio.zebo.dev/file-links#open-a-file-link
+        Public reference: https://studio.inttegro.com/file-links#open-a-file-link
         OpenAPI operation: GET /file_links/open
     authentication:
       type: none
@@ -310,7 +310,7 @@ collection:
     method: POST
     meta:
       id: req_5422c34722b13c93710eee1ddf0a36fe
-      description: 'Public reference: https://studio.zebo.dev/file-uploads#create-an-upload-request'
+      description: 'Public reference: https://studio.inttegro.com/file-uploads#create-an-upload-request'
     headers:
     - name: Idempotency-Key
       value: '{{ idempotency_key }}'
@@ -365,7 +365,7 @@ collection:
     meta:
       id: req_695a515dfb3f34f61642000ac2411c6f
       description: |-
-        Public reference: https://studio.zebo.dev/file-uploads#fulfill-an-upload-request
+        Public reference: https://studio.inttegro.com/file-uploads#fulfill-an-upload-request
         OpenAPI operation: POST /upload_requests/upload
     authentication:
       type: none
@@ -380,7 +380,7 @@ collection:
     method: POST
     meta:
       id: req_9735709b897f3c7020183281c4a345f5
-      description: 'Public reference: https://studio.zebo.dev/file-uploads#lookup-an-upload-request'
+      description: 'Public reference: https://studio.inttegro.com/file-uploads#lookup-an-upload-request'
     headers:
     - name: Content-Type
       value: application/json
@@ -395,7 +395,7 @@ collection:
     method: POST
     meta:
       id: req_5cd0750e55c2eddb2cf2ae9cb2ea7b0b
-      description: 'Public reference: https://studio.zebo.dev/file-uploads#page-upload-requests'
+      description: 'Public reference: https://studio.inttegro.com/file-uploads#page-upload-requests'
     headers:
     - name: Content-Type
       value: application/json
@@ -413,7 +413,7 @@ collection:
     method: POST
     meta:
       id: req_4f7d3d27159271927c54d8ccfcd8ef93
-      description: 'Public reference: https://studio.zebo.dev/file-uploads#cancel-an-upload-request'
+      description: 'Public reference: https://studio.inttegro.com/file-uploads#cancel-an-upload-request'
     headers:
     - name: Idempotency-Key
       value: '{{ idempotency_key }}'

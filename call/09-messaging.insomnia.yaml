@@ -29,7 +29,7 @@ collection:
     method: POST
     meta:
       id: req_aaf236bc944071d6c312202d008ea30b
-      description: 'Public reference: https://studio.zebo.dev/chimes#send-chime'
+      description: 'Public reference: https://studio.inttegro.com/chimes#send-chime'
     headers:
     - name: Content-Type
       value: application/json
@@ -67,7 +67,7 @@ collection:
     method: POST
     meta:
       id: req_63ee4d961712f09350bff3b24cd8d733
-      description: 'Public reference: https://studio.zebo.dev/chimes#lookup-chime'
+      description: 'Public reference: https://studio.inttegro.com/chimes#lookup-chime'
     headers:
     - name: Content-Type
       value: application/json
@@ -82,7 +82,7 @@ collection:
     method: POST
     meta:
       id: req_47b711339a13a1e40025d45837539d7b
-      description: 'Public reference: https://studio.zebo.dev/chimes#page-chimes'
+      description: 'Public reference: https://studio.inttegro.com/chimes#page-chimes'
     headers:
     - name: Content-Type
       value: application/json
@@ -99,7 +99,7 @@ collection:
     method: POST
     meta:
       id: req_ab91e60d9232a72d6943f0d1da151622
-      description: 'Public reference: https://studio.zebo.dev/chimes#schedule-chime'
+      description: 'Public reference: https://studio.inttegro.com/chimes#schedule-chime'
     headers:
     - name: Content-Type
       value: application/json
@@ -140,7 +140,7 @@ collection:
     method: POST
     meta:
       id: req_44757313b25f2ea376842245b0168a75
-      description: 'Public reference: https://studio.zebo.dev/chimes#lookup-a-scheduled-chime'
+      description: 'Public reference: https://studio.inttegro.com/chimes#lookup-a-scheduled-chime'
     headers:
     - name: Content-Type
       value: application/json
@@ -155,7 +155,7 @@ collection:
     method: POST
     meta:
       id: req_0ef3d410f4ecd98dea9f337f3cdc6e94
-      description: 'Public reference: https://studio.zebo.dev/chimes#cancel-a-scheduled-chime'
+      description: 'Public reference: https://studio.inttegro.com/chimes#cancel-a-scheduled-chime'
     headers:
     - name: Content-Type
       value: application/json
@@ -172,7 +172,7 @@ collection:
     method: POST
     meta:
       id: req_0d54d0a8414928f8f3a87072e4145848
-      description: 'Public reference: https://studio.zebo.dev/chimes#broadcast-chimes'
+      description: 'Public reference: https://studio.inttegro.com/chimes#broadcast-chimes'
     headers:
     - name: Content-Type
       value: application/json
@@ -218,7 +218,7 @@ collection:
     method: POST
     meta:
       id: req_4d77d71c9764dbc446afabc3dec50eb2
-      description: 'Public reference: https://studio.zebo.dev/chimes#lookup-a-broadcast'
+      description: 'Public reference: https://studio.inttegro.com/chimes#lookup-a-broadcast'
     headers:
     - name: Content-Type
       value: application/json
@@ -233,7 +233,7 @@ collection:
     method: POST
     meta:
       id: req_f7aca48f4375b3c53a0f88de2283b860
-      description: 'Public reference: https://studio.zebo.dev/chimes#cancel-a-broadcast'
+      description: 'Public reference: https://studio.inttegro.com/chimes#cancel-a-broadcast'
     headers:
     - name: Content-Type
       value: application/json
@@ -269,7 +269,7 @@ collection:
     method: POST
     meta:
       id: req_22ba7b11791a95fed0f0e9c79503160f
-      description: 'Public reference: https://studio.zebo.dev/message-templates#create-a-message-template'
+      description: 'Public reference: https://studio.inttegro.com/message-templates#create-a-message-template'
     headers:
     - name: Idempotency-Key
       value: '{{ idempotency_key }}'
@@ -313,7 +313,7 @@ collection:
     method: POST
     meta:
       id: req_e1865455e3e11941085ea10228e81431
-      description: 'Public reference: https://studio.zebo.dev/message-templates#update-a-message-template'
+      description: 'Public reference: https://studio.inttegro.com/message-templates#update-a-message-template'
     headers:
     - name: Idempotency-Key
       value: '{{ idempotency_key }}'
@@ -333,7 +333,7 @@ collection:
     method: POST
     meta:
       id: req_1f4be766b1691809eab172b5a054f694
-      description: 'Public reference: https://studio.zebo.dev/message-templates#publish-a-message-template'
+      description: 'Public reference: https://studio.inttegro.com/message-templates#publish-a-message-template'
     headers:
     - name: Idempotency-Key
       value: '{{ idempotency_key }}'
@@ -350,7 +350,7 @@ collection:
     method: POST
     meta:
       id: req_13dfeb3837213de04fafb1c1d0c1525b
-      description: 'Public reference: https://studio.zebo.dev/message-templates#archive-a-message-template'
+      description: 'Public reference: https://studio.inttegro.com/message-templates#archive-a-message-template'
     headers:
     - name: Idempotency-Key
       value: '{{ idempotency_key }}'
@@ -367,7 +367,7 @@ collection:
     method: POST
     meta:
       id: req_a9c278d00ae4c585a4d29cf4d00a3dcf
-      description: 'Public reference: https://studio.zebo.dev/message-templates#look-up-a-message-template'
+      description: 'Public reference: https://studio.inttegro.com/message-templates#look-up-a-message-template'
     headers:
     - name: Content-Type
       value: application/json
@@ -382,7 +382,7 @@ collection:
     method: POST
     meta:
       id: req_187bbd53c06847bb7a03fed7902ce3eb
-      description: 'Public reference: https://studio.zebo.dev/message-templates#page-message-templates'
+      description: 'Public reference: https://studio.inttegro.com/message-templates#page-message-templates'
     headers:
     - name: Content-Type
       value: application/json
@@ -400,7 +400,7 @@ collection:
     method: POST
     meta:
       id: req_1bad9d18274e42c3fe2c878145162590
-      description: 'Public reference: https://studio.zebo.dev/message-templates#render-a-message-template-preview'
+      description: 'Public reference: https://studio.inttegro.com/message-templates#render-a-message-template-preview'
     headers:
     - name: Content-Type
       value: application/json
