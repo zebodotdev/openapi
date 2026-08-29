@@ -7950,7 +7950,7 @@ components:
                             type: string
                             format: uri
                             description: URL to redirect the customer to
-                            example: "https://pages.zebo.dev/authorize?order_id=3deNYydEjIGCqK1tGlAPwJYSCsZnQ4XGF"
+                            example: "https://pages.inttegro.com/authorize?order_id=3deNYydEjIGCqK1tGlAPwJYSCsZnQ4XGF"
                         valid_until:
                             type: string
                             format: date-time
@@ -9098,7 +9098,7 @@ components:
             properties:
                 landing_url:
                     type: string
-                    example: "https://pages.zebo.dev/buy/sale_ABCXYZ?utm_source=instagram"
+                    example: "https://pages.inttegro.com/buy/sale_ABCXYZ?utm_source=instagram"
                 referrer:
                     type: string
                     example: "https://instagram.com/"
@@ -10371,7 +10371,7 @@ components:
                     type: string
                     format: uri
                     description: Hosted invoice or receipt URL sent to the customer. Receipt URLs use the hosted receipt path, not the invoice PDF path.
-                    example: "https://pages.zebo.dev/invoices/or_48ZW7BGvYUBWc1i6WBkL2jr0iPQP5jUy76mmmHpt"
+                    example: "https://pages.inttegro.com/invoices/or_48ZW7BGvYUBWc1i6WBkL2jr0iPQP5jUy76mmmHpt"
                 failed_channels:
                     type: array
                     description: Channels that failed to send.
