@@ -10,7 +10,7 @@ environments:
   meta:
     id: env_4441cc5f612fb445ed9428bf08deba0e
   data:
-    base_url: https://api.zebo.dev
+    base_url: https://api.inttegro.com
     api_key: ''
     idempotency_key: ''
     future_timestamp: ''

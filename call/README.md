@@ -37,7 +37,7 @@ Inso can override collection variables without creating a credential file. Expor
 
 ```sh
 export ZEBO_API_KEY='replace-with-your-api-key'
-export ZEBO_API_BASE_URL='https://api.zebo.dev'
+export ZEBO_API_BASE_URL='https://api.inttegro.com'
 export ZEBO_ORDER_NUMBER='INSOMNIA-ORDER-001'
 export ZEBO_IDEMPOTENCY_KEY='checkout-unique-stable-value'
 ```

@@ -107,7 +107,7 @@ environments:
   meta:
     id: env_3f43933245a647c58229caf42509d775
   data:
-    base_url: https://api.zebo.dev
+    base_url: https://api.inttegro.com
     api_key: ''
     idempotency_key: ''
     checkout_success_url: https://example.com/checkout/success
