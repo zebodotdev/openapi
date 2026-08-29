@@ -8246,6 +8246,7 @@ components:
                 - id
                 - name
                 - created_at
+                - balance
             properties:
                 id:
                     type: string
@@ -8290,6 +8291,32 @@ components:
                     description: Custom key-value data
                     additionalProperties:
                         type: string
+                balance:
+                    type: object
+                    description: |
+                        Always-present map of the customer's available balances, keyed by lowercase
+                        ISO 4217 currency code. An empty object means the customer has no balance entries.
+                        Each entry's `as_of` identifies the point in time represented by `available`;
+                        later customer balance activity may not yet be reflected.
+                    additionalProperties:
+                        type: object
+                        required:
+                            - available
+                            - as_of
+                        properties:
+                            available:
+                                $ref: '#/components/schemas/Money'
+                            as_of:
+                                type: string
+                                format: date-time
+                                description: Point in time represented by the available balance
+                        additionalProperties: false
+                    example:
+                        ghs:
+                            available:
+                                currency: ghs
+                                value: 6500
+                            as_of: "2025-11-24T07:55:00Z"
                 created_at:
                     type: string
                     format: date-time
