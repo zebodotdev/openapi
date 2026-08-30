@@ -1,0 +1,155 @@
+type: collection.insomnia.rest/5.0
+schema_version: '5.1'
+name: Commerce API — Refunds
+meta:
+  id: wrk_2a0ef3c14ec24fbe919f0cd40b34a6ab
+  description: Create and inspect refunds for paid order line items. Uses the shared Commerce API global environment.
+collection:
+- name: Refunds
+  meta:
+    id: fld_594fd04756194b17a2af3fc3a7ad0ac5
+    description: Run after a checkout order has been paid. The create URL and its compatibility alias share one retry key and body.
+  authentication:
+    type: bearer
+    token: '{{ api_key }}'
+    prefix: Bearer
+  scripts:
+    afterResponse: |-
+      insomnia.test('Returns HTTP 200', () => {
+        insomnia.expect(insomnia.response.code).to.equal(200);
+      });
+  children:
+  - name: Create a refund
+    url: '{{ base_url }}/refunds/create'
+    method: POST
+    meta:
+      id: req_8f9050ce0d4c455d85bc26bc6e64389a
+      description: 'Public reference: https://studio.inttegro.com/refunds#create-a-refund'
+    headers:
+    - name: Content-Type
+      value: application/json
+    - name: Idempotency-Key
+      value: call-refund-{{ order_id }}-{{ order_line_item_id }}
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "order_id": "{{ order_id }}",
+          "reason": "requested_by_customer",
+          "reference": "call-refund-{{ order_id }}",
+          "line_items": [
+            {
+              "order_line_item_id": "{{ order_line_item_id }}",
+              "refund_amount": {
+                "currency": "{{ currency }}",
+                "value": 100
+              }
+            }
+          ]
+        }
+    scripts:
+      afterResponse: |-
+        if (insomnia.response.code === 200) {
+          const jsonBody = insomnia.response.json();
+          const refund = jsonBody?.refund;
+          insomnia.test('Returns the created pending refund', () => {
+            insomnia.expect(jsonBody).to.have.all.keys('refund');
+            insomnia.expect(refund?.id).to.be.a('string').and.match(/^rf_/);
+            insomnia.expect(refund?.order_id).to.equal(insomnia.variables.get('order_id'));
+            insomnia.expect(refund?.status).to.equal('pending');
+            insomnia.expect(refund?.line_items).to.be.an('array');
+            insomnia.expect(refund?.line_items?.length).to.be.greaterThan(0);
+          });
+          if (refund?.id) insomnia.globals.set('refund_id', refund.id);
+        }
+  - name: Replay through the compatibility URL
+    url: '{{ base_url }}/orders/refund'
+    method: POST
+    meta:
+      id: req_91116608dd934677978c948117b9b08d
+      description: 'Public reference: https://studio.inttegro.com/refunds#compatibility-alias'
+    headers:
+    - name: Content-Type
+      value: application/json
+    - name: Idempotency-Key
+      value: call-refund-{{ order_id }}-{{ order_line_item_id }}
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "order_id": "{{ order_id }}",
+          "reason": "requested_by_customer",
+          "reference": "call-refund-{{ order_id }}",
+          "line_items": [
+            {
+              "order_line_item_id": "{{ order_line_item_id }}",
+              "refund_amount": {
+                "currency": "{{ currency }}",
+                "value": 100
+              }
+            }
+          ]
+        }
+    scripts:
+      afterResponse: |-
+        if (insomnia.response.code === 200) {
+          const jsonBody = insomnia.response.json();
+          insomnia.test('The compatibility URL replays the same refund', () => {
+            insomnia.expect(jsonBody).to.have.all.keys('refund');
+            insomnia.expect(jsonBody?.refund?.id).to.equal(insomnia.variables.get('refund_id'));
+          });
+        }
+  - name: Lookup a refund
+    url: '{{ base_url }}/refunds/lookup'
+    method: POST
+    meta:
+      id: req_ba730d27fe3a4fb28aa808f5b67dd45c
+      description: 'Public reference: https://studio.inttegro.com/refunds#lookup-a-refund'
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "refund_id": "{{ refund_id }}"
+        }
+    scripts:
+      afterResponse: |-
+        if (insomnia.response.code === 200) {
+          const jsonBody = insomnia.response.json();
+          insomnia.test('Returns the requested refund', () => {
+            insomnia.expect(jsonBody).to.have.all.keys('refund');
+            insomnia.expect(jsonBody?.refund?.id).to.equal(insomnia.variables.get('refund_id'));
+            insomnia.expect(jsonBody?.refund?.status).to.be.oneOf(['pending', 'processing', 'succeeded', 'failed']);
+          });
+        }
+  - name: List refunds
+    url: '{{ base_url }}/refunds/page'
+    method: POST
+    meta:
+      id: req_e4e4674157d94beb956f087b4e5ad459
+      description: 'Public reference: https://studio.inttegro.com/refunds#list-refunds'
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "page_number": 1,
+          "page_size": 20
+        }
+    scripts:
+      afterResponse: |-
+        if (insomnia.response.code === 200) {
+          const jsonBody = insomnia.response.json();
+          const page = jsonBody?.page;
+          insomnia.test('Returns a one-based refund page', () => {
+            insomnia.expect(jsonBody).to.have.all.keys('page');
+            insomnia.expect(page).to.have.all.keys('number', 'refunds', 'size');
+            insomnia.expect(page?.number).to.equal(1);
+            insomnia.expect(page?.refunds).to.be.an('array');
+            insomnia.expect(page?.size).to.equal(page?.refunds?.length);
+          });
+        }

@@ -86,50 +86,18 @@ collection:
           insomnia.test('Returns a hosted checkout URL', () => {
             insomnia.expect(checkout_url).to.be.a('string').and.match(/^https?:\/\//);
           });
-        }
-  - name: Create an order using the compatibility route
-    url: '{{ base_url }}/orders/new'
-    method: POST
-    meta:
-      id: req_0f0b946d6b8fd64a43a408076c074f97
-      description: |-
-        Public reference: https://studio.inttegro.com/orders#create-an-order
-        Compatibility route for the same create-order contract. Choose either this request or Create an order; do not send both for one logical order.
-    headers:
-    - name: Content-Type
-      value: application/json
-    body:
-      mimeType: application/json
-      text: |-
-        {
-          "request_meta": {
-            "idempotency_key": "{{ idempotency_key }}"
-          },
-          "number": "{{ order_number }}",
-          "finalize": true,
-          "checkout_settings": {
-            "redirect_url": "{{ checkout_success_url }}",
-            "cancel_url": "{{ checkout_cancel_url }}"
-          },
-          "customer_data": {
-            "name": "{{ customer_name }}",
-            "email_address": "{{ customer_email }}",
-            "phone_number": "{{ customer_phone }}"
-          },
-          "line_items": [
-            {
-              "type": "product",
-              "product": {
-                "type": "physical",
-                "name": "{{ product_name }}",
-                "quantity": 1,
-                "price": {
-                  "currency": "{{ currency }}",
-                  "value": 20000
-                }
-              }
+          const line_items = jsonBody?.order?.line_item_group?.line_items ?? [];
+          const line_item_ids = line_items
+            .map((line_item) => line_item?.product?.id ?? line_item?.fee?.id ?? line_item?.shipping?.id)
+            .filter(Boolean);
+          if (line_item_ids[0]) insomnia.globals.set("order_line_item_id", line_item_ids[0]);
+          insomnia.test('Returns typed order line item identifiers', () => {
+            insomnia.expect(line_items).to.be.an('array').and.not.be.empty;
+            insomnia.expect(line_item_ids.length).to.equal(line_items.length);
+            for (const line_item_id of line_item_ids) {
+              insomnia.expect(line_item_id).to.match(/^oli_/);
             }
-          ]
+          });
         }
   - name: Pay for an order
     url: '{{ base_url }}/orders/pay'
@@ -140,6 +108,8 @@ collection:
     headers:
     - name: Content-Type
       value: application/json
+    - name: Idempotency-Key
+      value: call-order-pay-{{ order_id }}
     body:
       mimeType: application/json
       text: |-
@@ -171,6 +141,8 @@ collection:
     headers:
     - name: Content-Type
       value: application/json
+    - name: Idempotency-Key
+      value: call-order-confirm-{{ confirmation_id }}
     body:
       mimeType: application/json
       text: |-
@@ -189,6 +161,8 @@ collection:
     headers:
     - name: Content-Type
       value: application/json
+    - name: Idempotency-Key
+      value: call-order-request-confirmation-{{ order_id }}
     body:
       mimeType: application/json
       text: |-
@@ -213,6 +187,8 @@ collection:
     headers:
     - name: Content-Type
       value: application/json
+    - name: Idempotency-Key
+      value: call-order-update-{{ order_id }}
     body:
       mimeType: application/json
       text: |-
@@ -259,6 +235,8 @@ collection:
     headers:
     - name: Content-Type
       value: application/json
+    - name: Idempotency-Key
+      value: call-order-finalize-{{ order_id }}
     body:
       mimeType: application/json
       text: |-
@@ -275,7 +253,7 @@ collection:
     - name: Content-Type
       value: application/json
     - name: Idempotency-Key
-      value: '{{ idempotency_key }}'
+      value: call-order-send-invoice-{{ order_id }}
     body:
       mimeType: application/json
       text: |-
@@ -292,7 +270,7 @@ collection:
     - name: Content-Type
       value: application/json
     - name: Idempotency-Key
-      value: '{{ idempotency_key }}'
+      value: call-order-send-receipt-{{ order_id }}
     body:
       mimeType: application/json
       text: |-
@@ -308,6 +286,8 @@ collection:
     headers:
     - name: Content-Type
       value: application/json
+    - name: Idempotency-Key
+      value: call-order-complete-{{ order_id }}
     body:
       mimeType: application/json
       text: |-
@@ -338,6 +318,8 @@ collection:
     headers:
     - name: Content-Type
       value: application/json
+    - name: Idempotency-Key
+      value: call-order-cancel-{{ order_id }}
     body:
       mimeType: application/json
       text: |-

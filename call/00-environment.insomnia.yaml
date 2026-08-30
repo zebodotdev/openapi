@@ -21,6 +21,7 @@ environments:
     currency: ghs
     customer_name: Example Customer
     customer_email: customer@example.com
+    email_from: notifications@example.com
     customer_phone: '+233241234567'
     mobile_money_account_number: '0241234567'
     bank_account_number: '0012345678'
@@ -38,10 +39,12 @@ environments:
     balance_transaction_id: ''
     payment_method_id: ''
     order_id: ''
+    order_line_item_id: ''
     payment_id: ''
     confirmation_id: ''
     checkout_url: ''
     payout_id: ''
+    refund_id: ''
     chime_id: ''
     schedule_id: ''
     broadcast_id: ''

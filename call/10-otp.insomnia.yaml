@@ -3,13 +3,13 @@ schema_version: '5.1'
 name: Commerce API — One-Time Passwords
 meta:
   id: wrk_3b8be7bb233f4fea482b8f3f2710d0fa
-  description: Initiate, verify, retrieve, and cancel SMS one-time-password transactions. Uses the shared Commerce API global
+  description: Initiate, verify, and retrieve SMS one-time-password transactions. Uses the shared Commerce API global
     environment.
 collection:
 - name: One-time passwords
   meta:
     id: fld_a4c6490c1f27341357976458d321349f
-    description: Initiate, verify, retrieve, and cancel SMS one-time-password transactions.
+    description: Initiate, verify, and retrieve SMS one-time-password transactions.
   authentication:
     type: bearer
     token: '{{ api_key }}'
@@ -35,7 +35,7 @@ collection:
     - name: Content-Type
       value: application/json
     - name: Idempotency-Key
-      value: '{{ idempotency_key }}'
+      value: call-otp-initiate-{{ customer_phone }}
     body:
       mimeType: application/json
       text: |-
@@ -51,14 +51,15 @@ collection:
         }
     scripts:
       afterResponse: |-
-        if (insomnia.response.code >= 200 && insomnia.response.code < 300) {
+        insomnia.test('Returns an initiated OTP transaction', () => {
+          insomnia.expect(insomnia.response.code).to.equal(200);
           const jsonBody = insomnia.response.json();
           const otp_transaction_id = jsonBody?.transaction?.id;
-          insomnia.test('Returns transaction.id', () => {
-            insomnia.expect(otp_transaction_id).to.be.a('string').and.not.be.empty;
-          });
+          insomnia.expect(otp_transaction_id).to.be.a('string').and.not.be.empty;
+          insomnia.expect(jsonBody?.transaction?.status).to.be.oneOf(['pending', 'pending_delivery', 'pending_verification']);
+          insomnia.expect(jsonBody?.transaction?.full_message).to.include('{token}');
           if (otp_transaction_id) insomnia.globals.set("otp_transaction_id", otp_transaction_id);
-        }
+        });
   - name: Verify OTP
     url: '{{ base_url }}/otp/verify'
     method: POST
@@ -68,6 +69,8 @@ collection:
     headers:
     - name: Content-Type
       value: application/json
+    - name: Idempotency-Key
+      value: call-otp-verify-{{ otp_transaction_id }}-{{ otp_code }}
     body:
       mimeType: application/json
       text: |-
@@ -78,12 +81,12 @@ collection:
         }
     scripts:
       afterResponse: |-
-        if (insomnia.response.code >= 200 && insomnia.response.code < 300) {
+        insomnia.test('Returns a recorded OTP verification attempt', () => {
+          insomnia.expect(insomnia.response.code).to.equal(200);
           const jsonBody = insomnia.response.json();
-          insomnia.test('OTP verdict is pass', () => {
-            insomnia.expect(jsonBody?.verification_attempt?.result?.verdict).to.eql('pass');
-          });
-        }
+          insomnia.expect(jsonBody?.verification_attempt?.presented_token).to.equal(insomnia.variables.get('otp_code'));
+          insomnia.expect(jsonBody?.verification_attempt?.result?.verdict).to.be.oneOf(['pass', 'fail']);
+        });
   - name: Lookup OTP transaction
     url: '{{ base_url }}/otp/lookup'
     method: POST
@@ -99,22 +102,15 @@ collection:
         {
           "transaction_id": "{{ otp_transaction_id }}"
         }
-  - name: Cancel OTP transaction
-    url: '{{ base_url }}/otp/cancel'
-    method: POST
-    meta:
-      id: req_e7ce2fd318bc316aa162282ddf57f244
-      description: 'Public reference: https://studio.inttegro.com/otps#cancel-otp-transaction'
-    headers:
-    - name: Content-Type
-      value: application/json
-    body:
-      mimeType: application/json
-      text: |-
-        {
-          "reason": "user_requested_new_code",
-          "transaction_id": "{{ otp_transaction_id }}"
-        }
+    scripts:
+      afterResponse: |-
+        insomnia.test('Returns the OTP transaction without a generated token', () => {
+          insomnia.expect(insomnia.response.code).to.equal(200);
+          const transaction = insomnia.response.json()?.transaction;
+          insomnia.expect(transaction?.id).to.equal(insomnia.variables.get('otp_transaction_id'));
+          insomnia.expect(transaction?.full_message).to.include('{token}');
+          insomnia.expect(transaction).not.to.have.property('token');
+        });
 environments:
   name: Base Environment
   meta:

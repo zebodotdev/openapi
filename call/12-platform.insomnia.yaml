@@ -47,8 +47,12 @@ collection:
         if (insomnia.response.code >= 200 && insomnia.response.code < 300) {
           const jsonBody = insomnia.response.json();
           const app_id = jsonBody?.app?.id;
-          insomnia.test('Returns app.id', () => {
+          insomnia.test('Returns the created app and one-time credentials', () => {
+            insomnia.expect(insomnia.response.code).to.equal(200);
+            insomnia.expect(jsonBody).to.have.all.keys('app');
             insomnia.expect(app_id).to.be.a('string').and.not.be.empty;
+            insomnia.expect(jsonBody?.app?.relationship).to.be.an('object');
+            insomnia.expect(jsonBody?.app?.secret_key?.token).to.be.a('string').and.not.be.empty;
           });
           if (app_id) insomnia.globals.set("app_id", app_id);
         }
@@ -58,6 +62,16 @@ collection:
     meta:
       id: req_1370f932d5a2962b288e930b109c058f
       description: 'Public reference: https://studio.inttegro.com/apps#lookup-an-app'
+    scripts:
+      afterResponse: |-
+        if (insomnia.response.code === 200) {
+          const jsonBody = insomnia.response.json();
+          insomnia.test('Returns safe metadata for the authenticated app', () => {
+            insomnia.expect(jsonBody).to.have.all.keys('app');
+            insomnia.expect(jsonBody?.app?.id).to.be.a('string').and.not.be.empty;
+            insomnia.expect(jsonBody?.app).not.to.have.property('secret_key');
+          });
+        }
   - name: Update an app
     url: '{{ base_url }}/apps/update'
     method: POST
@@ -78,10 +92,20 @@ collection:
           "legal_entity_type": "business",
           "name": "Acme Checkout API"
         }
+    scripts:
+      afterResponse: |-
+        if (insomnia.response.code === 200) {
+          const jsonBody = insomnia.response.json();
+          insomnia.test('Returns the updated app without credentials', () => {
+            insomnia.expect(jsonBody).to.have.all.keys('app');
+            insomnia.expect(jsonBody?.app?.name).to.equal('Acme Checkout API');
+            insomnia.expect(jsonBody?.app).not.to.have.property('secret_key');
+          });
+        }
 - name: API keys
   meta:
     id: fld_48a53f0774c8ceff574a1fdcb0d470db
-    description: Generate an API key. The returned token is shown once; never store it in this collection.
+    description: Create, inspect, rotate, and revoke server-side API keys. A generated token is shown once; never store it in this collection.
   authentication:
     type: bearer
     token: '{{ api_key }}'
@@ -102,7 +126,7 @@ collection:
     method: POST
     meta:
       id: req_d3a02579122d4ea2770c0db0e0d6704d
-      description: 'Public reference: https://studio.inttegro.com/keys#generate-a-key'
+      description: 'Public reference: https://studio.inttegro.com/keys#generate-a-secret-key. The bearer token is returned only by this request; store it before continuing because later key reads return metadata only.'
     headers:
     - name: Content-Type
       value: application/json
@@ -117,8 +141,15 @@ collection:
         if (insomnia.response.code >= 200 && insomnia.response.code < 300) {
           const jsonBody = insomnia.response.json();
           const secret_key_id = jsonBody?.key?.id;
-          insomnia.test('Returns key.id', () => {
+          insomnia.test('Returns a key token exactly once', () => {
+            insomnia.expect(insomnia.response.code).to.equal(200);
+            insomnia.expect(jsonBody).to.have.all.keys('key');
             insomnia.expect(secret_key_id).to.be.a('string').and.not.be.empty;
+            insomnia.expect(jsonBody?.key?.token).to.be.a('string').and.not.be.empty;
+            insomnia.expect(jsonBody?.key?.token_type).to.equal('bearer');
+            for (const field of Object.keys(jsonBody?.key ?? {})) {
+              insomnia.expect(field).to.be.oneOf(['id', 'label', 'token_type', 'issued_at', 'token']);
+            }
           });
           if (secret_key_id) insomnia.globals.set("secret_key_id", secret_key_id);
         }
@@ -127,7 +158,7 @@ collection:
     method: POST
     meta:
       id: req_936830ebf528540b8b0077ec9afad3fe
-      description: 'Public reference: https://studio.inttegro.com/keys#page-api-keys'
+      description: 'Public reference: https://studio.inttegro.com/keys#list-keys'
     headers:
     - name: Content-Type
       value: application/json
@@ -138,12 +169,29 @@ collection:
           "page": 1,
           "size": 20
         }
+    scripts:
+      afterResponse: |-
+        if (insomnia.response.code === 200) {
+          const jsonBody = insomnia.response.json();
+          const page = jsonBody?.page;
+          insomnia.test('Returns a safe key page without bearer tokens', () => {
+            insomnia.expect(jsonBody).to.have.all.keys('page');
+            insomnia.expect(page).to.have.all.keys('number', 'size', 'count', 'total', 'has_more', 'keys');
+            insomnia.expect(page?.keys).to.be.an('array');
+            for (const key of page?.keys ?? []) {
+              for (const field of Object.keys(key)) {
+                insomnia.expect(field).to.be.oneOf(['id', 'label', 'token_type', 'issued_at', 'updated_at', 'expires_at', 'status', 'active', 'revoked_at', 'last_used_at', 'usage_count']);
+              }
+            }
+            insomnia.expect(JSON.stringify(jsonBody)).not.to.match(/"token"\s*:/);
+          });
+        }
   - name: Lookup an API key
     url: '{{ base_url }}/keys/lookup'
     method: POST
     meta:
       id: req_6111ed9b8c8e090da84727f54da5ea54
-      description: 'Public reference: https://studio.inttegro.com/keys#lookup-an-api-key'
+      description: 'Public reference: https://studio.inttegro.com/keys#look-up-a-key'
     headers:
     - name: Content-Type
       value: application/json
@@ -153,15 +201,30 @@ collection:
         {
           "secret_key_id": "{{ secret_key_id }}"
         }
+    scripts:
+      afterResponse: |-
+        if (insomnia.response.code === 200) {
+          const jsonBody = insomnia.response.json();
+          insomnia.test('Returns safe key metadata', () => {
+            insomnia.expect(jsonBody).to.have.all.keys('key');
+            insomnia.expect(jsonBody?.key?.id).to.equal(insomnia.variables.get('secret_key_id'));
+            insomnia.expect(jsonBody?.key).not.to.have.property('token');
+            for (const field of Object.keys(jsonBody?.key ?? {})) {
+              insomnia.expect(field).to.be.oneOf(['id', 'label', 'token_type', 'issued_at', 'updated_at', 'expires_at', 'status', 'active', 'revoked_at', 'last_used_at', 'usage_count']);
+            }
+          });
+        }
   - name: Update an API key
     url: '{{ base_url }}/keys/update'
     method: POST
     meta:
       id: req_7b5bd8380ce18cdbe70d43c05e8d16ae
-      description: 'Public reference: https://studio.inttegro.com/keys#update-an-api-key'
+      description: 'Public reference: https://studio.inttegro.com/keys#update-a-key-label'
     headers:
     - name: Content-Type
       value: application/json
+    - name: Idempotency-Key
+      value: call-key-update-{{ secret_key_id }}
     body:
       mimeType: application/json
       text: |-
@@ -169,29 +232,57 @@ collection:
           "secret_key_id": "{{ secret_key_id }}",
           "label": "checkout-api-primary"
         }
+    scripts:
+      afterResponse: |-
+        if (insomnia.response.code === 200) {
+          const jsonBody = insomnia.response.json();
+          insomnia.test('Returns the updated safe key metadata', () => {
+            insomnia.expect(jsonBody).to.have.all.keys('key');
+            insomnia.expect(jsonBody?.key?.id).to.equal(insomnia.variables.get('secret_key_id'));
+            insomnia.expect(jsonBody?.key?.label).to.equal('checkout-api-primary');
+            insomnia.expect(jsonBody?.key).not.to.have.property('token');
+            for (const field of Object.keys(jsonBody?.key ?? {})) {
+              insomnia.expect(field).to.be.oneOf(['id', 'label', 'token_type', 'issued_at', 'updated_at', 'expires_at', 'status', 'active', 'revoked_at', 'last_used_at', 'usage_count']);
+            }
+          });
+        }
   - name: Revoke an API key
     url: '{{ base_url }}/keys/destroy'
     method: POST
     meta:
       id: req_8b9f5db19f8c9c0d502f5c0a1c838d17
-      description: 'Public reference: https://studio.inttegro.com/keys#revoke-an-api-key'
+      description: 'Public reference: https://studio.inttegro.com/keys#revoke-a-key'
     headers:
     - name: Content-Type
       value: application/json
     - name: Idempotency-Key
-      value: '{{ idempotency_key }}'
+      value: call-key-revoke-{{ secret_key_id }}
     body:
       mimeType: application/json
       text: |-
         {
           "secret_key_id": "{{ secret_key_id }}"
         }
+    scripts:
+      afterResponse: |-
+        if (insomnia.response.code === 200) {
+          const jsonBody = insomnia.response.json();
+          insomnia.test('Returns revoked safe key metadata', () => {
+            insomnia.expect(jsonBody).to.have.all.keys('key');
+            insomnia.expect(jsonBody?.key?.id).to.equal(insomnia.variables.get('secret_key_id'));
+            insomnia.expect(jsonBody?.key?.status).to.equal('revoked');
+            insomnia.expect(jsonBody?.key).not.to.have.property('token');
+            for (const field of Object.keys(jsonBody?.key ?? {})) {
+              insomnia.expect(field).to.be.oneOf(['id', 'label', 'token_type', 'issued_at', 'updated_at', 'expires_at', 'status', 'active', 'revoked_at', 'last_used_at', 'usage_count']);
+            }
+          });
+        }
   - name: Retrieve API key usage
     url: '{{ base_url }}/keys/usage'
     method: POST
     meta:
       id: req_7002ea69b5a938c1a5de20ab6b3888d2
-      description: 'Public reference: https://studio.inttegro.com/keys#retrieve-api-key-usage'
+      description: 'Public reference: https://studio.inttegro.com/keys#review-key-usage. Returns only the key ID, event time, and authentication outcome for each activity row.'
     headers:
     - name: Content-Type
       value: application/json
@@ -202,6 +293,24 @@ collection:
           "secret_key_id": "{{ secret_key_id }}",
           "page": 1,
           "size": 20
+        }
+    scripts:
+      afterResponse: |-
+        if (insomnia.response.code === 200) {
+          const jsonBody = insomnia.response.json();
+          insomnia.test('Returns key metadata and its usage page without a bearer token', () => {
+            insomnia.expect(jsonBody).to.have.all.keys('key', 'usage');
+            insomnia.expect(jsonBody?.key?.id).to.equal(insomnia.variables.get('secret_key_id'));
+            insomnia.expect(jsonBody?.usage).to.have.all.keys('number', 'size', 'count', 'total', 'has_more', 'rows');
+            insomnia.expect(jsonBody?.usage?.rows).to.be.an('array');
+            for (const field of Object.keys(jsonBody?.key ?? {})) {
+              insomnia.expect(field).to.be.oneOf(['id', 'label', 'token_type', 'issued_at', 'updated_at', 'expires_at', 'status', 'active', 'revoked_at', 'last_used_at', 'usage_count']);
+            }
+            for (const row of jsonBody?.usage?.rows ?? []) {
+              insomnia.expect(row).to.have.all.keys('secret_key_id', 'occurred_at', 'auth_result');
+            }
+            insomnia.expect(JSON.stringify(jsonBody)).not.to.match(/"token"\s*:/);
+          });
         }
 - name: Reference data
   meta:
@@ -233,6 +342,29 @@ collection:
     headers:
     - name: Content-Type
       value: application/json
+    body:
+      mimeType: application/json
+      text: '{}'
+    scripts:
+      afterResponse: |-
+        if (insomnia.response.code === 200) {
+          const jsonBody = insomnia.response.json();
+          const countries = jsonBody?.countries;
+          insomnia.test('Returns public country specifications without authentication', () => {
+            insomnia.expect(jsonBody).to.have.all.keys('countries');
+            insomnia.expect(countries).to.be.an('object').and.not.be.empty;
+            for (const country of Object.values(countries)) {
+              for (const field of ['currencies', 'payment_methods', 'payout_schedules', 'bt_aging_specs', 'legal_entity_types', 'financial_account_types', 'id_document_types']) {
+                insomnia.expect(country?.[field]).to.be.an('array');
+                for (const value of country?.[field] ?? []) insomnia.expect(value).to.be.a('string');
+              }
+              if (country?.banks) {
+                insomnia.expect(country.banks).to.include.all.keys('bank_account_type', 'code_scheme', 'items');
+                insomnia.expect(country.banks.items).to.be.an('array');
+              }
+            }
+          });
+        }
 environments:
   name: Base Environment
   meta:

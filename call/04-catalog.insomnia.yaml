@@ -33,6 +33,8 @@ collection:
     headers:
     - name: Content-Type
       value: application/json
+    - name: Idempotency-Key
+      value: call-product-create-001
     body:
       mimeType: application/json
       text: |-
@@ -53,10 +55,10 @@ collection:
             }
           ],
           "media": {
-            "hero_image": "file_abc123",
+            "hero_image": "https://example.com/products/premium-shirt/hero.jpg",
             "gallery": [
-              "file_def456",
-              "file_ghi789"
+              "https://example.com/products/premium-shirt/front.jpg",
+              "https://example.com/products/premium-shirt/back.jpg"
             ]
           },
           "custom_data": {
@@ -98,6 +100,8 @@ collection:
     headers:
     - name: Content-Type
       value: application/json
+    - name: Idempotency-Key
+      value: call-product-add-price-{{ product_id }}
     body:
       mimeType: application/json
       text: |-
@@ -129,6 +133,8 @@ collection:
     headers:
     - name: Content-Type
       value: application/json
+    - name: Idempotency-Key
+      value: call-product-update-{{ product_id }}
     body:
       mimeType: application/json
       text: |-
@@ -146,6 +152,8 @@ collection:
     headers:
     - name: Content-Type
       value: application/json
+    - name: Idempotency-Key
+      value: call-product-publish-{{ product_id }}
     body:
       mimeType: application/json
       text: |-
@@ -161,6 +169,8 @@ collection:
     headers:
     - name: Content-Type
       value: application/json
+    - name: Idempotency-Key
+      value: call-product-unpublish-{{ product_id }}
     body:
       mimeType: application/json
       text: |-
@@ -176,6 +186,8 @@ collection:
     headers:
     - name: Content-Type
       value: application/json
+    - name: Idempotency-Key
+      value: call-product-archive-{{ product_id }}
     body:
       mimeType: application/json
       text: |-
@@ -226,12 +238,14 @@ collection:
     headers:
     - name: Content-Type
       value: application/json
+    - name: Idempotency-Key
+      value: call-price-create-{{ product_id }}
     body:
       mimeType: application/json
       text: |-
         {
           "amount": {
-            "currency": "usd",
+            "currency": "ghs",
             "value": 2999
           },
           "label": "Monthly",
@@ -289,6 +303,8 @@ collection:
     headers:
     - name: Content-Type
       value: application/json
+    - name: Idempotency-Key
+      value: call-price-update-{{ price_id }}
     body:
       mimeType: application/json
       text: |-
@@ -306,6 +322,8 @@ collection:
     headers:
     - name: Content-Type
       value: application/json
+    - name: Idempotency-Key
+      value: call-price-activate-{{ price_id }}
     body:
       mimeType: application/json
       text: |-
@@ -321,6 +339,25 @@ collection:
     headers:
     - name: Content-Type
       value: application/json
+    - name: Idempotency-Key
+      value: call-price-deactivate-{{ price_id }}
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "price_id": "{{ price_id }}"
+        }
+  - name: Archive a price
+    url: '{{ base_url }}/prices/archive'
+    method: POST
+    meta:
+      id: req_39046df12fd1bc0286894ec460acf574
+      description: 'Public reference: https://studio.inttegro.com/prices#archive-a-price'
+    headers:
+    - name: Content-Type
+      value: application/json
+    - name: Idempotency-Key
+      value: call-price-archive-{{ price_id }}
     body:
       mimeType: application/json
       text: |-

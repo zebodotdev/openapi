@@ -19,10 +19,6 @@ collection:
         'future_timestamp',
         new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
       );
-    afterResponse: |-
-      insomnia.test('Returns a successful HTTP status', () => {
-        insomnia.expect(insomnia.response.code).to.be.within(200, 299);
-      });
   children:
   - name: Send Chime
     url: '{{ base_url }}/chimes/send'
@@ -33,6 +29,8 @@ collection:
     headers:
     - name: Content-Type
       value: application/json
+    - name: Idempotency-Key
+      value: '{{ idempotency_key }}'
     body:
       mimeType: application/json
       text: |-
@@ -54,6 +52,9 @@ collection:
         }
     scripts:
       afterResponse: |-
+        insomnia.test('Returns HTTP 200', () => {
+          insomnia.expect(insomnia.response.code).to.equal(200);
+        });
         if (insomnia.response.code >= 200 && insomnia.response.code < 300) {
           const jsonBody = insomnia.response.json();
           const chime_id = jsonBody?.chime?.id;
@@ -77,6 +78,14 @@ collection:
         {
           "chime_id": "{{ chime_id }}"
         }
+    scripts:
+      afterResponse: |-
+        insomnia.test('Returns a complete Chime', () => {
+          insomnia.expect(insomnia.response.code).to.equal(200);
+          const chime = insomnia.response.json()?.chime;
+          insomnia.expect(chime).to.include.all.keys('id', 'created_at', 'full_message', 'recipient', 'sender_id');
+          insomnia.expect(chime).not.to.have.property('delivery');
+        });
   - name: Page Chimes
     url: '{{ base_url }}/chimes/page'
     method: POST
@@ -94,6 +103,14 @@ collection:
           "page_size": 25,
           "customer_id": "{{ customer_id }}"
         }
+    scripts:
+      afterResponse: |-
+        insomnia.test('Returns a Chime page', () => {
+          insomnia.expect(insomnia.response.code).to.equal(200);
+          const page = insomnia.response.json()?.page;
+          insomnia.expect(page).to.include.all.keys('number', 'size', 'chimes');
+          insomnia.expect(page.chimes).to.be.an('array');
+        });
   - name: Schedule Chime
     url: '{{ base_url }}/chimes/schedule'
     method: POST
@@ -103,10 +120,15 @@ collection:
     headers:
     - name: Content-Type
       value: application/json
+    - name: Idempotency-Key
+      value: '{{ idempotency_key }}'
     body:
       mimeType: application/json
       text: |-
         {
+          "request_meta": {
+            "idempotency_key": "{{ idempotency_key }}"
+          },
           "recipients": [
             {
               "customer_id": "{{ customer_id }}",
@@ -127,6 +149,9 @@ collection:
         }
     scripts:
       afterResponse: |-
+        insomnia.test('Returns HTTP 200', () => {
+          insomnia.expect(insomnia.response.code).to.equal(200);
+        });
         if (insomnia.response.code >= 200 && insomnia.response.code < 300) {
           const jsonBody = insomnia.response.json();
           const schedule_id = jsonBody?.scheduled_chime?.id;
@@ -150,6 +175,14 @@ collection:
         {
           "schedule_id": "{{ schedule_id }}"
         }
+    scripts:
+      afterResponse: |-
+        insomnia.test('Returns schedule lookup details', () => {
+          insomnia.expect(insomnia.response.code).to.equal(200);
+          const schedule = insomnia.response.json()?.scheduled_chime;
+          insomnia.expect(schedule).to.include.all.keys('id', 'content', 'created_at', 'recipients', 'send_after', 'sender_id');
+          insomnia.expect(schedule).not.to.have.property('canceled_at');
+        });
   - name: Cancel a scheduled Chime
     url: '{{ base_url }}/schedules/cancel'
     method: POST
@@ -167,6 +200,13 @@ collection:
         {
           "schedule_id": "{{ schedule_id }}"
         }
+    scripts:
+      afterResponse: |-
+        insomnia.test('Returns canceled schedule details', () => {
+          insomnia.expect(insomnia.response.code).to.equal(200);
+          const schedule = insomnia.response.json()?.scheduled_chime;
+          insomnia.expect(schedule).to.include.all.keys('id', 'content', 'created_at', 'recipients', 'send_after', 'sender_id', 'canceled_at');
+        });
   - name: Broadcast Chimes
     url: '{{ base_url }}/chimes/broadcast'
     method: POST
@@ -176,10 +216,15 @@ collection:
     headers:
     - name: Content-Type
       value: application/json
+    - name: Idempotency-Key
+      value: '{{ idempotency_key }}'
     body:
       mimeType: application/json
       text: |-
         {
+          "request_meta": {
+            "idempotency_key": "{{ idempotency_key }}"
+          },
           "recipients": [
             {
               "customer_id": "{{ customer_id }}",
@@ -197,7 +242,7 @@ collection:
             "subject": "Your order #12345 has shipped",
             "text": "Your order #12345 has shipped. Track it at https://track.shop.com/abc123.",
             "from": {
-              "address": "shipping@shop.example"
+              "address": "{{ email_from }}"
             }
           },
           "sender": "ShopName",
@@ -205,6 +250,9 @@ collection:
         }
     scripts:
       afterResponse: |-
+        insomnia.test('Returns HTTP 202', () => {
+          insomnia.expect(insomnia.response.code).to.equal(202);
+        });
         if (insomnia.response.code >= 200 && insomnia.response.code < 300) {
           const jsonBody = insomnia.response.json();
           const broadcast_id = jsonBody?.broadcast?.id;
@@ -228,6 +276,14 @@ collection:
         {
           "broadcast_id": "{{ broadcast_id }}"
         }
+    scripts:
+      afterResponse: |-
+        insomnia.test('Returns broadcast lookup details', () => {
+          insomnia.expect(insomnia.response.code).to.equal(200);
+          const broadcast = insomnia.response.json()?.broadcast;
+          insomnia.expect(broadcast).to.include.all.keys('id', 'content', 'created_at', 'recipients', 'send_after', 'sender_id');
+          insomnia.expect(broadcast).not.to.have.property('canceled_at');
+        });
   - name: Cancel a broadcast
     url: '{{ base_url }}/broadcasts/cancel'
     method: POST
@@ -245,6 +301,13 @@ collection:
         {
           "broadcast_id": "{{ broadcast_id }}"
         }
+    scripts:
+      afterResponse: |-
+        insomnia.test('Returns canceled broadcast details', () => {
+          insomnia.expect(insomnia.response.code).to.equal(200);
+          const broadcast = insomnia.response.json()?.broadcast;
+          insomnia.expect(broadcast).to.include.all.keys('id', 'content', 'created_at', 'recipients', 'send_after', 'sender_id', 'canceled_at');
+        });
 - name: Message templates
   meta:
     id: fld_5a6d29abd83a29f2dc4c6a56d8de5555
@@ -272,7 +335,7 @@ collection:
       description: 'Public reference: https://studio.inttegro.com/message-templates#create-a-message-template'
     headers:
     - name: Idempotency-Key
-      value: '{{ idempotency_key }}'
+      value: call-template-create-shipping-update-sms
     - name: Content-Type
       value: application/json
     body:
@@ -300,14 +363,15 @@ collection:
         }
     scripts:
       afterResponse: |-
-        if (insomnia.response.code >= 200 && insomnia.response.code < 300) {
+        insomnia.test('Creates a draft SMS message template', () => {
+          insomnia.expect(insomnia.response.code).to.equal(200);
           const jsonBody = insomnia.response.json();
           const message_template_id = jsonBody?.message_template?.id;
-          insomnia.test('Returns message_template.id', () => {
-            insomnia.expect(message_template_id).to.be.a('string').and.not.be.empty;
-          });
+          insomnia.expect(message_template_id).to.be.a('string').and.not.be.empty;
+          insomnia.expect(jsonBody?.message_template?.channel).to.equal('sms');
+          insomnia.expect(jsonBody?.message_template?.status).to.equal('draft');
           if (message_template_id) insomnia.globals.set("message_template_id", message_template_id);
-        }
+        });
   - name: Update a message template
     url: '{{ base_url }}/message_templates/update'
     method: POST
@@ -316,7 +380,7 @@ collection:
       description: 'Public reference: https://studio.inttegro.com/message-templates#update-a-message-template'
     headers:
     - name: Idempotency-Key
-      value: '{{ idempotency_key }}'
+      value: call-template-update-{{ message_template_id }}
     - name: Content-Type
       value: application/json
     body:
@@ -328,73 +392,15 @@ collection:
             "message_template": "{% raw %}Hi {{customer_name}}, your order shipped. Track: {{tracking_url}}{% endraw %}"
           }
         }
-  - name: Publish a message template
-    url: '{{ base_url }}/message_templates/publish'
-    method: POST
-    meta:
-      id: req_1f4be766b1691809eab172b5a054f694
-      description: 'Public reference: https://studio.inttegro.com/message-templates#publish-a-message-template'
-    headers:
-    - name: Idempotency-Key
-      value: '{{ idempotency_key }}'
-    - name: Content-Type
-      value: application/json
-    body:
-      mimeType: application/json
-      text: |-
-        {
-          "id": "{{ message_template_id }}"
-        }
-  - name: Archive a message template
-    url: '{{ base_url }}/message_templates/archive'
-    method: POST
-    meta:
-      id: req_13dfeb3837213de04fafb1c1d0c1525b
-      description: 'Public reference: https://studio.inttegro.com/message-templates#archive-a-message-template'
-    headers:
-    - name: Idempotency-Key
-      value: '{{ idempotency_key }}'
-    - name: Content-Type
-      value: application/json
-    body:
-      mimeType: application/json
-      text: |-
-        {
-          "id": "{{ message_template_id }}"
-        }
-  - name: Look up a message template
-    url: '{{ base_url }}/message_templates/lookup'
-    method: POST
-    meta:
-      id: req_a9c278d00ae4c585a4d29cf4d00a3dcf
-      description: 'Public reference: https://studio.inttegro.com/message-templates#look-up-a-message-template'
-    headers:
-    - name: Content-Type
-      value: application/json
-    body:
-      mimeType: application/json
-      text: |-
-        {
-          "id": "{{ message_template_id }}"
-        }
-  - name: Page message templates
-    url: '{{ base_url }}/message_templates/page'
-    method: POST
-    meta:
-      id: req_187bbd53c06847bb7a03fed7902ce3eb
-      description: 'Public reference: https://studio.inttegro.com/message-templates#page-message-templates'
-    headers:
-    - name: Content-Type
-      value: application/json
-    body:
-      mimeType: application/json
-      text: |-
-        {
-          "page": 1,
-          "size": 25,
-          "channel": "sms",
-          "status": "published"
-        }
+    scripts:
+      afterResponse: |-
+        insomnia.test('Creates a new message-template draft version', () => {
+          insomnia.expect(insomnia.response.code).to.equal(200);
+          const template = insomnia.response.json()?.message_template;
+          insomnia.expect(template?.id).to.equal(insomnia.variables.get('message_template_id'));
+          insomnia.expect(template?.status).to.equal('draft');
+          insomnia.expect(template?.has_unpublished_changes).to.equal(true);
+        });
   - name: Render a message template preview
     url: '{{ base_url }}/message_templates/render_preview'
     method: POST
@@ -416,6 +422,119 @@ collection:
             }
           }
         }
+    scripts:
+      afterResponse: |-
+        insomnia.test('Renders the current draft before publication', () => {
+          insomnia.expect(insomnia.response.code).to.equal(200);
+          const jsonBody = insomnia.response.json();
+          insomnia.expect(jsonBody?.message_template?.id).to.equal(insomnia.variables.get('message_template_id'));
+          insomnia.expect(jsonBody?.rendered?.channel).to.equal('sms');
+          insomnia.expect(jsonBody?.rendered?.sms?.full_message).to.be.a('string').and.not.be.empty;
+          insomnia.expect(jsonBody.rendered.sms.full_message.length).to.be.at.most(120);
+        });
+  - name: Publish a message template
+    url: '{{ base_url }}/message_templates/publish'
+    method: POST
+    meta:
+      id: req_1f4be766b1691809eab172b5a054f694
+      description: 'Public reference: https://studio.inttegro.com/message-templates#publish-a-message-template'
+    headers:
+    - name: Idempotency-Key
+      value: call-template-publish-{{ message_template_id }}
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "id": "{{ message_template_id }}"
+        }
+    scripts:
+      afterResponse: |-
+        insomnia.test('Publishes the current message-template draft', () => {
+          insomnia.expect(insomnia.response.code).to.equal(200);
+          const template = insomnia.response.json()?.message_template;
+          insomnia.expect(template?.id).to.equal(insomnia.variables.get('message_template_id'));
+          insomnia.expect(template?.status).to.equal('published');
+          insomnia.expect(template?.published_version).to.be.a('number');
+        });
+  - name: Look up a message template
+    url: '{{ base_url }}/message_templates/lookup'
+    method: POST
+    meta:
+      id: req_a9c278d00ae4c585a4d29cf4d00a3dcf
+      description: 'Public reference: https://studio.inttegro.com/message-templates#look-up-a-message-template'
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "id": "{{ message_template_id }}"
+        }
+    scripts:
+      afterResponse: |-
+        insomnia.test('Returns the published message template', () => {
+          insomnia.expect(insomnia.response.code).to.equal(200);
+          const template = insomnia.response.json()?.message_template;
+          insomnia.expect(template?.id).to.equal(insomnia.variables.get('message_template_id'));
+          insomnia.expect(template?.status).to.equal('published');
+        });
+  - name: Page message templates
+    url: '{{ base_url }}/message_templates/page'
+    method: POST
+    meta:
+      id: req_187bbd53c06847bb7a03fed7902ce3eb
+      description: 'Public reference: https://studio.inttegro.com/message-templates#page-message-templates'
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "page": 1,
+          "size": 25,
+          "channel": "sms",
+          "status": "published"
+        }
+    scripts:
+      afterResponse: |-
+        insomnia.test('Returns a published message-template page', () => {
+          insomnia.expect(insomnia.response.code).to.equal(200);
+          const page = insomnia.response.json()?.page;
+          insomnia.expect(page?.number).to.equal(1);
+          insomnia.expect(page?.size).to.equal(page?.message_templates?.length);
+          const updated = page.message_templates.map((template) => Date.parse(template.updated_at));
+          insomnia.expect(updated).to.deep.equal([...updated].sort((a, b) => b - a));
+        });
+  - name: Archive a message template
+    url: '{{ base_url }}/message_templates/archive'
+    method: POST
+    meta:
+      id: req_13dfeb3837213de04fafb1c1d0c1525b
+      description: 'Public reference: https://studio.inttegro.com/message-templates#archive-a-message-template'
+    headers:
+    - name: Idempotency-Key
+      value: call-template-archive-{{ message_template_id }}
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "id": "{{ message_template_id }}"
+        }
+    scripts:
+      afterResponse: |-
+        insomnia.test('Archives the message template last', () => {
+          insomnia.expect(insomnia.response.code).to.equal(200);
+          const template = insomnia.response.json()?.message_template;
+          insomnia.expect(template?.id).to.equal(insomnia.variables.get('message_template_id'));
+          insomnia.expect(template?.status).to.equal('archived');
+          insomnia.expect(template?.archived_at).to.be.a('string');
+        });
 environments:
   name: Base Environment
   meta:

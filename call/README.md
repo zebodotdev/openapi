@@ -1,6 +1,6 @@
 # Commerce API for Insomnia
 
-This directory contains the public HTTP collections for the Commerce API. The files use Insomnia's native v5 YAML format and collectively cover all 118 HTTP operations in the public API reference. They deliberately contain no MCP client configuration, credentials, cookies, live capability URLs, or private infrastructure details.
+This directory contains the public HTTP collections for the Commerce API. The files use Insomnia's native v5 YAML format and collectively cover all 117 HTTP operations in the public API reference. They deliberately contain no MCP client configuration, credentials, cookies, live capability URLs, or private infrastructure details.
 
 ## Collections
 
@@ -9,7 +9,7 @@ This directory contains the public HTTP collections for the Commerce API. The fi
 | `00-environment.insomnia.yaml` | Shared connection, example-input, and chained runtime variables |
 | `01-checkout.insomnia.yaml` | Hosted checkout and the complete order lifecycle |
 | `02-customers.insomnia.yaml` | Customers |
-| `03-payment-methods.insomnia.yaml` | Payment methods, including explicitly unavailable operations |
+| `03-payment-methods.insomnia.yaml` | Saved payment methods and their lifecycle |
 | `04-catalog.insomnia.yaml` | Products and prices |
 | `05-purchase-intents.insomnia.yaml` | Purchase intents and Buy links |
 | `06-financial-accounts.insomnia.yaml` | Financial accounts |
@@ -19,6 +19,7 @@ This directory contains the public HTTP collections for the Commerce API. The fi
 | `10-otp.insomnia.yaml` | One-time passwords |
 | `11-files.insomnia.yaml` | Files, file links, and third-party upload requests |
 | `12-platform.insomnia.yaml` | Apps, API keys, and reference data |
+| `13-refunds.insomnia.yaml` | Refund creation, lookup, and history |
 | `workflows/checkout-quickstart.insomnia.yaml` | Safe create-and-lookup hosted checkout workflow with contract tests |
 
 ## Import and configure
@@ -62,7 +63,7 @@ Do not use `--printOptions`, shell tracing, or plaintext result output while pas
 
 The Checkout and Orders collection is ordered as a workflow:
 
-1. **Create an order** sends `POST /orders/create` with `finalize: true`, inline customer data, and an inline product. It does not set `execute_payment`, so merely sending the request does not charge the customer. `/orders/new` remains available as a compatibility route with the same contract.
+1. **Create an order** sends `POST /orders/create` with `finalize: true`, inline customer data, and an inline product. It does not set `execute_payment`, so merely sending the request does not charge the customer.
 2. Its after-response script stores `order_id` and the hosted `checkout_url`.
 3. Open `checkout_url` in a browser and let the customer complete payment, or use **Lookup an order** to poll the order state.
 4. Use **Pay for an order**, **Request confirmation**, and **Confirm a payment** only when implementing a custom payment flow. These operations can initiate a real payment attempt.
@@ -88,8 +89,6 @@ Treat API keys, OTPs, confirmation tokens, and capability URLs as secrets. Do no
 Folders include after-response tests for successful HTTP status codes. Create requests also capture returned IDs, and OTP verification checks `verification_attempt.result.verdict` rather than treating HTTP 200 as proof that the code matched. Insomnia documents request scripts and assertions in its [scripts guide](https://developer.konghq.com/insomnia/scripts/).
 
 Do not indiscriminately run every collection against a live account. Some collections contain operations that send messages, schedule payouts, change settings, cancel resources, or delete files. Run the specific request or narrowly scoped workflow you intend to exercise.
-
-Unavailable payment-method verification and deletion operations remain in Payment Methods. These entries document the current boundary; they are not integration steps.
 
 ## Maintenance
 

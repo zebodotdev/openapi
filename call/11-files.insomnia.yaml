@@ -141,12 +141,14 @@ collection:
     method: POST
     meta:
       id: req_a07268dcd9a7e3125c2455fbc85f0e6a
-      description: 'Public reference: https://studio.inttegro.com/file-references#reconcile-file-references'
+      description: |-
+        Public reference: https://studio.inttegro.com/files#reconcile-file-references
+        This body replaces the complete reference set. Omitted existing references are removed; an empty or omitted list clears the set.
     headers:
     - name: Content-Type
       value: application/json
     - name: Idempotency-Key
-      value: '{{ idempotency_key }}'
+      value: call-file-references-{{ product_id }}
     body:
       mimeType: application/json
       text: |-
@@ -163,6 +165,12 @@ collection:
             }
           ]
         }
+    scripts:
+      afterResponse: |-
+        insomnia.test('Replaces the complete file-reference set', () => {
+          insomnia.expect(insomnia.response.code).to.equal(200);
+          insomnia.expect(insomnia.response.json()).to.deep.equal({ reconciled: true });
+        });
 - name: File links
   meta:
     id: fld_83f0c5aaccd660df059f60e317873268
@@ -271,8 +279,7 @@ collection:
         {
           "id": "{{ file_link_id }}",
           "revoked_by": {
-            "type": "user",
-            "id": "{{ file_link_id }}"
+            "type": "user"
           }
         }
   - name: Open a file link
@@ -337,7 +344,7 @@ collection:
           },
           "resource": {
             "type": "dispute",
-            "id": "{{ upload_request_id }}"
+            "id": "case_1001"
           },
           "custom_data": {
             "case_id": "CASE-1001"
@@ -390,6 +397,42 @@ collection:
         {
           "id": "{{ upload_request_id }}"
         }
+  - name: Review an upload request attempt
+    url: '{{ base_url }}/upload_requests/review'
+    method: POST
+    meta:
+      id: req_40d6873bbef34777a4db32399de77ce1
+      description: 'Public reference: https://studio.inttegro.com/file-uploads#review-an-upload-request-attempt'
+    headers:
+    - name: Idempotency-Key
+      value: call-upload-review-{{ upload_request_id }}-1
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "id": "{{ upload_request_id }}",
+          "attempt_ordinal": 1,
+          "decision": "rejected",
+          "reasons": [
+            {
+              "code": "document_unreadable",
+              "message": "The document is too blurry to read."
+            }
+          ],
+          "public_message": "Please upload a clearer copy."
+        }
+    scripts:
+      afterResponse: |-
+        insomnia.test('Rejects the latest fulfilled upload attempt and reopens the request', () => {
+          insomnia.expect(insomnia.response.code).to.equal(200);
+          const uploadRequest = insomnia.response.json()?.upload_request;
+          insomnia.expect(uploadRequest?.id).to.equal(insomnia.variables.get('upload_request_id'));
+          insomnia.expect(uploadRequest?.attempt?.ordinal).to.equal(1);
+          insomnia.expect(uploadRequest?.attempt?.review?.decision).to.equal('rejected');
+          insomnia.expect(uploadRequest?.attempt?.review?.public_message).to.equal('Please upload a clearer copy.');
+        });
   - name: Page upload requests
     url: '{{ base_url }}/upload_requests/page'
     method: POST
@@ -425,8 +468,7 @@ collection:
         {
           "id": "{{ upload_request_id }}",
           "canceled_by": {
-            "type": "user",
-            "id": "{{ upload_request_id }}"
+            "type": "user"
           }
         }
 environments:

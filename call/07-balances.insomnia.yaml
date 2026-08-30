@@ -36,6 +36,18 @@ collection:
     body:
       mimeType: application/json
       text: '{}'
+    scripts:
+      afterResponse: |-
+        insomnia.test('Returns the current GHS balance snapshot', () => {
+          insomnia.expect(insomnia.response.code).to.equal(200);
+          const balances = insomnia.response.json()?.balances;
+          insomnia.expect(balances?.ghs).to.be.an('object');
+          insomnia.expect(balances).not.to.have.property('usd');
+          for (const field of ['available', 'pending', 'refund', 'reserved']) {
+            insomnia.expect(balances.ghs?.[field]?.amount).to.be.a('number');
+          }
+          insomnia.expect(balances.ghs?.includes_transactions_before).to.be.a('string');
+        });
 - name: Balance transactions
   meta:
     id: fld_84e7274fb3af07e83c4ce4581d331f28
@@ -70,6 +82,17 @@ collection:
         {
           "transaction_id": "{{ balance_transaction_id }}"
         }
+    scripts:
+      afterResponse: |-
+        insomnia.test('Returns the requested balance transaction', () => {
+          insomnia.expect(insomnia.response.code).to.equal(200);
+          const transaction = insomnia.response.json()?.transaction;
+          insomnia.expect(transaction?.id).to.equal(insomnia.variables.get('balance_transaction_id'));
+          insomnia.expect(transaction?.order_id).to.be.a('string');
+          insomnia.expect(transaction?.created_at).to.be.a('string');
+          insomnia.expect(transaction?.amount?.currency).to.be.a('string');
+          insomnia.expect(transaction?.amount?.value).to.be.a('number');
+        });
   - name: Page through balance transactions
     url: '{{ base_url }}/balance_transactions/page'
     method: POST
@@ -83,9 +106,22 @@ collection:
       mimeType: application/json
       text: |-
         {
-          "page_number": 0,
+          "page_number": 1,
           "page_size": 2
         }
+    scripts:
+      afterResponse: |-
+        insomnia.test('Returns the first page newest first', () => {
+          insomnia.expect(insomnia.response.code).to.equal(200);
+          const jsonBody = insomnia.response.json();
+          insomnia.expect(jsonBody?.page?.number).to.equal(1);
+          insomnia.expect(jsonBody?.page?.size).to.be.a('number');
+          if (jsonBody?.page?.transactions !== undefined) {
+            insomnia.expect(jsonBody.page.transactions).to.be.an('array');
+            const created = jsonBody.page.transactions.map((transaction) => Date.parse(transaction.created_at));
+            insomnia.expect(created).to.deep.equal([...created].sort((a, b) => b - a));
+          }
+        });
 environments:
   name: Base Environment
   meta:
