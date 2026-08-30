@@ -9,6 +9,8 @@ This repository contains the public, machine-readable contract and ready-to-run 
 
 The published files contain no credentials, cookies, private infrastructure details, or live capability URLs.
 
+This contract contains only operations intended for API consumers using documented public authentication. Service-only and operator-only routes do not belong in the specification or Call collections.
+
 ## Use the OpenAPI specification
 
 Import `commerce.yml` into any OpenAPI 3.0-compatible client, generator, or validator. The production server URL is declared in the specification.

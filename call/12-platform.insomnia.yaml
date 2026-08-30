@@ -3,8 +3,7 @@ schema_version: '5.1'
 name: Commerce API — Platform
 meta:
   id: wrk_121f2abc744770c94ae151cf354b7e28
-  description: Manage applications and keys, retrieve reference data, and understand platform-managed access boundaries. Uses
-    the shared Commerce API global environment.
+  description: Manage applications and keys and retrieve reference data. Uses the shared Commerce API global environment.
 collection:
 - name: Apps
   meta:
@@ -234,28 +233,6 @@ collection:
     headers:
     - name: Content-Type
       value: application/json
-- name: Access boundaries
-  meta:
-    id: fld_99cbf398369adc038998d86b52adf12c
-    description: These entries document platform-managed operations and are not ordinary API-key integration steps.
-  children:
-  - name: Create a session — platform-managed only
-    url: '{{ base_url }}/sessions/new'
-    method: POST
-    meta:
-      id: req_a3f77403f159f70374983186a28a5207
-      description: This route is reserved for platform-managed authentication. Ordinary API-key integrations must send their
-        API key directly to the endpoint they want to call.
-    authentication:
-      type: none
-    headers:
-    - name: Content-Type
-      value: application/json
-    scripts:
-      afterResponse: |-
-        insomnia.test('Returns the documented unavailable status', () => {
-          insomnia.expect([401, 403]).to.include(insomnia.response.code);
-        });
 environments:
   name: Base Environment
   meta:

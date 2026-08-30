@@ -1,6 +1,6 @@
 # Commerce API for Insomnia
 
-This directory contains the public HTTP collections for the Commerce API. The files use Insomnia's native v5 YAML format and collectively cover all 119 HTTP operations in the public API reference. They deliberately contain no MCP client configuration, credentials, cookies, live capability URLs, or private infrastructure details.
+This directory contains the public HTTP collections for the Commerce API. The files use Insomnia's native v5 YAML format and collectively cover all 118 HTTP operations in the public API reference. They deliberately contain no MCP client configuration, credentials, cookies, live capability URLs, or private infrastructure details.
 
 ## Collections
 
@@ -18,7 +18,7 @@ This directory contains the public HTTP collections for the Commerce API. The fi
 | `09-messaging.insomnia.yaml` | Notifications, schedules, broadcasts, and message templates |
 | `10-otp.insomnia.yaml` | One-time passwords |
 | `11-files.insomnia.yaml` | Files, file links, and third-party upload requests |
-| `12-platform.insomnia.yaml` | Apps, API keys, reference data, and platform access boundaries |
+| `12-platform.insomnia.yaml` | Apps, API keys, and reference data |
 | `workflows/checkout-quickstart.insomnia.yaml` | Safe create-and-lookup hosted checkout workflow with contract tests |
 
 ## Import and configure
@@ -89,7 +89,7 @@ Folders include after-response tests for successful HTTP status codes. Create re
 
 Do not indiscriminately run every collection against a live account. Some collections contain operations that send messages, schedule payouts, change settings, cancel resources, or delete files. Run the specific request or narrowly scoped workflow you intend to exercise.
 
-Unavailable operations live beside their resource: payment-method verification and deletion remain in Payment Methods, and platform-managed session creation remains in Platform. These entries document the current boundary; they are not integration steps.
+Unavailable payment-method verification and deletion operations remain in Payment Methods. These entries document the current boundary; they are not integration steps.
 
 ## Maintenance
 

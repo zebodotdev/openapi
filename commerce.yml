@@ -2418,19 +2418,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Error'
-    /sessions/new:
-        post:
-            summary: Create a platform-managed session
-            description: This route is reserved for platform-managed authentication and is not available to ordinary API-key integrations.
-            operationId: createSession
-            tags:
-                - Platform
-            security: []
-            responses:
-                '401':
-                    description: Unauthorized - platform-managed authentication is required
-                '403':
-                    description: Forbidden - the caller cannot create platform sessions
     /financial_accounts/create:
         post:
             summary: Create a new financial account
