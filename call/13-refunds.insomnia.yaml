@@ -3,12 +3,12 @@ schema_version: '5.1'
 name: Commerce API — Refunds
 meta:
   id: wrk_2a0ef3c14ec24fbe919f0cd40b34a6ab
-  description: Create and inspect refunds for paid order line items. Uses the shared Commerce API global environment.
+  description: Create, cancel, and inspect refunds for paid order line items. Uses the shared Commerce API global environment.
 collection:
 - name: Refunds
   meta:
     id: fld_594fd04756194b17a2af3fc3a7ad0ac5
-    description: Run after a checkout order has been paid. The create URL and its compatibility alias share one retry key and body.
+    description: Run after a checkout order has been paid. Create and cancel use stable retry keys; the create URL and its compatibility alias share one key and body.
   authentication:
     type: bearer
     token: '{{ api_key }}'
@@ -99,6 +99,43 @@ collection:
             insomnia.expect(jsonBody?.refund?.id).to.equal(insomnia.variables.get('refund_id'));
           });
         }
+  - name: Cancel a refund
+    url: '{{ base_url }}/refunds/cancel'
+    method: POST
+    meta:
+      id: req_2f4bf469f7424d9ba410c7f78ca99e6a
+      description: 'Public reference: https://studio.inttegro.com/refunds#cancel-a-refund'
+    headers:
+    - name: Content-Type
+      value: application/json
+    - name: Idempotency-Key
+      value: call-refund-cancel-{{ refund_id }}
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "refund_id": "{{ refund_id }}"
+        }
+    scripts:
+      afterResponse: |-
+        if (insomnia.response.code === 200) {
+          const jsonBody = insomnia.response.json();
+          const refund = jsonBody?.refund;
+          insomnia.test('Returns the canceled refund', () => {
+            insomnia.expect(jsonBody).to.have.all.keys('refund');
+            insomnia.expect(refund?.id).to.equal(insomnia.variables.get('refund_id'));
+            insomnia.expect(refund?.status).to.equal('canceled');
+            insomnia.expect(refund?.canceled_at).to.be.a('string');
+            insomnia.expect(refund?.total).to.be.an('object');
+            insomnia.expect(refund).not.to.have.property('refund_amount');
+            insomnia.expect(refund?.line_items).to.be.an('array');
+            insomnia.expect(refund?.line_items?.length).to.be.greaterThan(0);
+            for (const line of refund?.line_items ?? []) {
+              insomnia.expect(line).to.have.property('refund_amount');
+              insomnia.expect(line).to.have.property('original_amount_paid');
+            }
+          });
+        }
   - name: Lookup a refund
     url: '{{ base_url }}/refunds/lookup'
     method: POST
@@ -121,7 +158,7 @@ collection:
           insomnia.test('Returns the requested refund', () => {
             insomnia.expect(jsonBody).to.have.all.keys('refund');
             insomnia.expect(jsonBody?.refund?.id).to.equal(insomnia.variables.get('refund_id'));
-            insomnia.expect(jsonBody?.refund?.status).to.be.oneOf(['pending', 'processing', 'succeeded', 'failed']);
+            insomnia.expect(jsonBody?.refund?.status).to.be.oneOf(['canceled', 'pending', 'processing', 'succeeded', 'failed']);
           });
         }
   - name: List refunds

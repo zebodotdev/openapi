@@ -2088,6 +2088,69 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/ErrorEnvelope'
+    /refunds/cancel:
+        post:
+            summary: Cancel a refund
+            description: |
+                Cancels a pending refund before processing claims it. Cancellation releases the
+                merchant balance hold and restores the refundable capacity reserved against its
+                order line items. Repeating cancellation returns the same canceled refund.
+            operationId: cancelRefund
+            tags:
+                - Refunds
+            parameters:
+                - $ref: '#/components/parameters/IdempotencyKey'
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/CancelRefundRequest'
+            responses:
+                '200':
+                    description: Refund canceled
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/RefundResponse'
+                '400':
+                    description: Invalid refund cancellation request
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                '401':
+                    description: Authorization is required
+                '404':
+                    description: Refund not found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                '409':
+                    description: Refund cannot be canceled or the idempotency key is still being processed
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                '422':
+                    description: The idempotency key was previously used with a different request body
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                '500':
+                    description: Refund cancellation failed unexpectedly
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                '503':
+                    description: Refund cancellation or idempotency storage is temporarily unavailable
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
     /refunds/lookup:
         post:
             summary: Look up a refund
@@ -11367,6 +11430,17 @@ components:
                     description: Your reconciliation reference.
                 request_meta:
                     $ref: '#/components/schemas/RefundRequestMeta'
+        CancelRefundRequest:
+            type: object
+            additionalProperties: false
+            required: [refund_id]
+            properties:
+                refund_id:
+                    type: string
+                    description: Refund to cancel before processing begins.
+                    example: rf_1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcd
+                request_meta:
+                    $ref: '#/components/schemas/RefundRequestMeta'
         LookupRefundRequest:
             type: object
             additionalProperties: false
@@ -11414,6 +11488,10 @@ components:
             type: object
             required: [created_at, id, line_items, order_id, reason, status, total]
             properties:
+                canceled_at:
+                    type: string
+                    format: date-time
+                    description: Omitted unless the refund was canceled before processing began.
                 created_at:
                     type: string
                     format: date-time
@@ -11448,7 +11526,7 @@ components:
                     type: string
                 status:
                     type: string
-                    enum: [pending, processing, succeeded, failed]
+                    enum: [canceled, failed, pending, processing, succeeded]
                 succeeded_at:
                     type: string
                     format: date-time
