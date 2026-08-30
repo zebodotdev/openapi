@@ -3,12 +3,12 @@ schema_version: '5.1'
 name: Commerce API — Purchase Intents
 meta:
   id: wrk_58c7ca51085b0cd81acec439ba4e5004
-  description: Create and manage reusable Buy link offers. Uses the shared Commerce API global environment.
+  description: Create controlled, shareable hosted Buy links for catalog products, then manage their availability and usage. Uses the shared Commerce API global environment.
 collection:
 - name: Purchase intents
   meta:
     id: fld_05a6405eca2a778e4933e2935bd0ab16
-    description: Create and manage Buy link offers. Lookup is intentionally public and does not use API-key authentication.
+    description: Create and manage hosted Buy links. The returned sale_ ID becomes https://pages.inttegro.com/buy/{purchase_intent_id}. Lookup is intentionally public and does not use API-key authentication.
   authentication:
     type: bearer
     token: '{{ api_key }}'
@@ -33,6 +33,8 @@ collection:
     headers:
     - name: Content-Type
       value: application/json
+    - name: Idempotency-Key
+      value: call-purchase-intent-create-001
     body:
       mimeType: application/json
       text: |-
@@ -56,7 +58,19 @@ collection:
           insomnia.test('Returns purchase_intent.id', () => {
             insomnia.expect(purchase_intent_id).to.be.a('string').and.not.be.empty;
           });
-          if (purchase_intent_id) insomnia.globals.set("purchase_intent_id", purchase_intent_id);
+          if (purchase_intent_id) {
+            const configured_base_url = insomnia.variables.get("hosted_buy_base_url");
+            const hosted_buy_base_url = (
+              typeof configured_base_url === "string" && configured_base_url.trim()
+                ? configured_base_url.trim()
+                : "https://pages.inttegro.com/buy"
+            ).replace(/\/+$/, "");
+            insomnia.globals.set("purchase_intent_id", purchase_intent_id);
+            insomnia.globals.set(
+              "purchase_intent_url",
+              `${hosted_buy_base_url}/${encodeURIComponent(purchase_intent_id)}`,
+            );
+          }
         }
   - name: Update a purchase intent
     url: '{{ base_url }}/purchase_intents/update'
@@ -67,6 +81,8 @@ collection:
     headers:
     - name: Content-Type
       value: application/json
+    - name: Idempotency-Key
+      value: call-purchase-intent-update-{{ purchase_intent_id }}
     body:
       mimeType: application/json
       text: |-
@@ -85,6 +101,8 @@ collection:
     headers:
     - name: Content-Type
       value: application/json
+    - name: Idempotency-Key
+      value: call-purchase-intent-cancel-{{ purchase_intent_id }}
     body:
       mimeType: application/json
       text: |-
@@ -108,12 +126,21 @@ collection:
         {
           "id": "{{ purchase_intent_id }}"
         }
-  - name: Page purchase intents
+    scripts:
+      afterResponse: |-
+        if (insomnia.response.code >= 200 && insomnia.response.code < 300) {
+          const purchase_intent = insomnia.response.json()?.purchase_intent;
+          insomnia.test('Public lookup returns a purchase intent without owner activity', () => {
+            insomnia.expect(purchase_intent?.id).to.equal(insomnia.variables.get('purchase_intent_id'));
+            insomnia.expect(purchase_intent).not.to.have.property('activity');
+          });
+        }
+  - name: List purchase intents
     url: '{{ base_url }}/purchase_intents/page'
     method: POST
     meta:
       id: req_5ccaf3e6fe2da71439905661caf4dfab
-      description: 'Public reference: https://studio.inttegro.com/purchase-intents#page-purchase-intents'
+      description: 'Public reference: https://studio.inttegro.com/purchase-intents#list-purchase-intents'
     headers:
     - name: Content-Type
       value: application/json
@@ -128,4 +155,5 @@ environments:
   name: Base Environment
   meta:
     id: env_3e38ab502f6faab83975cd615d8b00c3
-  data: {}
+  data:
+    hosted_buy_base_url: https://pages.inttegro.com/buy

@@ -5927,12 +5927,23 @@ paths:
         post:
             summary: Create a purchase intent
             description: |
-                Creates a sale configuration for a Buy link. A PurchaseIntent points at
-                a catalog product, a selected price, and the quantity bounds that Pages
-                Buy should enforce when a customer expresses purchase intent.
+                Creates a controlled, shareable Buy link for a catalog product without
+                requiring you to build a product page, cart, or checkout UI. The returned
+                `sale_...` ID becomes `https://pages.inttegro.com/buy/{purchase_intent_id}`.
+                An order is created only when a customer checks out from that link.
+
+                This operation supports idempotency. Reuse the same `Idempotency-Key` and
+                request body when retrying an uncertain request.
             operationId: createPurchaseIntent
             tags:
                 - Purchase Intents
+            parameters:
+                - name: Idempotency-Key
+                  in: header
+                  required: false
+                  schema:
+                      type: string
+                  description: Stable key used to replay safe retries without creating a duplicate Buy link.
             requestBody:
                 required: true
                 content:
@@ -5947,7 +5958,7 @@ paths:
                             schema:
                                 $ref: '#/components/schemas/PurchaseIntentResponse'
                 '400':
-                    description: Bad request - invalid parameters
+                    description: Invalid request, quantity range, price availability, or product-price relationship
                     content:
                         application/json:
                             schema:
@@ -5964,8 +5975,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Error'
-                '422':
-                    description: Unprocessable entity - product or price cannot be used
+                '500':
+                    description: Purchase intent creation failed unexpectedly
                     content:
                         application/json:
                             schema:
@@ -5974,14 +5985,23 @@ paths:
         post:
             summary: Update a purchase intent
             description: |
-                Updates mutable Buy link configuration such as quantity bounds and
-                expiry time. It can also reactivate a canceled or expired Buy link
-                by clearing the blocking inactive or elapsed expiry timestamp.
-                Product, price, usage mode, and variant selection remain immutable
-                after creation.
+                Changes quantity bounds or expiry without changing what an already-shared
+                Buy link sells. `reactivate: true` clears cancellation state and any existing
+                elapsed expiry. Product, price, usage mode, and variant selection remain
+                immutable after creation.
+
+                This operation supports idempotency. Reuse the same `Idempotency-Key` and
+                request body when retrying an uncertain request.
             operationId: updatePurchaseIntent
             tags:
                 - Purchase Intents
+            parameters:
+                - name: Idempotency-Key
+                  in: header
+                  required: false
+                  schema:
+                      type: string
+                  description: Stable key used to replay safe retries without applying the update twice.
             requestBody:
                 required: true
                 content:
@@ -6013,8 +6033,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Error'
-                '422':
-                    description: Unprocessable entity - purchase intent cannot be updated
+                '500':
+                    description: Purchase intent update failed unexpectedly
                     content:
                         application/json:
                             schema:
@@ -6023,12 +6043,23 @@ paths:
         post:
             summary: Cancel a purchase intent
             description: |
-                Cancels a Buy link sale proposal so Pages no longer accepts new
-                purchases from it. Cancellation is merchant-driven and distinct
-                from expiry, which is time-driven.
+                Stops a Buy link from creating new orders immediately. Cancellation is an
+                explicit merchant action and is distinct from time-driven expiry. Repeating
+                cancellation for an already inactive intent returns its current state, but a
+                single-use intent that already created an order cannot be canceled.
+
+                This operation supports idempotency. Reuse the same `Idempotency-Key` and
+                request body when retrying an uncertain request.
             operationId: cancelPurchaseIntent
             tags:
                 - Purchase Intents
+            parameters:
+                - name: Idempotency-Key
+                  in: header
+                  required: false
+                  schema:
+                      type: string
+                  description: Stable key used to replay safe retries without applying cancellation twice.
             requestBody:
                 required: true
                 content:
@@ -6060,8 +6091,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Error'
-                '422':
-                    description: Unprocessable entity - purchase intent cannot be canceled
+                '500':
+                    description: Purchase intent cancellation failed unexpectedly
                     content:
                         application/json:
                             schema:
@@ -6070,12 +6101,17 @@ paths:
         post:
             summary: Lookup a purchase intent
             description: |
-                Retrieves a PurchaseIntent by its opaque ID. This endpoint powers Pages
-                Buy links and does not require callers to know the application ID.
+                Resolves the offer behind a hosted Buy link using only its opaque ID. Public
+                lookup requires no API key and returns active or expired intents; canceled
+                and used single-use intents are returned as not found. When the owning
+                application authenticates the request, lookup is application-scoped, returns
+                all lifecycle states, and may include recent activity.
             operationId: lookupPurchaseIntent
             tags:
                 - Purchase Intents
-            security: []
+            security:
+                - {}
+                - bearerAuth: []
             requestBody:
                 required: true
                 content:
@@ -6101,8 +6137,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Error'
-                '422':
-                    description: Purchase intent is no longer usable
+                '500':
+                    description: Purchase intent lookup failed unexpectedly
                     content:
                         application/json:
                             schema:
@@ -6111,9 +6147,10 @@ paths:
         post:
             summary: List purchase intents
             description: |
-                Lists PurchaseIntent records for the authenticated application. This is
-                intended for dashboard views and requires application-scoped
-                authorization.
+                Lists purchase intents for the authenticated application, newest first.
+                Pagination is numbered. The response `page.size` is the number of records
+                actually returned, not the requested limit, and no total count or next-page
+                token is included.
             operationId: pagePurchaseIntents
             tags:
                 - Purchase Intents
@@ -6138,6 +6175,18 @@ paths:
                                 $ref: '#/components/schemas/Error'
                 '401':
                     description: Unauthorized - invalid or missing API key
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                '404':
+                    description: A purchase intent could not be hydrated
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                '500':
+                    description: Purchase intent page lookup failed unexpectedly
                     content:
                         application/json:
                             schema:
@@ -8838,7 +8887,7 @@ components:
             properties:
                 product:
                     type: object
-                    description: Inline product selector for the Buy link
+                    description: Product selection with optional variant-set configuration. Use this instead of product_id.
                     required:
                         - id
                     properties:
@@ -8848,15 +8897,15 @@ components:
                             example: "prod_abc123"
                         variant_set_id:
                             type: string
-                            description: Optional variant set ID Pages Buy may use for sibling product selection
+                            description: Optional variant set ID the hosted checkout may use for sibling product selection
                             example: "pg_variantset123"
                 product_id:
                     type: string
-                    description: Product ID to sell through the Buy link when not using product
+                    description: App-owned product ID to sell through the Buy link when not using product
                     example: "prod_abc123"
                 price:
                     type: object
-                    description: Inline price selector for the Buy link. Runtime requires exactly one of id or nominal and allows at most one of original or original_id.
+                    description: Price selection for the Buy link. Send exactly one of id or nominal and at most one of original or original_id.
                     allOf:
                         - oneOf:
                             - required:
@@ -8864,13 +8913,16 @@ components:
                             - required:
                                 - nominal
                         - not:
+                            properties:
+                                original: {}
+                                original_id: {}
                             required:
                                 - original
                                 - original_id
                     properties:
                         id:
                             type: string
-                            description: Existing price ID selected for the Buy link
+                            description: Active, unarchived app-owned price ID that belongs to the selected product
                             example: "pr_xyz789"
                         nominal:
                             type: object
@@ -8881,9 +8933,9 @@ components:
                             properties:
                                 currency:
                                     type: string
-                                    description: ISO 4217 currency code
+                                    minLength: 1
+                                    description: Non-empty currency code, normalized to lowercase
                                     example: "ghs"
-                                    pattern: '^[A-Za-z]{3}$'
                                 value:
                                     type: integer
                                     minimum: 1
@@ -8901,7 +8953,7 @@ components:
                             properties:
                                 id:
                                     type: string
-                                    description: Existing original price ID
+                                    description: App-owned comparison price ID that belongs to the selected product
                                     example: "pr_original123"
                                 nominal:
                                     type: object
@@ -8912,9 +8964,9 @@ components:
                                     properties:
                                         currency:
                                             type: string
-                                            description: ISO 4217 currency code
+                                            minLength: 1
+                                            description: Non-empty currency code, normalized to lowercase
                                             example: "ghs"
-                                            pattern: '^[A-Za-z]{3}$'
                                         value:
                                             type: integer
                                             minimum: 1
@@ -8922,11 +8974,11 @@ components:
                                             example: 100000
                         original_id:
                             type: string
-                            description: Existing original price ID when not using original.id
+                            description: App-owned comparison price ID when not using original.id
                             example: "pr_original123"
                 price_id:
                     type: string
-                    description: Existing price ID selected for the Buy link when not using price
+                    description: Active, unarchived app-owned price ID that belongs to the selected product
                     example: "pr_xyz789"
                 quantity:
                     type: object
@@ -8949,13 +9001,16 @@ components:
                     type: object
                     description: Optional link-use policy. Omit to create a reusable Buy link.
                     not:
+                        properties:
+                            multi_use: {}
+                            single_use: {}
                         required:
                             - single_use
                             - multi_use
                     properties:
                         single_use:
                             type: boolean
-                            description: The first completed order consumes the Buy link
+                            description: Creating the first order consumes the Buy link
                             example: true
                         multi_use:
                             type: boolean
@@ -8964,47 +9019,66 @@ components:
                 expires_at:
                     type: string
                     format: date-time
-                    description: Expiry timestamp for the Buy link
-                    example: "2024-01-20T14:45:00Z"
+                    description: Future RFC3339 timestamp after which the Buy link stops accepting purchases
+                    example: "2030-12-01T09:00:00Z"
         UpdatePurchaseIntentRequest:
             type: object
-            required:
-                - id
+            anyOf:
+                - required:
+                    - id
+                - required:
+                    - purchase_intent_id
             properties:
+                expires_at:
+                    type: string
+                    format: date-time
+                    nullable: true
+                    description: RFC3339 expiry timestamp, including a past time for immediate expiry, or null to clear expiry
                 id:
                     type: string
-                    description: PurchaseIntent ID to update
+                    minLength: 1
+                    description: Purchase intent ID to update. Send this or purchase_intent_id.
                     example: "sale_ABCXYZ"
-                minimum_quantity:
-                    type: integer
-                    minimum: 1
-                    description: Minimum quantity the customer can buy
-                    example: 1
                 maximum_quantity:
                     type: integer
                     minimum: 1
                     description: Maximum quantity the customer can buy
                     example: 3
-                expires_at:
+                minimum_quantity:
+                    type: integer
+                    minimum: 1
+                    description: Minimum quantity the customer can buy
+                    example: 1
+                purchase_intent_id:
                     type: string
-                    format: date-time
-                    nullable: true
-                    description: Expiry timestamp for the Buy link, or null to clear expiry
+                    minLength: 1
+                    description: Alias for id. If both are present, this value takes precedence.
+                    example: "sale_ABCXYZ"
                 reactivate:
                     type: boolean
                     description: |
                         Clears the state that prevents new purchases. For canceled
                         Buy links this removes inactive_at. For expired Buy links this
-                        clears an elapsed expires_at value.
+                        clears an existing elapsed expires_at value. It does not remove
+                        the order claim from a used single-use intent.
                     example: true
         CancelPurchaseIntentRequest:
             type: object
-            required:
-                - id
+            anyOf:
+                - required:
+                    - id
+                - required:
+                    - purchase_intent_id
             properties:
                 id:
                     type: string
-                    description: PurchaseIntent ID to cancel
+                    minLength: 1
+                    description: Purchase intent ID to cancel. Send this or purchase_intent_id.
+                    example: "sale_ABCXYZ"
+                purchase_intent_id:
+                    type: string
+                    minLength: 1
+                    description: Alias for id. If both are present, this value takes precedence.
                     example: "sale_ABCXYZ"
         LookupPurchaseIntentRequest:
             type: object
@@ -9013,7 +9087,8 @@ components:
             properties:
                 id:
                     type: string
-                    description: PurchaseIntent ID to lookup
+                    minLength: 1
+                    description: Purchase intent ID to look up
                     example: "sale_ABCXYZ"
         PagePurchaseIntentsRequest:
             type: object
@@ -9024,39 +9099,46 @@ components:
                 page_number:
                     type: integer
                     minimum: 1
+                    maximum: 10
                     description: One-based page number to retrieve
                     example: 1
                 page_size:
                     type: integer
                     minimum: 1
                     maximum: 256
-                    description: Maximum number of purchase intents to return
+                    description: Maximum number of purchase intents to return on this page
                     example: 20
         PagePurchaseIntentsResponse:
             type: object
+            required:
+                - page
             properties:
                 page:
                     type: object
+                    required:
+                        - number
+                        - purchase_intents
+                        - size
                     properties:
                         number:
                             type: integer
+                            description: One-based page number returned
                             example: 1
-                        size:
-                            type: integer
-                            example: 20
                         purchase_intents:
                             type: array
                             items:
                                 $ref: '#/components/schemas/PurchaseIntent'
-                error:
-                    $ref: '#/components/schemas/Error'
+                        size:
+                            type: integer
+                            description: Number of purchase intents actually returned
+                            example: 2
         PurchaseIntentResponse:
             type: object
+            required:
+                - purchase_intent
             properties:
                 purchase_intent:
                     $ref: '#/components/schemas/PurchaseIntent'
-                error:
-                    $ref: '#/components/schemas/Error'
         PurchaseIntentActivityLog:
             type: object
             properties:
@@ -9066,54 +9148,71 @@ components:
                         $ref: '#/components/schemas/PurchaseIntentActivity'
         PurchaseIntentActivity:
             type: object
+            required:
+                - created_at
+                - id
+                - purchase_intent_id
+                - type
             properties:
+                amount:
+                    $ref: '#/components/schemas/PurchaseIntentMoney'
+                attribution:
+                    $ref: '#/components/schemas/PurchaseIntentActivityAttribution'
+                created_at:
+                    type: string
+                    format: date-time
+                error_code:
+                    type: string
+                    example: "payment_failed"
                 id:
                     type: string
                     description: Activity event ID with saleevt_ prefix
                     example: "saleevt_abc123"
-                purchase_intent_id:
-                    type: string
-                    description: PurchaseIntent ID with sale_ prefix
-                    example: "sale_ABCXYZ"
-                type:
-                    type: string
-                    enum: [viewed, expired_viewed, payment_started, order_created, payment_failed]
-                source:
-                    type: string
-                    example: "pages_buy"
-                attribution:
-                    $ref: '#/components/schemas/PurchaseIntentActivityAttribution'
-                visitor:
-                    $ref: '#/components/schemas/PurchaseIntentActivityVisitor'
-                product_id:
-                    type: string
-                    example: "prod_abc123"
-                variant_product_id:
-                    type: string
-                    example: "prod_variant123"
-                quantity:
-                    type: integer
-                    example: 2
-                amount:
-                    $ref: '#/components/schemas/Money'
                 order_id:
                     type: string
                     example: "or_abc123"
                 payment_id:
                     type: string
                     example: "py_abc123"
-                error_code:
+                product_id:
                     type: string
-                    example: "payment_failed"
-                created_at:
+                    example: "prod_abc123"
+                purchase_intent_id:
                     type: string
-                    format: date-time
+                    description: Purchase intent ID with sale_ prefix
+                    example: "sale_ABCXYZ"
+                quantity:
+                    type: integer
+                    minimum: 0
+                    example: 2
+                source:
+                    type: string
+                type:
+                    type: string
+                    enum: [expired_viewed, order_created, payment_failed, payment_started, viewed]
+                variant_product_id:
+                    type: string
+                    example: "prod_variant123"
+                visitor:
+                    $ref: '#/components/schemas/PurchaseIntentActivityVisitor'
         PurchaseIntentActivityAttribution:
             type: object
             properties:
+                campaign:
+                    type: string
+                    example: "july-drop"
+                channel:
+                    type: string
+                    example: "social"
+                content:
+                    type: string
+                    example: "story-1"
                 landing_url:
                     type: string
                     example: "https://pages.inttegro.com/buy/sale_ABCXYZ?utm_source=instagram"
+                medium:
+                    type: string
+                    example: "social"
                 referrer:
                     type: string
                     example: "https://instagram.com/"
@@ -9123,122 +9222,308 @@ components:
                 source:
                     type: string
                     example: "instagram"
-                medium:
-                    type: string
-                    example: "social"
-                campaign:
-                    type: string
-                    example: "july-drop"
                 term:
                     type: string
                     example: "waist beads"
-                content:
-                    type: string
-                    example: "story-1"
-                channel:
-                    type: string
-                    example: "social"
         PurchaseIntentActivityVisitor:
             type: object
             properties:
-                session_id:
-                    type: string
-                    example: "ps_9f9489e9-1a67-42f0-bb44-13101ea6f174"
-                visitor_id:
-                    type: string
-                    example: "pv_b0c6f1b8-e917-4a88-b891-f6b18ce0f540"
-                user_agent:
-                    type: string
-                    example: "Mozilla/5.0"
-                device:
-                    type: string
-                    example: "mobile"
                 browser:
                     type: string
                     example: "Safari"
-                os:
-                    type: string
-                    example: "iOS"
-                country:
-                    type: string
-                    example: "GH"
-                region:
-                    type: string
-                    example: "Greater Accra"
                 city:
                     type: string
                     example: "Accra"
+                country:
+                    type: string
+                    example: "GH"
+                device:
+                    type: string
+                    example: "mobile"
+                ip_address:
+                    type: string
+                    description: Request IP address when retained for the activity type
+                    example: "203.0.113.7"
+                os:
+                    type: string
+                    example: "iOS"
+                region:
+                    type: string
+                    example: "Greater Accra"
+                session_id:
+                    type: string
+                    example: "ps_9f9489e9-1a67-42f0-bb44-13101ea6f174"
                 timezone:
                     type: string
                     example: "Africa/Accra"
+                user_agent:
+                    type: string
+                    example: "Mozilla/5.0"
+                visitor_id:
+                    type: string
+                    example: "pv_b0c6f1b8-e917-4a88-b891-f6b18ce0f540"
+        PurchaseIntentMerchant:
+            type: object
+            description: Merchant identity captured for the hosted checkout. Individual fields are omitted when unavailable.
+            properties:
+                app_id:
+                    type: string
+                    example: "app_xyz789"
+                app_name:
+                    type: string
+                    example: "Tea House"
+                organization_id:
+                    type: string
+                    example: "org_abc123"
+                organization_name:
+                    type: string
+                    example: "Tea House Ltd"
+        PurchaseIntentMoney:
+            type: object
+            required:
+                - currency
+                - value
+            properties:
+                currency:
+                    type: string
+                    minLength: 1
+                    description: Lowercase currency code
+                    example: "ghs"
+                value:
+                    type: integer
+                    minimum: 0
+                    description: Amount in the smallest currency unit
+                    example: 18500
+        PurchaseIntentOriginalPrice:
+            type: object
+            required:
+                - active
+                - nominal
+            properties:
+                active:
+                    type: boolean
+                    description: Whether the resolved comparison price is active
+                    example: true
+                id:
+                    type: string
+                    description: Catalog price ID when the comparison price is not inline
+                    example: "pr_original123"
+                label:
+                    type: string
+                    description: Catalog price label when available
+                    example: "Regular price"
+                nominal:
+                    $ref: '#/components/schemas/PurchaseIntentMoney'
+        PurchaseIntentPrice:
+            type: object
+            required:
+                - active
+                - nominal
+            properties:
+                active:
+                    type: boolean
+                    description: Whether the resolved price can be used
+                    example: true
+                id:
+                    type: string
+                    description: Catalog price ID when the offer price is not inline
+                    example: "pr_xyz789"
+                label:
+                    type: string
+                    description: Catalog price label when available
+                    example: "Campaign price"
+                nominal:
+                    $ref: '#/components/schemas/PurchaseIntentMoney'
+                original:
+                    $ref: '#/components/schemas/PurchaseIntentOriginalPrice'
+        PurchaseIntentProduct:
+            allOf:
+                - $ref: '#/components/schemas/PriceEmbeddedProduct'
+                - type: object
+                  properties:
+                      prices:
+                          type: array
+                          description: Non-archived catalog prices currently attached to the product
+                          items:
+                              $ref: '#/components/schemas/ProductPriceSummary'
+                      variant_set_id:
+                          type: string
+                          description: Variant set configured for this Buy link
+                          example: "pg_variantset123"
+        PurchaseIntentUsage:
+            type: object
+            description: Exactly one of multi_use or single_use is returned as true. Order is present after a single-use intent is consumed.
+            properties:
+                multi_use:
+                    type: boolean
+                    example: true
+                order:
+                    $ref: '#/components/schemas/PurchaseIntentUsageOrder'
+                single_use:
+                    type: boolean
+                    example: true
+        PurchaseIntentUsageOrder:
+            type: object
+            required:
+                - created_at
+                - id
+            properties:
+                created_at:
+                    type: string
+                    format: date-time
+                    description: When order creation consumed the single-use Buy link
+                id:
+                    type: string
+                    description: Order that consumed the Buy link
+                    example: "or_abc123"
+        PurchaseIntentVariantAxis:
+            type: object
+            required:
+                - key
+                - label
+                - position
+            properties:
+                key:
+                    type: string
+                    example: "size"
+                label:
+                    type: string
+                    example: "Size"
+                position:
+                    type: integer
+                    example: 0
+        PurchaseIntentVariant:
+            type: object
+            required:
+                - active
+                - product_id
+                - variant_values
+            properties:
+                active:
+                    type: boolean
+                    example: true
+                position:
+                    type: integer
+                    example: 0
+                price:
+                    $ref: '#/components/schemas/PurchaseIntentPrice'
+                product:
+                    $ref: '#/components/schemas/PurchaseIntentProduct'
+                product_id:
+                    type: string
+                    example: "prod_variant123"
+                variant_values:
+                    type: object
+                    additionalProperties:
+                        type: string
+                    example:
+                        size: "large"
+        PurchaseIntentVariantSet:
+            type: object
+            required:
+                - active
+                - id
+                - name
+                - variant_axes
+                - variants
+            properties:
+                active:
+                    type: boolean
+                    example: true
+                default_product_id:
+                    type: string
+                    example: "prod_abc123"
+                description:
+                    type: string
+                    example: "Choose a tin size"
+                id:
+                    type: string
+                    example: "pg_variantset123"
+                name:
+                    type: string
+                    example: "Tin size"
+                reference:
+                    type: string
+                    example: "matcha-tin-size"
+                variant_axes:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/PurchaseIntentVariantAxis'
+                variants:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/PurchaseIntentVariant'
         PurchaseIntent:
             type: object
             required:
-                - id
-                - application_id
-                - product_id
-                - price_id
-                - minimum_quantity
-                - maximum_quantity
-                - adjustable_quantity
                 - allow_variants
-                - status
+                - application_id
                 - created_at
+                - id
+                - maximum_quantity
+                - minimum_quantity
+                - status
+                - usage
             properties:
-                id:
-                    type: string
-                    description: Unique PurchaseIntent identifier with sale_ prefix
-                    example: "sale_ABCXYZ"
-                application_id:
-                    type: string
-                    description: Application that owns the configured sale
-                    example: "app_xyz789"
-                product_id:
-                    type: string
-                    description: Product selected for this Buy link
-                    example: "prod_abc123"
-                price_id:
-                    type: string
-                    description: Price selected for this Buy link
-                    example: "pr_xyz789"
-                minimum_quantity:
-                    type: integer
-                    minimum: 1
-                    description: Minimum quantity Pages Buy should allow
-                    example: 1
-                maximum_quantity:
-                    type: integer
-                    minimum: 1
-                    description: Maximum quantity Pages Buy should allow
-                    example: 5
-                adjustable_quantity:
-                    type: boolean
-                    description: Whether the customer can change quantity
-                    example: true
+                activity:
+                    allOf:
+                        - $ref: '#/components/schemas/PurchaseIntentActivityLog'
+                    description: Recent activity for authenticated owner lookups and list responses. Omitted from public lookup.
                 allow_variants:
                     type: boolean
-                    description: Whether Pages Buy may display product variants
+                    description: Whether the intent was configured with a variant set
                     example: false
-                status:
+                application_id:
                     type: string
-                    enum: [active, inactive]
-                    description: PurchaseIntent lifecycle status
-                    example: "active"
+                    description: Application that owns the configured offer
+                    example: "app_xyz789"
                 created_at:
                     type: string
                     format: date-time
                     description: Creation timestamp
+                expires_at:
+                    type: string
+                    format: date-time
+                    description: Timestamp at or after which the Buy link is expired
+                id:
+                    type: string
+                    description: Unique purchase intent identifier with sale_ prefix. Append it to https://pages.inttegro.com/buy/ to build the hosted Buy link.
+                    example: "sale_ABCXYZ"
+                inactive_at:
+                    type: string
+                    format: date-time
+                    description: When the Buy link was explicitly canceled
+                maximum_quantity:
+                    type: integer
+                    minimum: 1
+                    description: Maximum quantity the hosted checkout allows
+                    example: 5
+                merchant:
+                    $ref: '#/components/schemas/PurchaseIntentMerchant'
+                minimum_quantity:
+                    type: integer
+                    minimum: 1
+                    description: Minimum quantity the hosted checkout allows
+                    example: 1
+                price:
+                    $ref: '#/components/schemas/PurchaseIntentPrice'
+                product:
+                    $ref: '#/components/schemas/PurchaseIntentProduct'
+                status:
+                    type: string
+                    enum: [active, expired, inactive, used]
+                    description: Effective lifecycle state derived from expiry, cancellation, and single-use order creation
+                    example: "active"
                 updated_at:
                     type: string
                     format: date-time
-                    nullable: true
-                    description: Last update timestamp
-                activity:
-                    $ref: '#/components/schemas/PurchaseIntentActivityLog'
-                product:
-                    $ref: '#/components/schemas/Product'
-                price:
-                    $ref: '#/components/schemas/ProductPriceSummary'
+                    description: Last mutation timestamp
+                usage:
+                    $ref: '#/components/schemas/PurchaseIntentUsage'
+                variant_set:
+                    allOf:
+                        - $ref: '#/components/schemas/PurchaseIntentVariantSet'
+                    description: Hydrated active variants when available. It may be omitted even when allow_variants is true.
         Product:
             type: object
             required:
