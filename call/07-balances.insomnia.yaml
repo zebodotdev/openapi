@@ -91,7 +91,18 @@ collection:
           insomnia.expect(transaction?.order_id).to.be.a('string');
           insomnia.expect(transaction?.created_at).to.be.a('string');
           insomnia.expect(transaction?.amount?.currency).to.be.a('string');
-          insomnia.expect(transaction?.amount?.value).to.be.a('number');
+          insomnia.expect(transaction?.amount?.value).to.be.a('number').and.be.at.least(0);
+          insomnia.expect(transaction?.type).to.be.oneOf(['payment', 'refund']);
+          for (const field of ['application_id', 'sign', 'source_id', 'source_type']) {
+            insomnia.expect(transaction).not.to.have.property(field);
+          }
+          if (transaction?.type === 'payment') {
+            insomnia.expect(transaction?.payment_id).to.be.a('string');
+            insomnia.expect(transaction).not.to.have.property('refund_id');
+          } else {
+            insomnia.expect(transaction?.refund_id).to.be.a('string');
+            insomnia.expect(transaction).not.to.have.property('payment_id');
+          }
         });
   - name: Page through balance transactions
     url: '{{ base_url }}/balance_transactions/page'
@@ -120,6 +131,21 @@ collection:
             insomnia.expect(jsonBody.page.transactions).to.be.an('array');
             const created = jsonBody.page.transactions.map((transaction) => Date.parse(transaction.created_at));
             insomnia.expect(created).to.deep.equal([...created].sort((a, b) => b - a));
+            for (const transaction of jsonBody.page.transactions) {
+              insomnia.expect(transaction?.order_id).to.be.a('string');
+              insomnia.expect(transaction?.amount?.value).to.be.a('number').and.be.at.least(0);
+              insomnia.expect(transaction?.type).to.be.oneOf(['payment', 'refund']);
+              for (const field of ['application_id', 'sign', 'source_id', 'source_type']) {
+                insomnia.expect(transaction).not.to.have.property(field);
+              }
+              if (transaction?.type === 'payment') {
+                insomnia.expect(transaction?.payment_id).to.be.a('string');
+                insomnia.expect(transaction).not.to.have.property('refund_id');
+              } else {
+                insomnia.expect(transaction?.refund_id).to.be.a('string');
+                insomnia.expect(transaction).not.to.have.property('payment_id');
+              }
+            }
           }
         });
 environments:

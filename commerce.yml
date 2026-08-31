@@ -10871,22 +10871,33 @@ components:
                                     example: "2025-10-24T21:08:11.594061484Z"
                                 balance_transaction:
                                     type: object
-                                    description: Balance transaction details (if applicable)
+                                    description: |
+                                        Balance transaction details, if available. `type` is the semantic source, not
+                                        direction. Exactly one matching `payment_id` or `refund_id` is present.
                                     nullable: true
+                                    required: [amount, created_at, id, order_id, type]
                                     properties:
                                         id:
                                             type: string
                                             description: Unique identifier for the balance transaction
-                                            example: "bt_1KqYh2EeZvKYlo2C3h4Y8l5X"
+                                            example: "bt_zyxwvutsrqponmlkjihgfedcbaABCDEFGHIJKLMN"
                                         payout_id:
                                             type: string
                                             description: Associated payout ID
-                                            example: "po_1KqYh1EeZvKYlo2C4X9J3v2D"
+                                            example: "po_zyxwvutsrqponmlkjihgfedcbaABCDEFGHIJKLMN"
                                             nullable: true
                                         payment_id:
                                             type: string
-                                            description: Associated payment ID
-                                            example: "py_3deNYydEjIGCqK1tGlAPwJYSCsZnQ4XGF"
+                                            description: Present when `type` is `payment`; omitted when `type` is `refund`.
+                                            example: "py_ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmn"
+                                        refund_id:
+                                            type: string
+                                            description: Present when `type` is `refund`; omitted when `type` is `payment`.
+                                            example: "rf_1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcd"
+                                        order_id:
+                                            type: string
+                                            description: Order associated with the payment.
+                                            example: "or_0123456789abcdefghijklmnopqrstuvwxyzABCD"
                                         created_at:
                                             type: string
                                             format: date-time
@@ -10917,6 +10928,10 @@ components:
                                                             type: string
                                                             description: ID of the financial account receiving the payout
                                                             example: "fa_1234567890abcdef"
+                                        type:
+                                            type: string
+                                            enum: [payment, refund]
+                                            description: Semantic source or cause of this entry, not its direction.
                         shipping:
                             type: object
                             description: Shipping information for the order
@@ -11174,6 +11189,8 @@ components:
                             example: "STATEMENT"
                         amount:
                             $ref: '#/components/schemas/Money'
+                        balance_transaction:
+                            $ref: '#/components/schemas/BalanceTransaction'
                         payment_method:
                             $ref: '#/components/schemas/OrderPaymentMethod'
                         latest_attempt:
@@ -11614,7 +11631,11 @@ components:
                     example: 20000
         BalanceTransaction:
             type: object
-            required: [amount, created_at, id, order_id]
+            description: |
+                Merchant balance entry caused by a payment or refund. `type` describes the
+                semantic source, not direction. A payment transaction contains `payment_id`;
+                a refund transaction contains `refund_id`. Exactly one matching reference is present.
+            required: [amount, created_at, id, order_id, type]
             properties:
                 amount:
                     $ref: '#/components/schemas/BalanceTransactionAmount'
@@ -11629,18 +11650,28 @@ components:
                     format: date-time
                 id:
                     type: string
+                    example: bt_0123456789abcdefghijklmnopqrstuvwxyzABCD
                 order_id:
                     type: string
+                    example: or_0123456789abcdefghijklmnopqrstuvwxyzABCD
                 paid_at:
                     type: string
                     format: date-time
                 payment_id:
                     type: string
-                    description: Omitted for transactions created from a refund
+                    description: Present when `type` is `payment`; omitted when `type` is `refund`.
+                    example: py_ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmn
                 payout_id:
                     type: string
+                    example: po_zyxwvutsrqponmlkjihgfedcbaABCDEFGHIJKLMN
                 refund_id:
                     type: string
+                    description: Present when `type` is `refund`; omitted when `type` is `payment`.
+                    example: rf_1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcd
+                type:
+                    type: string
+                    enum: [payment, refund]
+                    description: Semantic source or cause of the transaction, not its direction.
         BalanceTransactionResponse:
             type: object
             required: [transaction]
