@@ -1,10 +1,9 @@
 type: collection.insomnia.rest/5.0
 schema_version: '5.1'
-name: Commerce API — One-Time Passwords
+name: Inttegro API — One-Time Passwords
 meta:
   id: wrk_3b8be7bb233f4fea482b8f3f2710d0fa
-  description: Initiate, verify, and retrieve SMS one-time-password transactions. Uses the shared Commerce API global
-    environment.
+  description: 'Initiate, verify, and retrieve SMS one-time-password transactions. Uses the shared Inttegro API global environment. Error reference: https://studio.inttegro.com/error-codes#one-time-passwords'
 collection:
 - name: One-time passwords
   meta:

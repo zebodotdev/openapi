@@ -1,9 +1,9 @@
 type: collection.insomnia.rest/5.0
 schema_version: '5.1'
-name: Commerce API — Payment Methods
+name: Inttegro API — Payment Methods
 meta:
   id: wrk_83c6db85b1be332d8a8f369beb270a92
-  description: Tokenize and manage saved payment methods. Uses the shared Commerce API global environment.
+  description: Tokenize and manage saved payment methods. Uses the shared Inttegro API global environment.
 collection:
 - name: Payment methods
   meta:

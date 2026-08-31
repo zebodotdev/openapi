@@ -1,11 +1,11 @@
 ---
 openapi: 3.0.3
 info:
-    title: the commerce http api
-    description: machine-readable representation of the commerce http api
+    title: Inttegro API
+    description: Machine-readable reference for the public Inttegro API
     version: 0.1.0-beta1
     contact:
-        name: Zebo Engineering
+        name: Inttegro Engineering
         url: "https://inttegro.com"
         email: "engineering@inttegro.com"
 servers:
@@ -52,7 +52,7 @@ paths:
                             schema:
                                 $ref: '#/components/schemas/ErrorEnvelope'
                 '422':
-                    description: OTP transaction could not be initiated
+                    description: OTP request was invalid, reused an existing idempotency key, or could not start a transaction
                     content:
                         application/json:
                             schema:
@@ -95,7 +95,7 @@ paths:
                             schema:
                                 $ref: '#/components/schemas/ErrorEnvelope'
                 '422':
-                    description: OTP token could not be verified
+                    description: OTP verification was rejected by transaction state or could not be completed safely
                     content:
                         application/json:
                             schema:
@@ -135,7 +135,7 @@ paths:
                             schema:
                                 $ref: '#/components/schemas/ErrorEnvelope'
                 '422':
-                    description: OTP transaction could not be found or loaded
+                    description: OTP transaction was not found or could not be retrieved
                     content:
                         application/json:
                             schema:
@@ -235,7 +235,7 @@ paths:
                             schema:
                                 $ref: '#/components/schemas/ErrorEnvelope'
                 '422':
-                    description: Chime could not be found
+                    description: Chime was not found or could not be retrieved
                     content:
                         application/json:
                             schema:
@@ -272,7 +272,7 @@ paths:
                             schema:
                                 $ref: '#/components/schemas/ErrorEnvelope'
                 '422':
-                    description: Chime page could not be found
+                    description: Chime page request was invalid or the page could not be retrieved
                     content:
                         application/json:
                             schema:
@@ -434,7 +434,7 @@ paths:
                             schema:
                                 $ref: '#/components/schemas/ErrorEnvelope'
                 '422':
-                    description: Schedule could not be found
+                    description: Schedule was not found or could not be retrieved
                     content:
                         application/json:
                             schema:
@@ -473,7 +473,7 @@ paths:
                             schema:
                                 $ref: '#/components/schemas/ErrorEnvelope'
                 '422':
-                    description: Schedule is missing, completed, or already canceled
+                    description: Schedule was not found, already completed, already canceled, or could not be canceled safely
                     content:
                         application/json:
                             schema:
@@ -509,7 +509,7 @@ paths:
                             schema:
                                 $ref: '#/components/schemas/ErrorEnvelope'
                 '422':
-                    description: Broadcast could not be found
+                    description: Broadcast was not found or could not be retrieved
                     content:
                         application/json:
                             schema:
@@ -548,7 +548,7 @@ paths:
                             schema:
                                 $ref: '#/components/schemas/ErrorEnvelope'
                 '422':
-                    description: Broadcast is missing, completed, or already canceled
+                    description: Broadcast was not found, already completed, already canceled, or could not be canceled safely
                     content:
                         application/json:
                             schema:
@@ -1035,7 +1035,7 @@ paths:
         post:
             summary: Create a new order
             description: |
-                Creates a new order in the Commerce platform. This endpoint supports two flows:
+                Creates a new order in Inttegro. This endpoint supports two flows:
                 1. New customer flow: Provide `customer_data` to create a new customer and order
                 2. Existing customer flow: Provide `customer_id` and optionally `payment_method_id` for known customers
 
@@ -1071,7 +1071,7 @@ paths:
                             schema:
                                 $ref: '#/components/schemas/Error'
                 '409':
-                    description: Order state conflicts with an existing resource
+                    description: Another operation claimed or updated a resource before order creation could safely finish
                     content:
                         application/json:
                             schema:
@@ -1205,7 +1205,7 @@ paths:
                 When mutating seal-sensitive fields on a sealed order, set `finalize: false` to
                 reopen the order and leave it editable, or set `finalize: true` to apply the changes
                 and reseal in the same request. If payment confirmation or execution has already
-                started, Commerce rejects edits that would change the order's economics or payment
+                started, Inttegro rejects edits that would change the order's economics or payment
                 configuration.
             operationId: updateOrder
             tags:
@@ -1352,7 +1352,7 @@ paths:
                                 paid_out_of_band:
                                     type: boolean
                                     description: |
-                                        Set to true if payment was received outside Commerce (cash, bank transfer, check).
+                                        Set to true if payment was received outside Inttegro (cash, bank transfer, check).
                                         Marks the payment as paid offline. Mutually exclusive with payment_method_id and
                                         payment_method_data. Defaults to false.
                                     default: false
@@ -1369,7 +1369,7 @@ paths:
                 '401':
                     description: Unauthorized - invalid or missing API key
                 '409':
-                    description: Order payment state changed during processing
+                    description: Another operation updated or claimed the payment before this request could safely proceed
                     content:
                         application/json:
                             schema:
@@ -1440,7 +1440,7 @@ paths:
                 '401':
                     description: Unauthorized - invalid or missing API key
                 '409':
-                    description: Order payment state changed during confirmation
+                    description: Another operation updated or claimed the payment before confirmation could safely finish
                     content:
                         application/json:
                             schema:
@@ -1665,7 +1665,7 @@ paths:
                 Marks an order as completed, transitioning it to the `completed` state. An order can only
                 be completed if its associated payment has been successfully paid.
 
-                Use the `paid_out_of_band` parameter when payment happened offline (outside the Commerce
+                Use the `paid_out_of_band` parameter when payment happened offline (outside the Inttegro
                 platform) to force the payment status to paid before completing the order. This is useful
                 for cash payments, bank transfers, or other out-of-band payment methods.
 
@@ -1696,7 +1696,7 @@ paths:
                                 paid_out_of_band:
                                     type: boolean
                                     description: |
-                                        Set to true if payment was received outside the Commerce platform
+                                        Set to true if payment was received outside Inttegro
                                         (e.g., cash, bank transfer, check). When true, the associated payment
                                         will be marked as paid offline before completing the order.
                                     default: false
@@ -1747,7 +1747,7 @@ paths:
                             schema:
                                 $ref: '#/components/schemas/Error'
                 '409':
-                    description: Order payment state changed during completion
+                    description: Another operation updated or claimed the payment before completion could safely finish
                     content:
                         application/json:
                             schema:
@@ -1766,9 +1766,9 @@ paths:
                 body contains only `order_id`; delivery options are resolved from the order
                 customer.
 
-                If the customer has both a phone number and an email address, Commerce sends
-                both SMS and email Chimes. If only one contact method exists, Commerce sends
-                to that channel. The order must be finalized before Commerce can send the
+                If the customer has both a phone number and an email address, Inttegro sends
+                both SMS and email Chimes. If only one contact method exists, Inttegro sends
+                to that channel. The order must be finalized before Inttegro can send the
                 hosted invoice link.
 
                 This is an idempotent endpoint. Send retry keys with the `Idempotency-Key`
@@ -1834,8 +1834,8 @@ paths:
                 request body contains only `order_id`; receipt delivery never uses the invoice
                 PDF path.
 
-                If the customer has both a phone number and an email address, Commerce sends
-                both SMS and email Chimes. If only one contact method exists, Commerce sends
+                If the customer has both a phone number and an email address, Inttegro sends
+                both SMS and email Chimes. If only one contact method exists, Inttegro sends
                 to that channel. The order must be paid before a receipt can be sent.
 
                 This is an idempotent endpoint. Send retry keys with the `Idempotency-Key`
@@ -2234,7 +2234,7 @@ paths:
     /apps/create:
         post:
             summary: Create an application
-            description: Creates a Commerce application, initial secret key, and direct parent-child relationship for the authenticated creator app.
+            description: Creates an Inttegro application, initial secret key, and direct parent-child relationship for the authenticated creator app.
             operationId: createApplication
             tags:
                 - Apps
@@ -2386,7 +2386,7 @@ paths:
                             schema:
                                 $ref: '#/components/schemas/Error'
                 '422':
-                    description: Unprocessable entity - invalid parameters
+                    description: Application request was invalid or creation could not be completed
                     content:
                         application/json:
                             schema:
@@ -2439,7 +2439,7 @@ paths:
                             schema:
                                 $ref: '#/components/schemas/Error'
                 '422':
-                    description: Unprocessable entity
+                    description: Application details could not be retrieved
                     content:
                         application/json:
                             schema:
@@ -2512,7 +2512,7 @@ paths:
                             schema:
                                 $ref: '#/components/schemas/Error'
                 '422':
-                    description: Unprocessable entity - invalid parameters
+                    description: Application request was invalid or changes could not be saved
                     content:
                         application/json:
                             schema:
@@ -2548,7 +2548,7 @@ paths:
                             schema:
                                 $ref: '#/components/schemas/Error'
                 '422':
-                    description: Unprocessable entity - key generation failed
+                    description: Secret key request was invalid or no usable key token could be generated
                     content:
                         application/json:
                             schema:
@@ -2580,7 +2580,7 @@ paths:
                             schema:
                                 $ref: '#/components/schemas/Error'
                 '422':
-                    description: Unprocessable entity - invalid parameters or read failure
+                    description: Secret key page request was invalid or key data could not be retrieved
                     content:
                         application/json:
                             schema:
@@ -2618,7 +2618,7 @@ paths:
                             schema:
                                 $ref: '#/components/schemas/Error'
                 '422':
-                    description: Unprocessable entity - invalid parameters or read failure
+                    description: Secret key lookup request was invalid or key data could not be retrieved
                     content:
                         application/json:
                             schema:
@@ -2664,7 +2664,7 @@ paths:
                             schema:
                                 $ref: '#/components/schemas/Error'
                 '422':
-                    description: Unprocessable entity - invalid parameters or update failure
+                    description: Secret key update request was invalid or changes could not be saved
                     content:
                         application/json:
                             schema:
@@ -2716,7 +2716,7 @@ paths:
                             schema:
                                 $ref: '#/components/schemas/Error'
                 '422':
-                    description: Unprocessable entity - invalid parameters or revoke failure
+                    description: Secret key revoke request was invalid or revocation could not be completed
                     content:
                         application/json:
                             schema:
@@ -2760,7 +2760,7 @@ paths:
                             schema:
                                 $ref: '#/components/schemas/Error'
                 '422':
-                    description: Unprocessable entity - invalid parameters or read failure
+                    description: Secret key usage request was invalid or activity could not be retrieved
                     content:
                         application/json:
                             schema:
@@ -2768,7 +2768,7 @@ paths:
     /financial_accounts/create:
         post:
             summary: Create a financial account
-            description: Create a wallet, Ghana bank account, or Dosh account managed through Commerce.
+            description: Create a wallet, Ghana bank account, or Dosh account managed through Inttegro.
             operationId: createFinancialAccount
             tags: [Financial Accounts]
             parameters:
@@ -3030,7 +3030,7 @@ paths:
     /financial_accounts/disconnect:
         post:
             summary: Disconnect a financial account
-            description: Disconnect the account from new Commerce activity.
+            description: Disconnect the account from new Inttegro activity.
             operationId: disconnectFinancialAccount
             tags: [Financial Accounts]
             parameters:
@@ -3601,7 +3601,7 @@ paths:
         post:
             summary: Enable automatic payouts
             description: |
-                Re-enable automatic payouts for your application. Commerce restores the
+                Re-enable automatic payouts for your application. Inttegro restores the
                 configured automatic payout schedule so eligible balance transactions can be
                 queued without a manual scheduling request.
             operationId: enableAutomaticPayouts
@@ -3759,7 +3759,7 @@ paths:
         post:
             summary: Create a file
             description: |
-                Upload a file into Commerce for the authorized application. The request must be multipart form data and include a binary `file` part plus a `purpose`.
+                Upload a file to Inttegro for the authorized application. The request must be multipart form data and include a binary `file` part plus a `purpose`.
             operationId: createFile
             tags:
                 - Files
@@ -4482,7 +4482,7 @@ paths:
     /file_references/reconcile:
         post:
             summary: Reconcile file references
-            description: Replaces the complete set of live file references for one Commerce resource. Omitting `references` or sending an empty array clears the set.
+            description: Replaces the complete set of live file references for one Inttegro resource. Omitting `references` or sending an empty array clears the set.
             operationId: reconcileFileReferences
             tags:
                 - File references
@@ -6137,7 +6137,7 @@ components:
         bearerAuth:
             type: http
             scheme: bearer
-            description: Commerce API key supplied in the Authorization header.
+            description: Inttegro API key supplied in the Authorization header.
     parameters:
         IdempotencyKey:
             name: Idempotency-Key
@@ -7631,7 +7631,7 @@ components:
                     $ref: '#/components/schemas/CustomerData'
                 number:
                     type: string
-                    description: Optional order number for reference. When omitted, Commerce uses the generated order ID.
+                    description: Optional order number for reference. When omitted, Inttegro uses the generated order ID.
                     example: "ORDER-NUMBER-2"
                 receipt_number:
                     type: string
@@ -9746,7 +9746,7 @@ components:
             description: |
                 Provide either inline product data or a `product_id` reference to an existing catalog
                 product. Catalog-backed product line items can use an explicit `price` or an existing
-                `price_id`. Commerce never falls back to a product's default unit price during order
+                `price_id`. Inttegro never falls back to a product's default unit price during order
                 creation.
         InlineProductDetails:
             type: object
@@ -11232,7 +11232,7 @@ components:
                             description: When payment failed
                         paid_offline:
                             type: boolean
-                            description: Whether payment was recorded as received outside Commerce
+                            description: Whether payment was recorded as received outside Inttegro
                         payment_method_types:
                             type: array
                             items:
@@ -11312,20 +11312,20 @@ components:
             properties:
                 message:
                     type: string
-                    description: Concise, human-readable description of the error. Quick summary of what went wrong.
-                    example: "Invalid payment method"
+                    description: Concise, caller-safe explanation of why the request was rejected or could not finish.
+                    example: "payment method could not be used for this order"
                 fix_code:
                     type: string
                     description: Machine-readable suggestion for how to resolve the error (e.g., "retry_with_exponential_backoff", "change_request_parameters").
                     example: "change_request_parameters"
                 detail:
                     type: string
-                    description: Comprehensive explanation of what went wrong, including context and actionable guidance for resolution.
-                    example: "The payment method provided is not valid for this currency. GHS orders require a mobile money or card payment method."
+                    description: Explanation of the relevant rule and next safe action. It never contains raw dependency, storage, or implementation errors.
+                    example: "the specified payment method could not be used for this order. verify that it belongs to the order customer and is active."
                 cause:
                     type: string
-                    description: Underlying category of failure—which system or validation rule triggered the error (e.g., "validation_failure", "payment_declined").
-                    example: "validation_failure"
+                    description: Stable category describing the reason for failure, such as invalid input, an unmet precondition, or a state conflict.
+                    example: "invalid_request_parameter"
                 type:
                     type: string
                     description: Broad error category to help clients determine retry strategies (e.g., "invalid_request_parameter", "transient_error").
@@ -11333,12 +11333,12 @@ components:
                 code:
                     type: string
                     description: Unique machine-readable identifier for this specific error condition. Unlike type and cause which group errors, code pinpoints the exact problem.
-                    example: "invalid_payment_method"
+                    example: "payment_method_invalid"
                 url:
                     type: string
                     format: uri
                     description: Link to error reference documentation with detailed explanation, common causes, and resolution guidance.
-                    example: "https://studio.inttegro.com/e/invalid_payment_method"
+                    example: "https://studio.inttegro.com/e/c-invalid_request_parameter"
         ErrorEnvelope:
             type: object
             required: [error]
@@ -12287,7 +12287,7 @@ components:
                     format: date-time
         Payout:
             type: object
-            description: A payout scheduled from your Commerce balance to a destination financial account
+            description: A payout scheduled from your Inttegro balance to a destination financial account
             required:
                 - destination_id
                 - execute_after
@@ -13330,7 +13330,7 @@ components:
                 name:
                     type: string
                     description: Optional display name
-                    example: "Zebo"
+                    example: "Acme"
                 address:
                     type: string
                     format: email

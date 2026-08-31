@@ -1,9 +1,9 @@
 type: collection.insomnia.rest/5.0
 schema_version: '5.1'
-name: Commerce API — Customers
+name: Inttegro API — Customers
 meta:
   id: wrk_584fcff54163c843eb640247b717a86a
-  description: Create, retrieve, update, and page customer records. Uses the shared Commerce API global environment.
+  description: Create, retrieve, update, and page customer records. Uses the shared Inttegro API global environment.
 collection:
 - name: Customers
   meta:

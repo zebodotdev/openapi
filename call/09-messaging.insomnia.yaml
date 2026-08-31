@@ -1,9 +1,9 @@
 type: collection.insomnia.rest/5.0
 schema_version: '5.1'
-name: Commerce API — Messaging
+name: Inttegro API — Messaging
 meta:
   id: wrk_eeeebdcddf83a3b0163bfe601a778060
-  description: Send notifications and manage reusable message templates. Uses the shared Commerce API global environment.
+  description: 'Send notifications and manage reusable message templates. Uses the shared Inttegro API global environment. Error reference: https://studio.inttegro.com/error-codes#chimes'
 collection:
 - name: Messages
   meta:

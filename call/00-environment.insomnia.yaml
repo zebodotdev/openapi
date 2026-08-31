@@ -1,9 +1,9 @@
 type: environment.insomnia.rest/5.0
 schema_version: '5.1'
-name: Commerce API
+name: Inttegro API
 meta:
   id: env_ca035205b796c97c6dbee40c32101d65
-  description: Shared variables for the public Commerce API collections. Create and select a private sub-environment before
+  description: Shared variables for the public Inttegro API collections. Create and select a private sub-environment before
     adding real credentials or capability URLs.
 environments:
   name: Base Environment

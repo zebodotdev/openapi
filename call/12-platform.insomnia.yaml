@@ -1,9 +1,9 @@
 type: collection.insomnia.rest/5.0
 schema_version: '5.1'
-name: Commerce API — Platform
+name: Inttegro API — Platform
 meta:
   id: wrk_121f2abc744770c94ae151cf354b7e28
-  description: Manage applications and keys and retrieve reference data. Uses the shared Commerce API global environment.
+  description: 'Manage applications and keys and retrieve reference data. Uses the shared Inttegro API global environment. Error reference: https://studio.inttegro.com/error-codes#applications'
 collection:
 - name: Apps
   meta:
@@ -38,7 +38,7 @@ collection:
       text: |-
         {
           "alias": "acme-prod-api",
-          "description": "Production Commerce API for Acme Marketplace",
+          "description": "Production Inttegro API integration for Acme Marketplace",
           "legal_entity_type": "business",
           "name": "Acme Production API"
         }
@@ -105,7 +105,7 @@ collection:
 - name: API keys
   meta:
     id: fld_48a53f0774c8ceff574a1fdcb0d470db
-    description: Create, inspect, rotate, and revoke server-side API keys. A generated token is shown once; never store it in this collection.
+    description: 'Create, inspect, rotate, and revoke server-side API keys. A generated token is shown once; never store it in this collection. Error reference: https://studio.inttegro.com/error-codes#api-keys'
   authentication:
     type: bearer
     token: '{{ api_key }}'

@@ -1,9 +1,9 @@
 type: collection.insomnia.rest/5.0
 schema_version: '5.1'
-name: Commerce API — Catalog
+name: Inttegro API — Catalog
 meta:
   id: wrk_260fc3dcee7afa1e9132f8696556869e
-  description: Create and manage products and prices. Uses the shared Commerce API global environment.
+  description: Create and manage products and prices. Uses the shared Inttegro API global environment.
 collection:
 - name: Products
   meta:

@@ -1,9 +1,9 @@
 type: collection.insomnia.rest/5.0
 schema_version: '5.1'
-name: Commerce API — Financial Accounts
+name: Inttegro API — Financial Accounts
 meta:
   id: wrk_0700f57d65690d63abfb75b5780103cf
-  description: Connect and manage collection and payout accounts. Uses the shared Commerce API global environment.
+  description: Connect and manage collection and payout accounts. Uses the shared Inttegro API global environment.
 collection:
 - name: Financial accounts
   meta:
@@ -207,7 +207,7 @@ collection:
         {
           "account_id": "{{ financial_account_id }}",
           "ip_address": "203.0.113.10",
-          "user_agent": "Commerce API example"
+          "user_agent": "Inttegro API example"
         }
   - name: Disable pull capability
     url: '{{ base_url }}/financial_accounts/disable_pull'

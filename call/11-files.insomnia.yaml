@@ -1,10 +1,9 @@
 type: collection.insomnia.rest/5.0
 schema_version: '5.1'
-name: Commerce API — Files
+name: Inttegro API — Files
 meta:
   id: wrk_04259d4595b906c6593491bbec5fde83
-  description: Upload files and manage file-link and third-party upload capabilities. Uses the shared Commerce API global
-    environment.
+  description: 'Upload files and manage file-link and third-party upload capabilities. Uses the shared Inttegro API global environment. Error reference: https://studio.inttegro.com/error-codes#file-apis'
 collection:
 - name: Files
   meta:
@@ -125,7 +124,7 @@ collection:
 - name: File references
   meta:
     id: fld_37004252081a034da357797866396418
-    description: Reconcile the files referenced by a Commerce resource.
+    description: Reconcile the files referenced by an Inttegro resource.
   authentication:
     type: bearer
     token: '{{ api_key }}'

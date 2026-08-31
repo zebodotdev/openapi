@@ -1,9 +1,9 @@
 type: collection.insomnia.rest/5.0
 schema_version: '5.1'
-name: Commerce API — Payouts
+name: Inttegro API — Payouts
 meta:
   id: wrk_dc5c3c1e99e3b3c6a25ad51700809d40
-  description: Configure, schedule, retrieve, and cancel payouts. Uses the shared Commerce API global environment.
+  description: Configure, schedule, retrieve, and cancel payouts. Uses the shared Inttegro API global environment.
 collection:
 - name: Payouts
   meta:

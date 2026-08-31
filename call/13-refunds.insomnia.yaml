@@ -1,9 +1,9 @@
 type: collection.insomnia.rest/5.0
 schema_version: '5.1'
-name: Commerce API — Refunds
+name: Inttegro API — Refunds
 meta:
   id: wrk_2a0ef3c14ec24fbe919f0cd40b34a6ab
-  description: Create, cancel, and inspect refunds for paid order line items. Uses the shared Commerce API global environment.
+  description: 'Create, cancel, and inspect refunds for paid order line items. Uses the shared Inttegro API global environment. Error reference: https://studio.inttegro.com/error-codes#refunds'
 collection:
 - name: Refunds
   meta:

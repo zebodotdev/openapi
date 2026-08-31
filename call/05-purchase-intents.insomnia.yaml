@@ -1,9 +1,9 @@
 type: collection.insomnia.rest/5.0
 schema_version: '5.1'
-name: Commerce API — Purchase Intents
+name: Inttegro API — Purchase Intents
 meta:
   id: wrk_58c7ca51085b0cd81acec439ba4e5004
-  description: Create controlled, shareable hosted Buy links for catalog products, then manage their availability and usage. Uses the shared Commerce API global environment.
+  description: 'Create controlled, shareable hosted Buy links for catalog products, then manage their availability and usage. Uses the shared Inttegro API global environment. Error reference: https://studio.inttegro.com/error-codes#purchase-intents'
 collection:
 - name: Purchase intents
   meta:

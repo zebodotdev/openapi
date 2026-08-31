@@ -1,9 +1,9 @@
 type: collection.insomnia.rest/5.0
 schema_version: '5.1'
-name: Commerce API — Checkout and Orders
+name: Inttegro API — Checkout and Orders
 meta:
   id: wrk_7f1e34bb97341f0565d7ab3820dd7605
-  description: Create hosted checkout sessions and manage the complete order lifecycle. Uses the shared Commerce API global
+  description: Create hosted checkout sessions and manage the complete order lifecycle. Uses the shared Inttegro API global
     environment.
 collection:
 - name: Checkout and orders
@@ -31,7 +31,7 @@ collection:
     method: POST
     meta:
       id: req_b9eabb5dcab52ea543d7359be9172d38
-      description: 'Public reference: https://studio.inttegro.com/orders#create-an-order'
+      description: 'Public reference: https://studio.inttegro.com/orders#create-an-order. Conflict reference: https://studio.inttegro.com/e/payment_transition_conflict'
     headers:
     - name: Content-Type
       value: application/json
@@ -104,7 +104,7 @@ collection:
     method: POST
     meta:
       id: req_17973aff414d87c35f53f896d0efc411
-      description: 'Public reference: https://studio.inttegro.com/orders#pay-for-an-order'
+      description: 'Public reference: https://studio.inttegro.com/orders#pay-for-an-order. Conflict reference: https://studio.inttegro.com/e/payment_transition_conflict'
     headers:
     - name: Content-Type
       value: application/json
@@ -137,7 +137,7 @@ collection:
     method: POST
     meta:
       id: req_38bb6f1168e91d79d90a734c8635a93c
-      description: 'Public reference: https://studio.inttegro.com/orders#confirm-a-payment'
+      description: 'Public reference: https://studio.inttegro.com/orders#confirm-a-payment. Conflict reference: https://studio.inttegro.com/e/payment_transition_conflict'
     headers:
     - name: Content-Type
       value: application/json
@@ -282,7 +282,7 @@ collection:
     method: POST
     meta:
       id: req_4d656a29aa1dfc57595c93b08ea6484f
-      description: 'Public reference: https://studio.inttegro.com/orders#complete-an-order'
+      description: 'Public reference: https://studio.inttegro.com/orders#complete-an-order. Conflict reference: https://studio.inttegro.com/e/payment_transition_conflict'
     headers:
     - name: Content-Type
       value: application/json

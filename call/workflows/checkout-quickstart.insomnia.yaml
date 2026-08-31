@@ -1,6 +1,6 @@
 type: collection.insomnia.rest/5.0
 schema_version: '5.1'
-name: Commerce API — Checkout Quickstart
+name: Inttegro API — Checkout Quickstart
 meta:
   id: wrk_3858a0fbd62d4f64ab2f80e2f58ef702
   description: Create a hosted checkout and look it up without requesting or confirming payment. Includes portable defaults for desktop and Inso CLI use.

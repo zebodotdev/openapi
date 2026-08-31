@@ -1,6 +1,6 @@
-# Commerce API for Insomnia
+# Inttegro API for Insomnia
 
-This directory contains the public HTTP collections for the Commerce API. The files use Insomnia's native v5 YAML format and collectively cover all 117 HTTP operations in the public API reference. They deliberately contain no MCP client configuration, credentials, cookies, live capability URLs, or private infrastructure details.
+This directory contains the public HTTP collections for the Inttegro API. The files use Insomnia's native v5 YAML format and collectively cover every HTTP operation in the public API reference. They deliberately contain no MCP client configuration, credentials, cookies, live capability URLs, or private infrastructure details.
 
 ## Collections
 
@@ -25,7 +25,7 @@ This directory contains the public HTTP collections for the Commerce API. The fi
 ## Import and configure
 
 1. Create or open one Insomnia project, then import `00-environment.insomnia.yaml` and the collection files you want to use into that same project.
-2. Under the imported **Commerce API** global environment, create a sub-environment, mark it private, and select it before entering any real values. Private sub-environments are not synced or exported by Insomnia.
+2. Under the imported **Inttegro API** global environment, create a sub-environment, mark it private, and select it before entering any real values. Private sub-environments are not synced or exported by Insomnia.
 3. Set `api_key` in that private global environment. Keep the published base environment's `api_key` empty. For additional masking and encryption, use Insomnia's Secret variable type and update the bearer token field to reference `vault.api_key`; Secret variables use the vault namespace and are intentionally not portable in the public files.
 4. Replace `idempotency_key` with a stable value for the logical operation you are about to perform. Reuse that value only when retrying the same operation with the same payload.
 5. Fill any required input variables. Successful create requests save returned resource IDs into the active environment for the next request.
@@ -37,21 +37,21 @@ Insomnia resolves variables such as `{{ base_url }}` and `{{ order_id }}` from t
 Inso can override collection variables without creating a credential file. Export the credential only in the shell that runs Inso:
 
 ```sh
-export ZEBO_API_KEY='replace-with-your-api-key'
-export ZEBO_API_BASE_URL='https://api.inttegro.com'
-export ZEBO_ORDER_NUMBER='INSOMNIA-ORDER-001'
-export ZEBO_IDEMPOTENCY_KEY='checkout-unique-stable-value'
+export INTTEGRO_API_KEY='replace-with-your-api-key'
+export INTTEGRO_API_BASE_URL='https://api.inttegro.com'
+export INTTEGRO_ORDER_NUMBER='INSOMNIA-ORDER-001'
+export INTTEGRO_IDEMPOTENCY_KEY='checkout-unique-stable-value'
 ```
 
 Then pass the values at execution time:
 
 ```sh
 inso -w call/workflows/checkout-quickstart.insomnia.yaml \
-  run collection "Commerce API — Checkout Quickstart" \
-  --env-var "api_key=${ZEBO_API_KEY}" \
-  --env-var "base_url=${ZEBO_API_BASE_URL}" \
-  --env-var "order_number=${ZEBO_ORDER_NUMBER}" \
-  --env-var "idempotency_key=${ZEBO_IDEMPOTENCY_KEY}" \
+  run collection "Inttegro API — Checkout Quickstart" \
+  --env-var "api_key=${INTTEGRO_API_KEY}" \
+  --env-var "base_url=${INTTEGRO_API_BASE_URL}" \
+  --env-var "order_number=${INTTEGRO_ORDER_NUMBER}" \
+  --env-var "idempotency_key=${INTTEGRO_IDEMPOTENCY_KEY}" \
   --bail
 ```
 

@@ -1,9 +1,9 @@
 type: collection.insomnia.rest/5.0
 schema_version: '5.1'
-name: Commerce API — Balances
+name: Inttegro API — Balances
 meta:
   id: wrk_bd7a529b5b969e2c2fd1042a34e9dc06
-  description: Read balance snapshots and balance ledger entries. Uses the shared Commerce API global environment.
+  description: Read balance snapshots and balance ledger entries. Uses the shared Inttegro API global environment.
 collection:
 - name: Balances
   meta:
