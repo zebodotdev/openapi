@@ -88,8 +88,10 @@ collection:
       text: |-
         {
           "id": "{{ purchase_intent_id }}",
-          "minimum_quantity": 2,
-          "maximum_quantity": 8,
+          "quantity": {
+            "min": 2,
+            "max": 8
+          },
           "reactivate": true
         }
   - name: Cancel a purchase intent

@@ -8663,10 +8663,9 @@ components:
                     example: "pr_xyz789"
                 quantity:
                     type: object
-                    description: Quantity bounds the Buy link should enforce
+                    description: Quantity bounds the Buy link should enforce. Omit max when the Buy link has no upper quantity bound. When present, max must be greater than or equal to min.
                     required:
                         - min
-                        - max
                     properties:
                         min:
                             type: integer
@@ -8676,7 +8675,7 @@ components:
                         max:
                             type: integer
                             minimum: 1
-                            description: Maximum quantity the customer can buy
+                            description: Optional maximum quantity the customer can buy. It must be greater than or equal to min.
                             example: 5
                 usage:
                     type: object
@@ -8720,16 +8719,22 @@ components:
                     minLength: 1
                     description: Purchase intent ID to update. Send this or purchase_intent_id.
                     example: "sale_ABCXYZ"
-                maximum_quantity:
-                    type: integer
-                    minimum: 1
-                    description: Maximum quantity the customer can buy
-                    example: 3
-                minimum_quantity:
-                    type: integer
-                    minimum: 1
-                    description: Minimum quantity the customer can buy
-                    example: 1
+                quantity:
+                    type: object
+                    description: Replacement quantity bounds. Omit the object to preserve the current bounds. Within the object, min is required and omitting max removes the upper bound. When present, max must be greater than or equal to min.
+                    required:
+                        - min
+                    properties:
+                        min:
+                            type: integer
+                            minimum: 1
+                            description: Minimum quantity the customer can buy
+                            example: 1
+                        max:
+                            type: integer
+                            minimum: 1
+                            description: Optional maximum quantity the customer can buy. It must be greater than or equal to min.
+                            example: 3
                 purchase_intent_id:
                     type: string
                     minLength: 1
@@ -9141,8 +9146,7 @@ components:
                 - application_id
                 - created_at
                 - id
-                - maximum_quantity
-                - minimum_quantity
+                - quantity
                 - status
                 - usage
             properties:
@@ -9174,22 +9178,28 @@ components:
                     type: string
                     format: date-time
                     description: When the Buy link was explicitly canceled
-                maximum_quantity:
-                    type: integer
-                    minimum: 1
-                    description: Maximum quantity the hosted checkout allows
-                    example: 5
                 merchant:
                     $ref: '#/components/schemas/PurchaseIntentMerchant'
-                minimum_quantity:
-                    type: integer
-                    minimum: 1
-                    description: Minimum quantity the hosted checkout allows
-                    example: 1
                 price:
                     $ref: '#/components/schemas/PurchaseIntentPrice'
                 product:
                     $ref: '#/components/schemas/PurchaseIntentProduct'
+                quantity:
+                    type: object
+                    description: Quantity bounds enforced by the hosted checkout. max is omitted when the offer has no upper bound.
+                    required:
+                        - min
+                    properties:
+                        min:
+                            type: integer
+                            minimum: 1
+                            description: Minimum quantity the hosted checkout allows
+                            example: 1
+                        max:
+                            type: integer
+                            minimum: 1
+                            description: Optional maximum quantity the hosted checkout allows. It is always greater than or equal to min when present.
+                            example: 5
                 status:
                     type: string
                     enum: [active, expired, inactive, used]
