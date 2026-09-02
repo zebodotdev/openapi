@@ -11148,6 +11148,11 @@ components:
                     type: string
                     description: Merchant-provided receipt number, when set
                     example: "RCPT-12345"
+                refunds:
+                    type: array
+                    description: All refunds issued for this order, newest first. Omitted when no refunds exist.
+                    items:
+                        $ref: '#/components/schemas/Refund'
                 invoice_settings:
                     $ref: '#/components/schemas/InvoiceSettings'
                 status:
