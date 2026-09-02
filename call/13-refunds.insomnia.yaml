@@ -97,6 +97,15 @@ collection:
           insomnia.test('The compatibility URL replays the same refund', () => {
             insomnia.expect(jsonBody).to.have.all.keys('refund');
             insomnia.expect(jsonBody?.refund?.id).to.equal(insomnia.variables.get('refund_id'));
+            insomnia.expect(jsonBody?.refund?.order_id).to.equal(insomnia.variables.get('order_id'));
+            insomnia.expect(jsonBody?.refund?.total).to.be.an('object');
+            insomnia.expect(jsonBody?.refund?.line_items).to.be.an('array');
+            for (const line of jsonBody?.refund?.line_items ?? []) {
+              insomnia.expect(line?.id).to.be.a('string').and.match(/^rli_/);
+              insomnia.expect(line).to.have.property('order_line_item_id');
+              insomnia.expect(line).to.have.property('original_amount_paid');
+              insomnia.expect(line).to.have.property('refund_amount');
+            }
           });
         }
   - name: Cancel a refund

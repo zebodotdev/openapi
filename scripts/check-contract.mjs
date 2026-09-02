@@ -26,6 +26,7 @@ const operations = collectOpenApiOperations(spec);
 const requests = collectCallRequests(callDir);
 const errors = [
   ...compareOperationCoverage(operations, requests),
+  ...compareEquivalentJsonContracts(operations, "POST /refunds/create", "POST /orders/refund"),
   ...validateRequestExamples(spec, operations, requests),
 ];
 
@@ -163,6 +164,28 @@ function compareOperationCoverage(operations, requests) {
     if (!operations.has(key)) {
       errors.push(`${key} exists in Call but not in commerce.yml: ${matches.map(requestLabel).join(", ")}`);
     }
+  }
+
+  return errors;
+}
+
+function compareEquivalentJsonContracts(operations, canonicalKey, aliasKey) {
+  const canonical = operations.get(canonicalKey)?.operation;
+  const alias = operations.get(aliasKey)?.operation;
+  if (!canonical || !alias) {
+    return [];
+  }
+
+  const errors = [];
+
+  if (JSON.stringify(canonical.parameters ?? []) !== JSON.stringify(alias.parameters ?? [])) {
+    errors.push(`${aliasKey} must use the same parameters as ${canonicalKey}`);
+  }
+  if (JSON.stringify(canonical.requestBody) !== JSON.stringify(alias.requestBody)) {
+    errors.push(`${aliasKey} must use the same request body as ${canonicalKey}`);
+  }
+  if (JSON.stringify(canonical.responses) !== JSON.stringify(alias.responses)) {
+    errors.push(`${aliasKey} must use the same responses as ${canonicalKey}`);
   }
 
   return errors;
