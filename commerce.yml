@@ -7629,6 +7629,9 @@ components:
             properties:
                 customer_data:
                     $ref: '#/components/schemas/CustomerData'
+                payment_method_data:
+                    $ref: '#/components/schemas/PaymentMethodData'
+                    description: New payment instrument details to use when executing payment for the order.
                 number:
                     type: string
                     description: Optional order number for reference. When omitted, Inttegro uses the generated order ID.
@@ -7713,6 +7716,9 @@ components:
                     type: string
                     description: ID of saved payment method to use
                     example: "OaNWqiOeYa5OJMcxUPZC1pLCW94Ne3toks4HIVPRa"
+                payment_method_data:
+                    $ref: '#/components/schemas/PaymentMethodData'
+                    description: New payment instrument details to use instead of a saved payment method.
                 receipt_number:
                     type: string
                     description: Optional receipt number for downstream reconciliation. Uses the same length rules as `number`.

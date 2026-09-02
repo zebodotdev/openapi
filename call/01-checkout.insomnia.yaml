@@ -31,7 +31,7 @@ collection:
     method: POST
     meta:
       id: req_b9eabb5dcab52ea543d7359be9172d38
-      description: 'Public reference: https://studio.inttegro.com/orders#create-an-order. Conflict reference: https://studio.inttegro.com/e/payment_transition_conflict'
+      description: 'Public reference: https://studio.inttegro.com/orders#create-an-order. To execute immediately, provide payment_method_data together with execute_payment. Conflict reference: https://studio.inttegro.com/e/payment_transition_conflict'
     headers:
     - name: Content-Type
       value: application/json
