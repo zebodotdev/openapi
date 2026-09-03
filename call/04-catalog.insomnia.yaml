@@ -122,6 +122,12 @@ collection:
           insomnia.test('Returns price.id', () => {
             insomnia.expect(price_id).to.be.a('string').and.not.be.empty;
           });
+          insomnia.test('Returns a catalog price with a nominal amount', () => {
+            insomnia.expect(jsonBody?.price?.active).to.be.a('boolean');
+            insomnia.expect(jsonBody?.price?.nominal?.currency).to.be.a('string').and.not.be.empty;
+            insomnia.expect(jsonBody?.price?.nominal?.value).to.be.a('number');
+            insomnia.expect(jsonBody?.price?.product_id).to.be.a('string').and.not.be.empty;
+          });
           if (price_id) insomnia.globals.set("price_id", price_id);
         }
   - name: Update a product

@@ -5731,24 +5731,7 @@ paths:
                 content:
                     application/json:
                         schema:
-                            type: object
-                            required:
-                                - amount
-                            properties:
-                                product_id:
-                                    type: string
-                                    description: Optional product ID to associate this price with. Once set, cannot be changed.
-                                    example: "prod_abc123"
-                                label:
-                                    type: string
-                                    description: Short label for this price (max 100 characters)
-                                    example: "Standard pricing"
-                                about:
-                                    type: string
-                                    description: Longer description of this price (max 500 characters)
-                                    example: "Standard pricing for individual customers"
-                                amount:
-                                    $ref: '#/components/schemas/Money'
+                            $ref: '#/components/schemas/CatalogPriceParams'
             responses:
                 '200':
                     description: Price created successfully
@@ -7977,7 +7960,7 @@ components:
                                 type: string
                                 format: date-time
                             available:
-                                $ref: '#/components/schemas/Money'
+                                $ref: '#/components/schemas/Amount'
                 billing_address:
                     $ref: '#/components/schemas/CustomerAddress'
                 created_at:
@@ -8313,153 +8296,14 @@ components:
                     description: Optional internal description for the new price
                     example: "Preferred rate for repeat buyers"
                 amount:
-                    type: object
-                    required:
-                        - currency
-                        - value
-                    properties:
-                        currency:
-                            type: string
-                            description: Supported lowercase currency code
-                            example: "ghs"
-                        value:
-                            type: integer
-                            minimum: 1
-                            description: Amount in the smallest currency unit
-                            example: 85000
+                    $ref: '#/components/schemas/AmountParams'
         AddProductPriceResponse:
             type: object
             properties:
                 price:
-                    $ref: '#/components/schemas/ProductPriceNominal'
+                    $ref: '#/components/schemas/CatalogPrice'
                 error:
                     $ref: '#/components/schemas/Error'
-        ProductPriceNominal:
-            type: object
-            required:
-                - id
-                - active
-                - nominal
-                - created_at
-            properties:
-                id:
-                    type: string
-                    description: Unique price identifier with pr_ prefix
-                    example: "pr_xyz789"
-                product_id:
-                    type: string
-                    nullable: true
-                    description: Product that owns this price
-                    example: "prod_abc123"
-                label:
-                    type: string
-                    nullable: true
-                    description: Short label for this price
-                    example: "Standard pricing"
-                about:
-                    type: string
-                    nullable: true
-                    description: Longer description of this price
-                    example: "Standard pricing for individual customers"
-                active:
-                    type: boolean
-                    description: Whether this price is active and usable in new flows
-                    example: true
-                nominal:
-                    type: object
-                    description: Price amount
-                    required:
-                        - currency
-                        - value
-                    properties:
-                        currency:
-                            type: string
-                            description: Lowercase currency code
-                            example: "ghs"
-                        value:
-                            type: integer
-                            description: Amount in smallest currency unit
-                            example: 1999
-                created_at:
-                    type: string
-                    format: date-time
-                    description: Price creation timestamp
-                    example: "2024-01-15T10:30:00Z"
-                updated_at:
-                    type: string
-                    format: date-time
-                    nullable: true
-                    description: Last update timestamp
-                    example: "2024-01-20T14:45:00Z"
-                archived_at:
-                    type: string
-                    format: date-time
-                    nullable: true
-                    description: Archive timestamp (if archived)
-                    example: null
-        ProductPrice:
-            type: object
-            required:
-                - id
-                - active
-                - nominal
-                - created_at
-            properties:
-                id:
-                    type: string
-                    description: Unique price identifier with pr_ prefix
-                    example: "pr_xyz789"
-                product_id:
-                    type: string
-                    nullable: true
-                    description: Product that owns this price
-                    example: "prod_abc123"
-                label:
-                    type: string
-                    nullable: true
-                    description: Short label for this price
-                    example: "Standard pricing"
-                about:
-                    type: string
-                    nullable: true
-                    description: Longer description of this price
-                    example: "Standard pricing for individual customers"
-                active:
-                    type: boolean
-                    description: Whether this price is active and usable in new flows
-                    example: true
-                nominal:
-                    type: object
-                    description: Price amount
-                    required:
-                        - currency
-                        - value
-                    properties:
-                        currency:
-                            type: string
-                            description: Lowercase currency code
-                            example: "ghs"
-                        value:
-                            type: integer
-                            description: Amount in smallest currency unit
-                            example: 1999
-                created_at:
-                    type: string
-                    format: date-time
-                    description: Price creation timestamp
-                    example: "2024-01-15T10:30:00Z"
-                updated_at:
-                    type: string
-                    format: date-time
-                    nullable: true
-                    description: Last update timestamp
-                    example: "2024-01-20T14:45:00Z"
-                archived_at:
-                    type: string
-                    format: date-time
-                    nullable: true
-                    description: Archive timestamp (if archived)
-                    example: null
         ProductPriceSummary:
             type: object
             required:
@@ -8481,20 +8325,8 @@ components:
                     description: Short label for this price
                     example: "Wholesale"
                 nominal:
-                    type: object
                     description: Price amount
-                    required:
-                        - currency
-                        - value
-                    properties:
-                        currency:
-                            type: string
-                            description: Lowercase currency code
-                            example: "ghs"
-                        value:
-                            type: integer
-                            description: Amount in smallest currency unit
-                            example: 85000
+                    $ref: '#/components/schemas/Amount'
         ProductActionRequest:
             type: object
             required:
@@ -8612,22 +8444,8 @@ components:
                             description: Active, unarchived app-owned price ID that belongs to the selected product
                             example: "pr_xyz789"
                         nominal:
-                            type: object
                             description: Inline offer amount when no price ID is provided
-                            required:
-                                - currency
-                                - value
-                            properties:
-                                currency:
-                                    type: string
-                                    minLength: 1
-                                    description: Non-empty currency code, normalized to lowercase
-                                    example: "ghs"
-                                value:
-                                    type: integer
-                                    minimum: 1
-                                    description: Amount in smallest currency unit
-                                    example: 85000
+                            $ref: '#/components/schemas/PriceParams'
                         original:
                             type: object
                             description: Optional original price used for comparison display
@@ -8643,22 +8461,8 @@ components:
                                     description: App-owned comparison price ID that belongs to the selected product
                                     example: "pr_original123"
                                 nominal:
-                                    type: object
                                     description: Inline original price amount
-                                    required:
-                                        - currency
-                                        - value
-                                    properties:
-                                        currency:
-                                            type: string
-                                            minLength: 1
-                                            description: Non-empty currency code, normalized to lowercase
-                                            example: "ghs"
-                                        value:
-                                            type: integer
-                                            minimum: 1
-                                            description: Amount in smallest currency unit
-                                            example: 100000
+                                    $ref: '#/components/schemas/PriceParams'
                         original_id:
                             type: string
                             description: App-owned comparison price ID when not using original.id
@@ -8847,7 +8651,7 @@ components:
                 - type
             properties:
                 amount:
-                    $ref: '#/components/schemas/PurchaseIntentMoney'
+                    $ref: '#/components/schemas/Amount'
                 attribution:
                     $ref: '#/components/schemas/PurchaseIntentActivityAttribution'
                 created_at:
@@ -8970,22 +8774,6 @@ components:
                 organization_name:
                     type: string
                     example: "Tea House Ltd"
-        PurchaseIntentMoney:
-            type: object
-            required:
-                - currency
-                - value
-            properties:
-                currency:
-                    type: string
-                    minLength: 1
-                    description: Lowercase currency code
-                    example: "ghs"
-                value:
-                    type: integer
-                    minimum: 0
-                    description: Amount in the smallest currency unit
-                    example: 18500
         PurchaseIntentOriginalPrice:
             type: object
             required:
@@ -9005,7 +8793,7 @@ components:
                     description: Catalog price label when available
                     example: "Regular price"
                 nominal:
-                    $ref: '#/components/schemas/PurchaseIntentMoney'
+                    $ref: '#/components/schemas/Amount'
         PurchaseIntentPrice:
             type: object
             required:
@@ -9025,7 +8813,7 @@ components:
                     description: Catalog price label when available
                     example: "Campaign price"
                 nominal:
-                    $ref: '#/components/schemas/PurchaseIntentMoney'
+                    $ref: '#/components/schemas/Amount'
                 original:
                     $ref: '#/components/schemas/PurchaseIntentOriginalPrice'
         PurchaseIntentProduct:
@@ -9459,7 +9247,7 @@ components:
                 error:
                     $ref: '#/components/schemas/Error'
         PricePageItem:
-            $ref: '#/components/schemas/Price'
+            $ref: '#/components/schemas/CatalogPrice'
         PriceActionRequest:
             type: object
             required:
@@ -9473,10 +9261,29 @@ components:
             type: object
             properties:
                 price:
-                    $ref: '#/components/schemas/Price'
+                    $ref: '#/components/schemas/CatalogPrice'
                 error:
                     $ref: '#/components/schemas/Error'
-        Price:
+        CatalogPriceParams:
+            type: object
+            required:
+                - amount
+            properties:
+                product_id:
+                    type: string
+                    description: Optional product ID to associate this price with. Once set, cannot be changed.
+                    example: "prod_abc123"
+                label:
+                    type: string
+                    description: Short label for this price (max 100 characters)
+                    example: "Standard pricing"
+                about:
+                    type: string
+                    description: Longer description of this price (max 500 characters)
+                    example: "Standard pricing for individual customers"
+                amount:
+                    $ref: '#/components/schemas/AmountParams'
+        CatalogPrice:
             type: object
             required:
                 - id
@@ -9503,20 +9310,12 @@ components:
                     description: Whether this price is active and usable in new flows
                     example: true
                 nominal:
-                    type: object
                     description: Price amount
-                    required:
-                        - currency
-                        - value
-                    properties:
-                        currency:
-                            type: string
-                            description: Three-letter ISO currency code
-                            example: "USD"
-                        value:
-                            type: integer
-                            description: Amount in smallest currency unit
-                            example: 1999
+                    $ref: '#/components/schemas/Amount'
+                product_id:
+                    type: string
+                    description: Product ID when the operation returns the relationship by reference
+                    example: "prod_abc123"
                 product:
                     $ref: '#/components/schemas/PriceEmbeddedProduct'
                     nullable: true
@@ -9662,7 +9461,7 @@ components:
                         type:
                             type: string
                         price:
-                            $ref: '#/components/schemas/Money'
+                            $ref: '#/components/schemas/Price'
                         quantity:
                             type: integer
         OrderFeeLineItem:
@@ -9684,7 +9483,7 @@ components:
                         tax_code:
                             type: string
                         amount:
-                            $ref: '#/components/schemas/Money'
+                            $ref: '#/components/schemas/Amount'
                         label:
                             type: string
         OrderShippingLineItem:
@@ -9706,7 +9505,7 @@ components:
                         label:
                             type: string
                         fee:
-                            $ref: '#/components/schemas/Money'
+                            $ref: '#/components/schemas/Amount'
         LineItem:
             oneOf:
                 - $ref: '#/components/schemas/ProductLineItem'
@@ -9784,7 +9583,7 @@ components:
                     description: Product name shown to the customer
                     example: "Premium Widget"
                 price:
-                    $ref: '#/components/schemas/Money'
+                    $ref: '#/components/schemas/PriceParams'
                 quantity:
                     type: integer
                     minimum: 1
@@ -9808,7 +9607,7 @@ components:
                 - quantity
             properties:
                 price:
-                    $ref: '#/components/schemas/Money'
+                    $ref: '#/components/schemas/PriceParams'
                 product_id:
                     type: string
                     description: Existing catalog product ID to snapshot onto the order line item
@@ -9860,7 +9659,7 @@ components:
                     description: Your own key-value pairs—use them for whatever you need. Key and values are strings.
                     additionalProperties: true
                 amount:
-                    $ref: '#/components/schemas/Money'
+                    $ref: '#/components/schemas/AmountParams'
         ShippingDetails:
             type: object
             required:
@@ -9877,23 +9676,52 @@ components:
                     description: Your own key-value pairs—use them for whatever you need. Key and values are strings.
                     additionalProperties: true
                 fee:
-                    $ref: '#/components/schemas/Money'
-        Money:
+                    $ref: '#/components/schemas/AmountParams'
+        Currency:
+            type: string
+            description: A currency code recognized by the Inttegro API. Individual operations can support a subset of these currencies.
+            enum: [ghs, usd, gbp, eur, cny]
+            example: ghs
+        AmountParams:
             type: object
             required:
                 - currency
                 - value
             properties:
                 currency:
-                    type: string
-                    description: ISO 4217 currency code (lowercase)
-                    example: "ghs"
-                    pattern: '^[a-z]{3}$'
+                    $ref: '#/components/schemas/Currency'
                 value:
                     type: integer
                     description: Amount in smallest currency unit (e.g., pesewas for GHS)
                     example: 20000
                     minimum: 0
+        Amount:
+            type: object
+            required:
+                - currency
+                - value
+            properties:
+                currency:
+                    $ref: '#/components/schemas/Currency'
+                value:
+                    type: integer
+                    description: Amount in the currency's smallest unit.
+                    example: 20000
+        PriceParams:
+            description: An inline price supplied in a request.
+            allOf:
+                - $ref: '#/components/schemas/AmountParams'
+                - type: object
+                  properties:
+                      value:
+                          type: integer
+                          minimum: 1
+                          description: Price in the currency's smallest unit.
+                          example: 20000
+        Price:
+            description: An inline price returned by the API.
+            allOf:
+                - $ref: '#/components/schemas/Amount'
         BillingDetails:
             type: object
             required:
@@ -10800,7 +10628,7 @@ components:
                                                         description: Product type
                                                         example: "digital"
                                                     price:
-                                                        $ref: '#/components/schemas/Money'
+                                                        $ref: '#/components/schemas/Price'
                                                     quantity:
                                                         type: integer
                                                         minimum: 1
@@ -10834,7 +10662,7 @@ components:
                                                         description: Fee description
                                                         example: "A small charge to support technology development and use"
                                                     amount:
-                                                        $ref: '#/components/schemas/Money'
+                                                        $ref: '#/components/schemas/Amount'
                                             shipping:
                                                 type: object
                                                 description: Shipping details (when type is 'shipping')
@@ -10847,9 +10675,9 @@ components:
                                                         description: Unique identifier for the shipping order line item
                                                         example: "oli_Nq4fIE5bW3yrpCMr2duOvzKKWCdpoXx5l0xH3qFy"
                                                     fee:
-                                                        $ref: '#/components/schemas/Money'
+                                                        $ref: '#/components/schemas/Amount'
                                 total:
-                                    $ref: '#/components/schemas/Money'
+                                    $ref: '#/components/schemas/Amount'
                         payment:
                             type: object
                             description: Payment information if payment was initiated
@@ -10875,7 +10703,7 @@ components:
                                     description: Optional statement descriptor shown on the customer's bank statement
                                     example: "STATEMENT"
                                 amount:
-                                    $ref: '#/components/schemas/Money'
+                                    $ref: '#/components/schemas/Amount'
                                 payment_method:
                                     $ref: '#/components/schemas/PaymentMethodObject'
                                 next_action:
@@ -10925,7 +10753,7 @@ components:
                                             description: When the balance transaction was paid out
                                             example: "2025-10-25T21:08:12.123456789Z"
                                         amount:
-                                            $ref: '#/components/schemas/Money'
+                                            $ref: '#/components/schemas/Amount'
                                         payout_configuration:
                                             type: object
                                             description: Payout configuration for this balance transaction
@@ -11184,7 +11012,7 @@ components:
                             items:
                                 $ref: '#/components/schemas/OrderLineItem'
                         total:
-                            $ref: '#/components/schemas/Money'
+                            $ref: '#/components/schemas/Amount'
                 payment:
                     type: object
                     description: Payment intent tied to this order
@@ -11209,7 +11037,7 @@ components:
                             description: Optional statement descriptor shown on the customer's bank statement
                             example: "STATEMENT"
                         amount:
-                            $ref: '#/components/schemas/Money'
+                            $ref: '#/components/schemas/Amount'
                         balance_transaction:
                             $ref: '#/components/schemas/BalanceTransaction'
                         payment_method:
@@ -11395,21 +11223,6 @@ components:
                 - item_not_received
                 - item_not_as_described
                 - custom
-        RefundMoney:
-            type: object
-            additionalProperties: false
-            required: [currency, value]
-            properties:
-                currency:
-                    type: string
-                    pattern: '^[a-z]{3}$'
-                    description: Lowercase ISO 4217 currency code.
-                    example: ghs
-                value:
-                    type: integer
-                    minimum: 1
-                    description: Positive amount in the currency's smallest unit.
-                    example: 2500
         CreateRefundLineItem:
             type: object
             additionalProperties: false
@@ -11426,7 +11239,7 @@ components:
                     maxLength: 2048
                     description: Line-specific explanation. Requires a line-level reason; required when that reason is `custom`.
                 refund_amount:
-                    $ref: '#/components/schemas/RefundMoney'
+                    $ref: '#/components/schemas/AmountParams'
         RefundRequestMeta:
             type: object
             additionalProperties: false
@@ -11514,14 +11327,14 @@ components:
                 order_line_item_id:
                     type: string
                 original_amount_paid:
-                    $ref: '#/components/schemas/RefundMoney'
+                    $ref: '#/components/schemas/Amount'
                 reason:
                     $ref: '#/components/schemas/RefundReason'
                 reason_details:
                     type: string
                     maxLength: 2048
                 refund_amount:
-                    $ref: '#/components/schemas/RefundMoney'
+                    $ref: '#/components/schemas/Amount'
         Refund:
             type: object
             required: [created_at, id, line_items, order_id, reason, status, total]
@@ -11570,7 +11383,7 @@ components:
                     format: date-time
                     description: Omitted unless processing succeeded.
                 total:
-                    $ref: '#/components/schemas/RefundMoney'
+                    $ref: '#/components/schemas/Amount'
         RefundResponse:
             type: object
             required: [refund]
@@ -12349,7 +12162,7 @@ components:
                 - status
             properties:
                 amount:
-                    $ref: '#/components/schemas/Money'
+                    $ref: '#/components/schemas/Amount'
                 balance_transactions:
                     type: array
                     description: Balance transaction IDs linked to this payout
@@ -12414,7 +12227,7 @@ components:
                     type: string
                     description: Actor that initiated the payout
                 max_amount:
-                    $ref: '#/components/schemas/Money'
+                    $ref: '#/components/schemas/Amount'
                 reference:
                     type: string
                     description: Merchant reference carried on the payout
