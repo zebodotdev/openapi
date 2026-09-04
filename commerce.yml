@@ -1031,6 +1031,209 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Error'
+    /checkout/lookup:
+        post:
+            summary: Look up a checkout order
+            description: |
+                Retrieve the current public checkout representation of a finalized Order. This is a
+                capability endpoint: possession of the Order ID allows the holder to inspect the
+                checkout and attempt payment, but does not allow changing the Order's customer,
+                merchant, amount, currency, line items, or shipping address.
+            operationId: lookupCheckoutOrder
+            tags: [Checkout]
+            security: []
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/CheckoutOrderReferenceRequest'
+            responses:
+                '200':
+                    description: Checkout order found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/CheckoutOrderResponse'
+                '400':
+                    description: Invalid checkout lookup request
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                '422':
+                    description: Checkout order was not found or is not finalized
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+    /checkout/pay:
+        post:
+            summary: Pay a checkout order
+            description: |
+                Attempt payment for a finalized Order without API-key authentication. The Order ID
+                identifies the immutable customer and commercial terms. A saved `payment_method_id`
+                must belong to that customer. Alternatively, provide new mobile-money details; new
+                billing details describe that payment method and do not replace the Order's shipping
+                address.
+
+                Retry an uncertain request with the same idempotency key and body.
+            operationId: payCheckoutOrder
+            tags: [Checkout]
+            security: []
+            parameters:
+                - $ref: '#/components/parameters/IdempotencyKey'
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/CheckoutPayRequest'
+            responses:
+                '200':
+                    description: Checkout payment result
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/CheckoutOrderResponse'
+                '400':
+                    description: Checkout payment request cannot be satisfied
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/CheckoutOrderResponse'
+                '409':
+                    description: Another request is currently using the same idempotency key
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                '422':
+                    description: The idempotency key was reused with a different request
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                '503':
+                    description: Checkout payment or idempotency storage failed transiently
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/CheckoutOrderResponse'
+                '504':
+                    description: Checkout payment timed out
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+    /checkout/confirm_payment:
+        post:
+            summary: Confirm a checkout payment
+            description: |
+                Submit the payer's confirmation token for a checkout payment that requires customer
+                confirmation. Retry an uncertain request with the same idempotency key and body.
+            operationId: confirmCheckoutPayment
+            tags: [Checkout]
+            security: []
+            parameters:
+                - $ref: '#/components/parameters/IdempotencyKey'
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/CheckoutConfirmPaymentRequest'
+            responses:
+                '200':
+                    description: Checkout payment confirmation result
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/CheckoutOrderResponse'
+                '400':
+                    description: Invalid checkout payment confirmation request
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                '409':
+                    description: Another request is currently using the same idempotency key
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                '422':
+                    description: Checkout payment confirmation failed or the idempotency key conflicts
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/CheckoutOrderResponse'
+                '503':
+                    description: Checkout payment confirmation failed transiently
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                '504':
+                    description: Checkout payment confirmation timed out
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+    /checkout/request_confirmation:
+        post:
+            summary: Request checkout payment confirmation
+            description: |
+                Ask Inttegro to send or resend the confirmation challenge required by the Order's
+                current payment. Retry an uncertain request with the same idempotency key and body.
+            operationId: requestCheckoutConfirmation
+            tags: [Checkout]
+            security: []
+            parameters:
+                - $ref: '#/components/parameters/IdempotencyKey'
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/CheckoutOrderReferenceRequest'
+            responses:
+                '200':
+                    description: Checkout confirmation request result
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/CheckoutOrderResponse'
+                '400':
+                    description: Checkout confirmation request cannot be satisfied
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/CheckoutOrderResponse'
+                '409':
+                    description: Another request is currently using the same idempotency key
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                '422':
+                    description: The idempotency key was reused with a different request
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                '503':
+                    description: Checkout confirmation request or idempotency storage failed transiently
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/CheckoutOrderResponse'
+                '504':
+                    description: Checkout confirmation request timed out
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
     /orders/create:
         post:
             summary: Create a new order
@@ -10790,6 +10993,365 @@ components:
                             format: date-time
                             description: Timestamp when the order was finalized (sealed)
                             example: "2025-10-24T21:08:11.660713878Z"
+        CheckoutOrderReferenceRequest:
+            type: object
+            additionalProperties: false
+            required:
+                - order_id
+            properties:
+                order_id:
+                    type: string
+                    minLength: 1
+                    description: The finalized Order to inspect or pay.
+                    example: "or_a1b2c3d4e5f6"
+        CheckoutPaymentAddress:
+            type: object
+            additionalProperties: false
+            required:
+                - country
+            properties:
+                name:
+                    type: string
+                phone_number:
+                    type: string
+                line1:
+                    type: string
+                line2:
+                    type: string
+                city:
+                    type: string
+                region:
+                    type: string
+                post_code:
+                    type: string
+                country:
+                    type: string
+                    description: ISO 3166-1 alpha-2 country code.
+                    example: GH
+        CheckoutBillingDetails:
+            type: object
+            additionalProperties: false
+            required:
+                - name
+                - address
+            properties:
+                name:
+                    type: string
+                    description: Name of the payer associated with the new payment method.
+                phone_number:
+                    type: string
+                    description: Phone number associated with the new payment method.
+                address:
+                    $ref: '#/components/schemas/CheckoutPaymentAddress'
+        CheckoutMobileMoneyData:
+            type: object
+            additionalProperties: false
+            required:
+                - network
+                - account_number
+            properties:
+                reference:
+                    type: string
+                network:
+                    type: string
+                    enum: [mtn, vodafone, airtel, telecel]
+                account_number:
+                    type: string
+        CheckoutPaymentMethodData:
+            type: object
+            additionalProperties: false
+            required:
+                - type
+                - mobile_money
+            properties:
+                type:
+                    type: string
+                    enum: [mobile_money]
+                mobile_money:
+                    $ref: '#/components/schemas/CheckoutMobileMoneyData'
+                billing_details:
+                    allOf:
+                        - $ref: '#/components/schemas/CheckoutBillingDetails'
+                    description: |
+                        Billing details for this new payment method. They do not replace the
+                        Order customer's identity or the Order's shipping address.
+        CheckoutPayRequest:
+            type: object
+            additionalProperties: false
+            required:
+                - order_id
+            not:
+                required: [payment_method_id, payment_method_data]
+                properties:
+                    payment_method_id:
+                        type: string
+                    payment_method_data:
+                        type: object
+            properties:
+                order_id:
+                    type: string
+                    minLength: 1
+                    description: The finalized Order to pay.
+                    example: "or_a1b2c3d4e5f6"
+                payment_method_id:
+                    type: string
+                    minLength: 1
+                    description: |
+                        A saved payment method owned by the Order's immutable customer. Mutually
+                        exclusive with `payment_method_data`.
+                payment_method_data:
+                    allOf:
+                        - $ref: '#/components/schemas/CheckoutPaymentMethodData'
+                    description: |
+                        New payment method details supplied by the payer. Mutually exclusive with
+                        `payment_method_id`. Shipping details are not accepted here because checkout
+                        cannot change the Order's shipping address.
+                save_payment_method:
+                    type: boolean
+                    default: false
+                    description: |
+                        Save a newly supplied payment method to the Order's customer. When true,
+                        `payment_method_data.billing_details` is required.
+        CheckoutConfirmPaymentRequest:
+            type: object
+            additionalProperties: false
+            required:
+                - order_id
+                - token
+            properties:
+                order_id:
+                    type: string
+                    minLength: 1
+                    example: "or_a1b2c3d4e5f6"
+                payment_id:
+                    type: string
+                    description: Optional payment identifier when already known by the client.
+                confirmation_id:
+                    type: string
+                    description: Optional confirmation attempt identifier.
+                token:
+                    type: string
+                    minLength: 1
+                    description: Payer confirmation token.
+                    example: "123456"
+        CheckoutOrderResponse:
+            type: object
+            description: Checkout response. Error responses can include the latest Order snapshot when available.
+            properties:
+                order:
+                    $ref: '#/components/schemas/CheckoutOrder'
+                error:
+                    $ref: '#/components/schemas/Error'
+        CheckoutOrder:
+            type: object
+            description: |
+                Current checkout projection. Its existing fields are published unchanged for the
+                initial mobile SDK contract and may be narrowed in a future contract revision.
+            required:
+                - id
+                - initiated_at
+                - customer
+                - status
+            properties:
+                id:
+                    type: string
+                    example: "or_a1b2c3d4e5f6"
+                number:
+                    type: string
+                receipt_number:
+                    type: string
+                reference:
+                    type: string
+                status:
+                    type: string
+                    enum: [preparing, requires_payment, completed, paid, canceled, expired, unknown]
+                initiated_at:
+                    type: string
+                    format: date-time
+                sealed_at:
+                    type: string
+                    format: date-time
+                completed_at:
+                    type: string
+                    format: date-time
+                paid_at:
+                    type: string
+                    format: date-time
+                canceled_at:
+                    type: string
+                    format: date-time
+                expires_at:
+                    type: string
+                    format: date-time
+                payment_due_at:
+                    type: string
+                    format: date-time
+                checkout_settings:
+                    type: object
+                    properties:
+                        redirect_url:
+                            type: string
+                            format: uri
+                        cancel_url:
+                            type: string
+                            format: uri
+                line_item_group:
+                    type: object
+                    properties:
+                        line_items:
+                            type: array
+                            items:
+                                $ref: '#/components/schemas/LineItem'
+                        total:
+                            $ref: '#/components/schemas/Amount'
+                customer:
+                    type: object
+                    properties:
+                        id:
+                            type: string
+                        guest:
+                            type: boolean
+                        name:
+                            type: string
+                        email_address:
+                            type: string
+                        phone_number:
+                            type: string
+                        billing_address:
+                            type: object
+                        shipping_address:
+                            type: object
+                created_from:
+                    type: object
+                    properties:
+                        source:
+                            type: string
+                        resource_type:
+                            type: string
+                        resource_id:
+                            type: string
+                payment:
+                    type: object
+                    properties:
+                        id:
+                            type: string
+                        statement_descriptor:
+                            type: string
+                        payment_method_types:
+                            type: array
+                            items:
+                                type: string
+                        payment_method:
+                            type: object
+                        billing_details:
+                            type: object
+                        receipt:
+                            $ref: '#/components/schemas/CheckoutInvoiceView'
+                        latest_attempt:
+                            type: object
+                        amount:
+                            $ref: '#/components/schemas/Amount'
+                        next_action:
+                            type: object
+                        latest_error:
+                            type: object
+                        status:
+                            type: string
+                        initiated_at:
+                            type: string
+                            format: date-time
+                        executed_at:
+                            type: string
+                            format: date-time
+                        due_at:
+                            type: string
+                            format: date-time
+                        canceled_at:
+                            type: string
+                            format: date-time
+                        expired_at:
+                            type: string
+                            format: date-time
+                        paid_at:
+                            type: string
+                            format: date-time
+                        paid_offline:
+                            type: boolean
+                        failed_at:
+                            type: string
+                            format: date-time
+                invoice:
+                    $ref: '#/components/schemas/CheckoutInvoiceView'
+        CheckoutInvoiceView:
+            type: object
+            required:
+                - id
+                - created_at
+                - format
+            properties:
+                id:
+                    type: string
+                application_id:
+                    type: string
+                number:
+                    type: string
+                status:
+                    type: string
+                    enum: [draft, requires_payment, overdue, paid, expired, canceled]
+                created_at:
+                    type: string
+                    format: date-time
+                due_at:
+                    type: string
+                    format: date-time
+                format:
+                    type: object
+                    properties:
+                        web:
+                            type: object
+                            properties:
+                                url:
+                                    type: string
+                                    format: uri
+                        pdf:
+                            type: object
+                            properties:
+                                url:
+                                    type: string
+                                    format: uri
+                        receipt:
+                            type: object
+                            properties:
+                                url:
+                                    type: string
+                                    format: uri
+                beneficiary:
+                    type: object
+                    properties:
+                        id:
+                            type: string
+                        legal_entity_type:
+                            type: string
+                        logo_url:
+                            type: string
+                            format: uri
+                        alias:
+                            type: string
+                        name:
+                            type: string
+                        support_email:
+                            type: string
+                        support_phone:
+                            type: string
+                        website_url:
+                            type: string
+                            format: uri
+                        accent_color:
+                            type: string
+                        invoice_support_line:
+                            type: string
+                        invoice_footer:
+                            type: string
         OrderAddress:
             type: object
             required:

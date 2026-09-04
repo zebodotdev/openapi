@@ -14,6 +14,12 @@ const HTTP_METHODS = new Set([
   "put",
   "trace",
 ]);
+const PUBLIC_CHECKOUT_OPERATIONS = new Set([
+  "POST /checkout/lookup",
+  "POST /checkout/pay",
+  "POST /checkout/request_confirmation",
+  "POST /checkout/confirm_payment",
+]);
 
 const rootDir = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const specPath = join(rootDir, "commerce.yml");
@@ -26,6 +32,7 @@ const operations = collectOpenApiOperations(spec);
 const requests = collectCallRequests(callDir);
 const errors = [
   ...compareOperationCoverage(operations, requests),
+  ...validatePublicCheckoutOperations(operations),
   ...compareEquivalentJsonContracts(operations, "POST /refunds/create", "POST /orders/refund"),
   ...validateRequestExamples(spec, operations, requests),
 ];
@@ -163,6 +170,21 @@ function compareOperationCoverage(operations, requests) {
   for (const [key, matches] of requestsByOperation) {
     if (!operations.has(key)) {
       errors.push(`${key} exists in Call but not in commerce.yml: ${matches.map(requestLabel).join(", ")}`);
+    }
+  }
+
+  return errors;
+}
+
+function validatePublicCheckoutOperations(operations) {
+  const errors = [];
+
+  for (const key of PUBLIC_CHECKOUT_OPERATIONS) {
+    const operation = operations.get(key)?.operation;
+    if (!operation) {
+      errors.push(`${key} must remain in the public OpenAPI contract`);
+    } else if (!Array.isArray(operation.security) || operation.security.length !== 0) {
+      errors.push(`${key} must declare security: [] because checkout is a public capability`);
     }
   }
 

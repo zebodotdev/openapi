@@ -344,6 +344,105 @@ collection:
           "page_number": 0,
           "page_size": 25
         }
+- name: Public checkout
+  meta:
+    id: fld_79b956d2f8b949c39cc2ed5f047c91cc
+    description: Inspect and pay a finalized Order from a client application without an Inttegro secret API key.
+  authentication:
+    type: none
+  scripts:
+    afterResponse: |-
+      insomnia.test('Returns a handled HTTP status', () => {
+        insomnia.expect(insomnia.response.code).to.be.within(200, 504);
+      });
+  children:
+  - name: Look up a public checkout order
+    url: '{{ base_url }}/checkout/lookup'
+    method: POST
+    meta:
+      id: req_86406f777146480684c6ea920a00d953
+      description: 'OpenAPI operation: POST /checkout/lookup'
+    headers:
+    - name: Content-Type
+      value: application/json
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "order_id": "{{ order_id }}"
+        }
+  - name: Pay a public checkout order
+    url: '{{ base_url }}/checkout/pay'
+    method: POST
+    meta:
+      id: req_c282b42c7dbd4ba3a590509ba5e13d1d
+      description: |-
+        OpenAPI operation: POST /checkout/pay
+        This example supplies payer billing details for a new payment method without changing shipping or saving the method.
+    headers:
+    - name: Content-Type
+      value: application/json
+    - name: Idempotency-Key
+      value: call-checkout-pay-{{ order_id }}
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "order_id": "{{ order_id }}",
+          "payment_method_data": {
+            "type": "mobile_money",
+            "mobile_money": {
+              "network": "mtn",
+              "account_number": "+233544998605"
+            },
+            "billing_details": {
+              "name": "Ama Mensah",
+              "phone_number": "+233544998605",
+              "address": {
+                "line1": "15 Main Street",
+                "city": "Accra",
+                "region": "Greater Accra",
+                "country": "GH"
+              }
+            }
+          },
+          "save_payment_method": false
+        }
+  - name: Request public checkout confirmation
+    url: '{{ base_url }}/checkout/request_confirmation'
+    method: POST
+    meta:
+      id: req_3b6603115a6b47f0b2aa89a4750d67fc
+      description: 'OpenAPI operation: POST /checkout/request_confirmation'
+    headers:
+    - name: Content-Type
+      value: application/json
+    - name: Idempotency-Key
+      value: call-checkout-request-confirmation-{{ order_id }}
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "order_id": "{{ order_id }}"
+        }
+  - name: Confirm a public checkout payment
+    url: '{{ base_url }}/checkout/confirm_payment'
+    method: POST
+    meta:
+      id: req_97d0dce56a634fb8a20e29a5a6cc7a55
+      description: 'OpenAPI operation: POST /checkout/confirm_payment'
+    headers:
+    - name: Content-Type
+      value: application/json
+    - name: Idempotency-Key
+      value: call-checkout-confirm-payment-{{ order_id }}
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "order_id": "{{ order_id }}",
+          "token": "{{ confirmation_token }}"
+        }
 environments:
   name: Base Environment
   meta:
