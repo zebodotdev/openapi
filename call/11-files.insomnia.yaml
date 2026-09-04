@@ -197,6 +197,8 @@ collection:
       id: req_22b2f599aab35b3274717aa03074236d
       description: 'Public reference: https://studio.inttegro.com/file-links#create-a-file-link'
     headers:
+    - name: Idempotency-Key
+      value: '{{ idempotency_key }}'
     - name: Content-Type
       value: application/json
     body:
