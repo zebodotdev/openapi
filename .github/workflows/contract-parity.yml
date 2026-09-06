@@ -1,23 +1,27 @@
-name: OpenAPI and Call parity
+name: OpenAPI and client collection parity
 
 on:
   pull_request:
     paths:
       - commerce.yml
-      - call/**
+      - insomnia/**
+      - postman/**
+      - contract.lock.json
       - package.json
       - package-lock.json
-      - scripts/check-contract.mjs
+      - scripts/**
       - .github/workflows/contract-parity.yml
   push:
     branches:
       - master
     paths:
       - commerce.yml
-      - call/**
+      - insomnia/**
+      - postman/**
+      - contract.lock.json
       - package.json
       - package-lock.json
-      - scripts/check-contract.mjs
+      - scripts/**
       - .github/workflows/contract-parity.yml
 
 jobs:
@@ -31,4 +35,5 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm test
-      - run: ./call/scripts/validate.sh
+      - run: ./insomnia/scripts/validate.sh
+      - run: ./postman/scripts/validate.sh

@@ -1,0 +1,333 @@
+{
+  "info": {
+    "name": "Inttegro API — Payment Methods",
+    "description": "Tokenize and manage saved payment methods. Uses the shared Inttegro API global environment.\n\nGenerated from insomnia/03-payment-methods.insomnia.yaml. Edit the Insomnia source and run npm run postman:generate.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Payment methods",
+      "item": [
+        {
+          "name": "Tokenize payment method",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "call-payment-method-tokenize-001",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/payment_methods/tokenize"
+            },
+            "description": "Public reference: https://studio.inttegro.com/payment-methods#tokenize-payment-method",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customer_id\": \"{{customer_id}}\",\n  \"type\": \"mobile_money\",\n  \"mobile_money\": {\n    \"account_number\": \"{{mobile_money_account_number}}\",\n    \"network\": \"mtn\"\n  },\n  \"owner\": {\n    \"name\": \"Jane Mensah\",\n    \"address\": {\n      \"country\": \"GH\"\n    }\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const jsonBody = pm.response.json();",
+                  "  const payment_method_id = jsonBody?.payment_method?.id;",
+                  "  pm.test('Returns payment_method.id', () => {",
+                  "    pm.expect(payment_method_id).to.be.a('string').and.not.be.empty;",
+                  "  });",
+                  "  if (payment_method_id) pm.environment.set(\"payment_method_id\", payment_method_id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Lookup payment method",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/payment_methods/lookup"
+            },
+            "description": "Public reference: https://studio.inttegro.com/payment-methods#lookup-payment-method",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"payment_method_id\": \"{{payment_method_id}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Update payment method",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "call-payment-method-update-{{payment_method_id}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/payment_methods/update"
+            },
+            "description": "Public reference: https://studio.inttegro.com/payment-methods#update-payment-method",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"payment_method_id\": \"{{payment_method_id}}\",\n  \"active\": true,\n  \"custom_data\": {\n    \"segment\": \"vip\",\n    \"legacy_note\": null\n  },\n  \"owner\": {\n    \"name\": \"Jane Mensah\",\n    \"address\": {\n      \"country\": \"GH\",\n      \"line1\": \"1 High Street\",\n      \"region\": \"Greater Accra\"\n    }\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Activate payment method",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "call-payment-method-activate-{{payment_method_id}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/payment_methods/activate"
+            },
+            "description": "Public reference: https://studio.inttegro.com/payment-methods#activate-payment-method",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"payment_method_id\": \"{{payment_method_id}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Deactivate payment method",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "call-payment-method-deactivate-{{payment_method_id}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/payment_methods/disactivate"
+            },
+            "description": "Public reference: https://studio.inttegro.com/payment-methods#deactivate-payment-method",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"payment_method_id\": \"{{payment_method_id}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Archive payment method",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "call-payment-method-archive-{{payment_method_id}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/payment_methods/archive"
+            },
+            "description": "Public reference: https://studio.inttegro.com/payment-methods#archive-payment-method",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"payment_method_id\": \"{{payment_method_id}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Unarchive payment method",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "call-payment-method-unarchive-{{payment_method_id}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/payment_methods/unarchive"
+            },
+            "description": "Public reference: https://studio.inttegro.com/payment-methods#unarchive-payment-method",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"payment_method_id\": \"{{payment_method_id}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Page through payment methods",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/payment_methods/page"
+            },
+            "description": "Public reference: https://studio.inttegro.com/payment-methods#page-through-payment-methods",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customer_id\": \"{{customer_id}}\",\n  \"page_number\": 1,\n  \"page_size\": 50\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Payment method settings",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/payment_methods/settings"
+            },
+            "description": "Public reference: https://studio.inttegro.com/payment-methods#payment-method-settings",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "description": "Tokenize and manage saved payment methods.",
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{api_key}}",
+            "type": "string"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.variables.set(",
+              "  'future_timestamp',",
+              "  new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),",
+              ");"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Returns a successful HTTP status', () => {",
+              "  pm.expect(pm.response.code).to.be.within(200, 299);",
+              "});"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "variable": []
+}

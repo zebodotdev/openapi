@@ -1,11 +1,13 @@
 {
-  "name": "@zebo/commerce-openapi",
+  "name": "@inttegro/openapi",
   "version": "1.0.0",
   "private": true,
   "type": "module",
   "scripts": {
     "test": "node scripts/check-contract.mjs",
-    "contract:update": "node scripts/check-contract.mjs --update"
+    "contract:update": "npm run postman:generate && node scripts/check-contract.mjs --update",
+    "postman:check": "node scripts/generate-postman.mjs --check",
+    "postman:generate": "node scripts/generate-postman.mjs"
   },
   "devDependencies": {
     "yaml": "2.9.0"

@@ -1,0 +1,623 @@
+{
+  "info": {
+    "name": "Inttegro API — Platform",
+    "description": "Manage applications and keys and retrieve reference data. Uses the shared Inttegro API global environment. Error reference: https://studio.inttegro.com/error-codes#applications\n\nGenerated from insomnia/12-platform.insomnia.yaml. Edit the Insomnia source and run npm run postman:generate.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Apps",
+      "item": [
+        {
+          "name": "Create an app",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/apps/create"
+            },
+            "description": "Public reference: https://studio.inttegro.com/apps#create-an-app",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"alias\": \"acme-prod-api\",\n  \"description\": \"Production Inttegro API integration for Acme Marketplace\",\n  \"legal_entity_type\": \"business\",\n  \"name\": \"Acme Production API\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const jsonBody = pm.response.json();",
+                  "  const app_id = jsonBody?.app?.id;",
+                  "  pm.test('Returns the created app and one-time credentials', () => {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "    pm.expect(jsonBody).to.have.all.keys('app');",
+                  "    pm.expect(app_id).to.be.a('string').and.not.be.empty;",
+                  "    pm.expect(jsonBody?.app?.relationship).to.be.an('object');",
+                  "    pm.expect(jsonBody?.app?.secret_key?.token).to.be.a('string').and.not.be.empty;",
+                  "  });",
+                  "  if (app_id) pm.environment.set(\"app_id\", app_id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Lookup an app",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/apps/lookup"
+            },
+            "description": "Public reference: https://studio.inttegro.com/apps#lookup-an-app"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const jsonBody = pm.response.json();",
+                  "  pm.test('Returns safe metadata for the authenticated app', () => {",
+                  "    pm.expect(jsonBody).to.have.all.keys('app');",
+                  "    pm.expect(jsonBody?.app?.id).to.be.a('string').and.not.be.empty;",
+                  "    pm.expect(jsonBody?.app).not.to.have.property('secret_key');",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update an app",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Idempotency-Key",
+                "value": "{{idempotency_key}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/apps/update"
+            },
+            "description": "Public reference: https://studio.inttegro.com/apps#update-an-app",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"alias\": \"acme-checkout-api\",\n  \"description\": \"Checkout API for Acme Marketplace\",\n  \"legal_entity_type\": \"business\",\n  \"name\": \"Acme Checkout API\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const jsonBody = pm.response.json();",
+                  "  pm.test('Returns the updated app without credentials', () => {",
+                  "    pm.expect(jsonBody).to.have.all.keys('app');",
+                  "    pm.expect(jsonBody?.app?.name).to.equal('Acme Checkout API');",
+                  "    pm.expect(jsonBody?.app).not.to.have.property('secret_key');",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "description": "Create, retrieve, and update applications when the calling key has the required authority.",
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{api_key}}",
+            "type": "string"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.variables.set(",
+              "  'future_timestamp',",
+              "  new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),",
+              ");"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Returns a successful HTTP status', () => {",
+              "  pm.expect(pm.response.code).to.be.within(200, 299);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "API keys",
+      "item": [
+        {
+          "name": "Generate a key",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/keys/generate"
+            },
+            "description": "Public reference: https://studio.inttegro.com/keys#generate-a-secret-key. The bearer token is returned only by this request; store it before continuing because later key reads return metadata only.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"label\": \"checkout-api\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const jsonBody = pm.response.json();",
+                  "  const secret_key_id = jsonBody?.key?.id;",
+                  "  pm.test('Returns a key token exactly once', () => {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "    pm.expect(jsonBody).to.have.all.keys('key');",
+                  "    pm.expect(secret_key_id).to.be.a('string').and.not.be.empty;",
+                  "    pm.expect(jsonBody?.key?.token).to.be.a('string').and.not.be.empty;",
+                  "    pm.expect(jsonBody?.key?.token_type).to.equal('bearer');",
+                  "    for (const field of Object.keys(jsonBody?.key ?? {})) {",
+                  "      pm.expect(field).to.be.oneOf(['id', 'label', 'token_type', 'issued_at', 'token']);",
+                  "    }",
+                  "  });",
+                  "  if (secret_key_id) pm.environment.set(\"secret_key_id\", secret_key_id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Page API keys",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/keys/page"
+            },
+            "description": "Public reference: https://studio.inttegro.com/keys#list-keys",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"page\": 1,\n  \"size\": 20\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const jsonBody = pm.response.json();",
+                  "  const page = jsonBody?.page;",
+                  "  pm.test('Returns a safe key page without bearer tokens', () => {",
+                  "    pm.expect(jsonBody).to.have.all.keys('page');",
+                  "    pm.expect(page).to.have.all.keys('number', 'size', 'count', 'total', 'has_more', 'keys');",
+                  "    pm.expect(page?.keys).to.be.an('array');",
+                  "    for (const key of page?.keys ?? []) {",
+                  "      for (const field of Object.keys(key)) {",
+                  "        pm.expect(field).to.be.oneOf(['id', 'label', 'token_type', 'issued_at', 'updated_at', 'expires_at', 'status', 'active', 'revoked_at', 'last_used_at', 'usage_count']);",
+                  "      }",
+                  "    }",
+                  "    pm.expect(JSON.stringify(jsonBody)).not.to.match(/\"token\"\\s*:/);",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Lookup an API key",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/keys/lookup"
+            },
+            "description": "Public reference: https://studio.inttegro.com/keys#look-up-a-key",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"secret_key_id\": \"{{secret_key_id}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const jsonBody = pm.response.json();",
+                  "  pm.test('Returns safe key metadata', () => {",
+                  "    pm.expect(jsonBody).to.have.all.keys('key');",
+                  "    pm.expect(jsonBody?.key?.id).to.equal(pm.variables.get('secret_key_id'));",
+                  "    pm.expect(jsonBody?.key).not.to.have.property('token');",
+                  "    for (const field of Object.keys(jsonBody?.key ?? {})) {",
+                  "      pm.expect(field).to.be.oneOf(['id', 'label', 'token_type', 'issued_at', 'updated_at', 'expires_at', 'status', 'active', 'revoked_at', 'last_used_at', 'usage_count']);",
+                  "    }",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update an API key",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "call-key-update-{{secret_key_id}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/keys/update"
+            },
+            "description": "Public reference: https://studio.inttegro.com/keys#update-a-key-label",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"secret_key_id\": \"{{secret_key_id}}\",\n  \"label\": \"checkout-api-primary\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const jsonBody = pm.response.json();",
+                  "  pm.test('Returns the updated safe key metadata', () => {",
+                  "    pm.expect(jsonBody).to.have.all.keys('key');",
+                  "    pm.expect(jsonBody?.key?.id).to.equal(pm.variables.get('secret_key_id'));",
+                  "    pm.expect(jsonBody?.key?.label).to.equal('checkout-api-primary');",
+                  "    pm.expect(jsonBody?.key).not.to.have.property('token');",
+                  "    for (const field of Object.keys(jsonBody?.key ?? {})) {",
+                  "      pm.expect(field).to.be.oneOf(['id', 'label', 'token_type', 'issued_at', 'updated_at', 'expires_at', 'status', 'active', 'revoked_at', 'last_used_at', 'usage_count']);",
+                  "    }",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Revoke an API key",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "call-key-revoke-{{secret_key_id}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/keys/destroy"
+            },
+            "description": "Public reference: https://studio.inttegro.com/keys#revoke-a-key",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"secret_key_id\": \"{{secret_key_id}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const jsonBody = pm.response.json();",
+                  "  pm.test('Returns revoked safe key metadata', () => {",
+                  "    pm.expect(jsonBody).to.have.all.keys('key');",
+                  "    pm.expect(jsonBody?.key?.id).to.equal(pm.variables.get('secret_key_id'));",
+                  "    pm.expect(jsonBody?.key?.status).to.equal('revoked');",
+                  "    pm.expect(jsonBody?.key).not.to.have.property('token');",
+                  "    for (const field of Object.keys(jsonBody?.key ?? {})) {",
+                  "      pm.expect(field).to.be.oneOf(['id', 'label', 'token_type', 'issued_at', 'updated_at', 'expires_at', 'status', 'active', 'revoked_at', 'last_used_at', 'usage_count']);",
+                  "    }",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Retrieve API key usage",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/keys/usage"
+            },
+            "description": "Public reference: https://studio.inttegro.com/keys#review-key-usage. Returns only the key ID, event time, and authentication outcome for each activity row.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"secret_key_id\": \"{{secret_key_id}}\",\n  \"page\": 1,\n  \"size\": 20\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const jsonBody = pm.response.json();",
+                  "  pm.test('Returns key metadata and its usage page without a bearer token', () => {",
+                  "    pm.expect(jsonBody).to.have.all.keys('key', 'usage');",
+                  "    pm.expect(jsonBody?.key?.id).to.equal(pm.variables.get('secret_key_id'));",
+                  "    pm.expect(jsonBody?.usage).to.have.all.keys('number', 'size', 'count', 'total', 'has_more', 'rows');",
+                  "    pm.expect(jsonBody?.usage?.rows).to.be.an('array');",
+                  "    for (const field of Object.keys(jsonBody?.key ?? {})) {",
+                  "      pm.expect(field).to.be.oneOf(['id', 'label', 'token_type', 'issued_at', 'updated_at', 'expires_at', 'status', 'active', 'revoked_at', 'last_used_at', 'usage_count']);",
+                  "    }",
+                  "    for (const row of jsonBody?.usage?.rows ?? []) {",
+                  "      pm.expect(row).to.have.all.keys('secret_key_id', 'occurred_at', 'auth_result');",
+                  "    }",
+                  "    pm.expect(JSON.stringify(jsonBody)).not.to.match(/\"token\"\\s*:/);",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "description": "Create, inspect, rotate, and revoke server-side API keys. A generated token is shown once; never store it in this collection. Error reference: https://studio.inttegro.com/error-codes#api-keys",
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{api_key}}",
+            "type": "string"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.variables.set(",
+              "  'future_timestamp',",
+              "  new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),",
+              ");"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Returns a successful HTTP status', () => {",
+              "  pm.expect(pm.response.code).to.be.within(200, 299);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reference data",
+      "item": [
+        {
+          "name": "Get country specifications",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/spec/countries"
+            },
+            "description": "Public reference: https://studio.inttegro.com/countries#get-country-specifications",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const jsonBody = pm.response.json();",
+                  "  const countries = jsonBody?.countries;",
+                  "  pm.test('Returns public country specifications without authentication', () => {",
+                  "    pm.expect(jsonBody).to.have.all.keys('countries');",
+                  "    pm.expect(countries).to.be.an('object').and.not.be.empty;",
+                  "    for (const country of Object.values(countries)) {",
+                  "      for (const field of ['currencies', 'payment_methods', 'payout_schedules', 'bt_aging_specs', 'legal_entity_types', 'financial_account_types', 'id_document_types']) {",
+                  "        pm.expect(country?.[field]).to.be.an('array');",
+                  "        for (const value of country?.[field] ?? []) pm.expect(value).to.be.a('string');",
+                  "      }",
+                  "      if (country?.banks) {",
+                  "        pm.expect(country.banks).to.include.all.keys('bank_account_type', 'code_scheme', 'items');",
+                  "        pm.expect(country.banks.items).to.be.an('array');",
+                  "      }",
+                  "    }",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "description": "Retrieve public country and payment-method specifications.",
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{api_key}}",
+            "type": "string"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.variables.set(",
+              "  'future_timestamp',",
+              "  new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),",
+              ");"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Returns a successful HTTP status', () => {",
+              "  pm.expect(pm.response.code).to.be.within(200, 299);",
+              "});"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "variable": []
+}

@@ -3,6 +3,11 @@ import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parse } from "yaml";
+import {
+  buildPostmanArtifacts,
+  listGeneratedPostmanFiles,
+  stringifyPostmanArtifact,
+} from "./postman.mjs";
 
 const HTTP_METHODS = new Set([
   "delete",
@@ -23,28 +28,37 @@ const PUBLIC_CHECKOUT_OPERATIONS = new Set([
 
 const rootDir = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const specPath = join(rootDir, "commerce.yml");
-const callDir = join(rootDir, "call");
-const lockPath = join(callDir, "openapi.lock.json");
+const insomniaDir = join(rootDir, "insomnia");
+const postmanDir = join(rootDir, "postman");
+const lockPath = join(rootDir, "contract.lock.json");
 const updateLock = process.argv.includes("--update");
 
 const spec = parse(readFileSync(specPath, "utf8"));
 const operations = collectOpenApiOperations(spec);
-const requests = collectCallRequests(callDir);
+const insomniaRequests = collectInsomniaRequests(insomniaDir);
+const postmanRequests = collectPostmanRequests(postmanDir);
 const errors = [
-  ...compareOperationCoverage(operations, requests),
+  ...validateGeneratedPostmanArtifacts(insomniaDir, postmanDir),
+  ...compareOperationCoverage(operations, insomniaRequests, "Insomnia", true),
+  ...compareOperationCoverage(operations, postmanRequests, "Postman", false),
   ...validatePublicCheckoutOperations(operations),
-  ...compareEquivalentJsonContracts(operations, "POST /refunds/create", "POST /orders/refund"),
-  ...validateRequestExamples(spec, operations, requests),
+  ...compareEquivalentJsonContracts(
+    operations,
+    "POST /refunds/create",
+    "POST /orders/refund",
+  ),
+  ...validateRequestExamples(spec, operations, insomniaRequests),
+  ...validateRequestExamples(spec, operations, postmanRequests),
 ];
 
 if (errors.length > 0) {
-  console.error("OpenAPI and Call are out of sync:\n");
+  console.error("OpenAPI, Insomnia, and Postman are out of sync:\n");
   for (const error of errors) {
     console.error(`- ${error}`);
   }
   process.exitCode = 1;
 } else {
-  const lock = buildLock(operations, requests);
+  const lock = buildLock(operations, insomniaRequests, postmanRequests);
   if (updateLock) {
     updateContractLock(lock);
   } else {
@@ -65,17 +79,25 @@ function collectOpenApiOperations(document) {
       if (result.has(key)) {
         throw new Error(`Duplicate OpenAPI operation ${key}`);
       }
-      result.set(key, { key, method: method.toUpperCase(), path: pathName, operation });
+      result.set(key, {
+        key,
+        method: method.toUpperCase(),
+        path: pathName,
+        operation,
+      });
     }
   }
 
   return result;
 }
 
-function collectCallRequests(directory) {
+function collectInsomniaRequests(directory) {
   const result = [];
   const collectionFiles = readdirSync(directory)
-    .filter((name) => /^\d{2}-.+\.insomnia\.yaml$/.test(name) && !name.startsWith("00-"))
+    .filter(
+      (name) =>
+        /^\d{2}-.+\.insomnia\.yaml$/.test(name) && !name.startsWith("00-"),
+    )
     .sort();
 
   for (const fileName of collectionFiles) {
@@ -89,6 +111,7 @@ function collectCallRequests(directory) {
       const mapping = openApiMapping(request);
       result.push({
         ...mapping,
+        client: "Insomnia",
         fileName,
         name: request.name ?? request.meta?.id ?? "Unnamed request",
         request,
@@ -97,6 +120,118 @@ function collectCallRequests(directory) {
   }
 
   return result;
+}
+
+function collectPostmanRequests(directory) {
+  const result = [];
+  const collectionFiles = readdirSync(directory)
+    .filter((name) => /^\d{2}-.+\.postman_collection\.json$/.test(name))
+    .sort();
+
+  for (const fileName of collectionFiles) {
+    const filePath = join(directory, fileName);
+    const document = JSON.parse(readFileSync(filePath, "utf8"));
+    walkPostmanCollection(document.item, (item) => {
+      const postmanRequest = item.request;
+      if (!postmanRequest?.method || !postmanRequest.url) {
+        return;
+      }
+
+      const request = normalizePostmanRequest(postmanRequest);
+      const mapping = openApiMapping(request);
+      result.push({
+        ...mapping,
+        client: "Postman",
+        fileName,
+        name: item.name ?? "Unnamed request",
+        request,
+      });
+    });
+  }
+
+  return result;
+}
+
+function walkPostmanCollection(items, visit) {
+  for (const item of items ?? []) {
+    if (item.request) {
+      visit(item);
+    }
+    walkPostmanCollection(item.item, visit);
+  }
+}
+
+function normalizePostmanRequest(request) {
+  const url = typeof request.url === "string" ? request.url : request.url?.raw;
+  const description =
+    typeof request.description === "string"
+      ? request.description
+      : (request.description?.content ?? "");
+  const normalized = {
+    method: request.method,
+    url,
+    meta: { description },
+    headers: (request.header ?? []).map((header) => ({
+      name: header.key,
+      value: header.value,
+      disabled: header.disabled,
+    })),
+  };
+
+  if (request.body?.mode === "raw") {
+    normalized.body = {
+      mimeType:
+        request.body.options?.raw?.language === "json"
+          ? "application/json"
+          : "text/plain",
+      text: request.body.raw ?? "",
+    };
+  } else if (request.body?.mode === "formdata") {
+    normalized.body = {
+      mimeType: "multipart/form-data",
+      params: (request.body.formdata ?? []).map((part) => ({
+        name: part.key,
+        value: part.value,
+        fileName: part.src,
+        type: part.type,
+      })),
+    };
+  }
+
+  return normalized;
+}
+
+function validateGeneratedPostmanArtifacts(sourceDirectory, outputDirectory) {
+  const errors = [];
+  const expectedArtifacts = buildPostmanArtifacts(sourceDirectory);
+
+  for (const [relativePath, artifact] of expectedArtifacts) {
+    const outputPath = join(outputDirectory, relativePath);
+    if (!existsSync(outputPath)) {
+      errors.push(
+        `Postman is missing generated artifact postman/${relativePath}`,
+      );
+      continue;
+    }
+    const expected = stringifyPostmanArtifact(artifact);
+    if (readFileSync(outputPath, "utf8") !== expected) {
+      errors.push(
+        `postman/${relativePath} does not match its Insomnia source; run npm run postman:generate`,
+      );
+    }
+  }
+
+  if (existsSync(outputDirectory)) {
+    for (const relativePath of listGeneratedPostmanFiles(outputDirectory)) {
+      if (!expectedArtifacts.has(relativePath)) {
+        errors.push(
+          `Postman contains unexpected generated artifact postman/${relativePath}`,
+        );
+      }
+    }
+  }
+
+  return errors;
 }
 
 function walkCollection(nodes, visit) {
@@ -109,7 +244,9 @@ function walkCollection(nodes, visit) {
 function openApiMapping(request) {
   const method = String(request.method).toUpperCase();
   const description = String(request.meta?.description ?? "");
-  const explicit = description.match(/(?:^|\n)OpenAPI operation:\s*([A-Z]+)\s+(\/\S+)/i);
+  const explicit = description.match(
+    /(?:^|\n)OpenAPI operation:\s*([A-Z]+)\s+(\/\S+)/i,
+  );
 
   if (explicit) {
     const mappedMethod = explicit[1].toUpperCase();
@@ -118,7 +255,11 @@ function openApiMapping(request) {
         `${request.name}: request method ${method} conflicts with explicit OpenAPI mapping ${mappedMethod}`,
       );
     }
-    return { key: operationKey(mappedMethod, explicit[2]), method: mappedMethod, path: explicit[2] };
+    return {
+      key: operationKey(mappedMethod, explicit[2]),
+      method: mappedMethod,
+      path: explicit[2],
+    };
   }
 
   const url = String(request.url);
@@ -134,7 +275,12 @@ function openApiMapping(request) {
   return { key: operationKey(method, directPath), method, path: directPath };
 }
 
-function compareOperationCoverage(operations, requests) {
+function compareOperationCoverage(
+  operations,
+  requests,
+  clientName,
+  requireIds,
+) {
   const errors = [];
   const requestsByOperation = new Map();
   const requestIds = new Map();
@@ -144,32 +290,38 @@ function compareOperationCoverage(operations, requests) {
     matches.push(request);
     requestsByOperation.set(request.key, matches);
 
-    const requestId = request.request.meta?.id;
-    if (!requestId) {
-      errors.push(`${request.fileName} > ${request.name}: request is missing meta.id`);
-    } else if (requestIds.has(requestId)) {
-      errors.push(
-        `${request.fileName} > ${request.name}: duplicate request id ${requestId} also used by ${requestIds.get(requestId)}`,
-      );
-    } else {
-      requestIds.set(requestId, `${request.fileName} > ${request.name}`);
+    if (requireIds) {
+      const requestId = request.request.meta?.id;
+      if (!requestId) {
+        errors.push(`${requestLabel(request)}: request is missing meta.id`);
+      } else if (requestIds.has(requestId)) {
+        errors.push(
+          `${requestLabel(request)}: duplicate request id ${requestId} also used by ${requestIds.get(requestId)}`,
+        );
+      } else {
+        requestIds.set(requestId, requestLabel(request));
+      }
     }
   }
 
   for (const key of operations.keys()) {
     const matches = requestsByOperation.get(key) ?? [];
     if (matches.length === 0) {
-      errors.push(`${key} exists in commerce.yml but has no Call request`);
+      errors.push(
+        `${key} exists in commerce.yml but has no ${clientName} request`,
+      );
     } else if (matches.length > 1) {
       errors.push(
-        `${key} is represented ${matches.length} times in Call: ${matches.map(requestLabel).join(", ")}`,
+        `${key} is represented ${matches.length} times in ${clientName}: ${matches.map(requestLabel).join(", ")}`,
       );
     }
   }
 
   for (const [key, matches] of requestsByOperation) {
     if (!operations.has(key)) {
-      errors.push(`${key} exists in Call but not in commerce.yml: ${matches.map(requestLabel).join(", ")}`);
+      errors.push(
+        `${key} exists in ${clientName} but not in commerce.yml: ${matches.map(requestLabel).join(", ")}`,
+      );
     }
   }
 
@@ -183,8 +335,13 @@ function validatePublicCheckoutOperations(operations) {
     const operation = operations.get(key)?.operation;
     if (!operation) {
       errors.push(`${key} must remain in the public OpenAPI contract`);
-    } else if (!Array.isArray(operation.security) || operation.security.length !== 0) {
-      errors.push(`${key} must declare security: [] because checkout is a public capability`);
+    } else if (
+      !Array.isArray(operation.security) ||
+      operation.security.length !== 0
+    ) {
+      errors.push(
+        `${key} must declare security: [] because checkout is a public capability`,
+      );
     }
   }
 
@@ -200,11 +357,18 @@ function compareEquivalentJsonContracts(operations, canonicalKey, aliasKey) {
 
   const errors = [];
 
-  if (JSON.stringify(canonical.parameters ?? []) !== JSON.stringify(alias.parameters ?? [])) {
+  if (
+    JSON.stringify(canonical.parameters ?? []) !==
+    JSON.stringify(alias.parameters ?? [])
+  ) {
     errors.push(`${aliasKey} must use the same parameters as ${canonicalKey}`);
   }
-  if (JSON.stringify(canonical.requestBody) !== JSON.stringify(alias.requestBody)) {
-    errors.push(`${aliasKey} must use the same request body as ${canonicalKey}`);
+  if (
+    JSON.stringify(canonical.requestBody) !== JSON.stringify(alias.requestBody)
+  ) {
+    errors.push(
+      `${aliasKey} must use the same request body as ${canonicalKey}`,
+    );
   }
   if (JSON.stringify(canonical.responses) !== JSON.stringify(alias.responses)) {
     errors.push(`${aliasKey} must use the same responses as ${canonicalKey}`);
@@ -226,13 +390,17 @@ function validateRequestExamples(document, operations, requests) {
     const requestBody = openApiOperation.requestBody;
     if (!body) {
       if (requestBody?.required) {
-        errors.push(`${requestLabel(request)}: OpenAPI requires a request body but Call has none`);
+        errors.push(
+          `${requestLabel(request)}: OpenAPI requires a request body but the collection has none`,
+        );
       }
       continue;
     }
 
     if (!requestBody?.content) {
-      errors.push(`${requestLabel(request)}: Call has a request body but OpenAPI documents none`);
+      errors.push(
+        `${requestLabel(request)}: the collection has a request body but OpenAPI documents none`,
+      );
       continue;
     }
 
@@ -240,7 +408,7 @@ function validateRequestExamples(document, operations, requests) {
     const schema = requestBody.content[mediaType]?.schema;
     if (!schema) {
       errors.push(
-        `${requestLabel(request)}: Call uses ${mediaType}, which OpenAPI does not document for ${request.key}`,
+        `${requestLabel(request)}: the collection uses ${mediaType}, which OpenAPI does not document for ${request.key}`,
       );
       continue;
     }
@@ -250,11 +418,18 @@ function validateRequestExamples(document, operations, requests) {
       try {
         example = JSON.parse(body.text ?? "");
       } catch (error) {
-        errors.push(`${requestLabel(request)}: request body is not valid JSON (${error.message})`);
+        errors.push(
+          `${requestLabel(request)}: request body is not valid JSON (${error.message})`,
+        );
         continue;
       }
     } else if (mediaType === "multipart/form-data") {
-      example = Object.fromEntries((body.params ?? []).map((part) => [part.name, part.value ?? part.fileName ?? ""]));
+      example = Object.fromEntries(
+        (body.params ?? []).map((part) => [
+          part.name,
+          part.value ?? part.fileName ?? "",
+        ]),
+      );
     } else {
       continue;
     }
@@ -280,12 +455,19 @@ function validateExample(value, inputSchema, document, location) {
     delete base.oneOf;
     delete base.anyOf;
     const branchErrors = branches.map((branch) =>
-      validateExample(value, mergeSchemas(base, materializeSchema(branch, document)), document, location),
+      validateExample(
+        value,
+        mergeSchemas(base, materializeSchema(branch, document)),
+        document,
+        location,
+      ),
     );
     if (branchErrors.some((candidate) => candidate.length === 0)) {
       return [];
     }
-    return [`${location} does not match any documented schema variant (${branchErrors[0].join("; ")})`];
+    return [
+      `${location} does not match any documented schema variant (${branchErrors[0].join("; ")})`,
+    ];
   }
 
   const expectedType = schema.type ?? inferType(schema);
@@ -304,9 +486,23 @@ function validateExample(value, inputSchema, document, location) {
     const properties = schema.properties ?? {};
     for (const [name, childValue] of Object.entries(value)) {
       if (properties[name]) {
-        errors.push(...validateExample(childValue, properties[name], document, `${location}.${name}`));
+        errors.push(
+          ...validateExample(
+            childValue,
+            properties[name],
+            document,
+            `${location}.${name}`,
+          ),
+        );
       } else if (isPlainObject(schema.additionalProperties)) {
-        errors.push(...validateExample(childValue, schema.additionalProperties, document, `${location}.${name}`));
+        errors.push(
+          ...validateExample(
+            childValue,
+            schema.additionalProperties,
+            document,
+            `${location}.${name}`,
+          ),
+        );
       } else if (schema.properties) {
         errors.push(`${location}.${name} is not documented by OpenAPI`);
       }
@@ -319,7 +515,9 @@ function validateExample(value, inputSchema, document, location) {
       return [`${location} must be an array`];
     }
     return value.flatMap((item, index) =>
-      schema.items ? validateExample(item, schema.items, document, `${location}[${index}]`) : [],
+      schema.items
+        ? validateExample(item, schema.items, document, `${location}[${index}]`)
+        : [],
     );
   }
 
@@ -350,7 +548,10 @@ function materializeSchema(inputSchema, document, seen = new Set()) {
       return {};
     }
     const nextSeen = new Set(seen).add(schema.$ref);
-    schema = mergeSchemas(resolveRef(document, schema.$ref), { ...schema, $ref: undefined });
+    schema = mergeSchemas(resolveRef(document, schema.$ref), {
+      ...schema,
+      $ref: undefined,
+    });
     schema = materializeSchema(schema, document, nextSeen);
   }
 
@@ -358,7 +559,8 @@ function materializeSchema(inputSchema, document, seen = new Set()) {
     const base = { ...schema };
     delete base.allOf;
     schema = schema.allOf.reduce(
-      (merged, part) => mergeSchemas(merged, materializeSchema(part, document, seen)),
+      (merged, part) =>
+        mergeSchemas(merged, materializeSchema(part, document, seen)),
       base,
     );
   }
@@ -369,10 +571,15 @@ function materializeSchema(inputSchema, document, seen = new Set()) {
 function mergeSchemas(left, right) {
   const merged = { ...left, ...right };
   if (left.properties || right.properties) {
-    merged.properties = { ...(left.properties ?? {}), ...(right.properties ?? {}) };
+    merged.properties = {
+      ...(left.properties ?? {}),
+      ...(right.properties ?? {}),
+    };
   }
   if (left.required || right.required) {
-    merged.required = [...new Set([...(left.required ?? []), ...(right.required ?? [])])];
+    merged.required = [
+      ...new Set([...(left.required ?? []), ...(right.required ?? [])]),
+    ];
   }
   return merged;
 }
@@ -381,11 +588,13 @@ function resolveRef(document, reference) {
   if (!reference.startsWith("#/")) {
     throw new Error(`Unsupported external OpenAPI reference: ${reference}`);
   }
-  return reference
-    .slice(2)
-    .split("/")
-    .map((part) => part.replaceAll("~1", "/").replaceAll("~0", "~"))
-    .reduce((value, part) => value?.[part], document) ?? {};
+  return (
+    reference
+      .slice(2)
+      .split("/")
+      .map((part) => part.replaceAll("~1", "/").replaceAll("~0", "~"))
+      .reduce((value, part) => value?.[part], document) ?? {}
+  );
 }
 
 function inferType(schema) {
@@ -398,19 +607,27 @@ function inferType(schema) {
   return undefined;
 }
 
-function buildLock(operations, requests) {
+function buildLock(operations, insomniaRequests, postmanRequests) {
   return {
-    version: 1,
+    version: 2,
     openapi_sha256: hashFile(specPath),
-    call_sha256: hashCallArtifacts(callDir),
+    insomnia_sha256: hashArtifacts(insomniaDir, (filePath) =>
+      filePath.endsWith(".insomnia.yaml"),
+    ),
+    postman_sha256: hashArtifacts(postmanDir, (filePath) =>
+      /\.postman_(?:collection|environment)\.json$/.test(filePath),
+    ),
     operation_count: operations.size,
-    request_count: requests.length,
+    insomnia_request_count: insomniaRequests.length,
+    postman_request_count: postmanRequests.length,
   };
 }
 
 function checkLock(actual) {
   if (!existsSync(lockPath)) {
-    console.error("Missing call/openapi.lock.json. Run npm run contract:update after reviewing both contracts.");
+    console.error(
+      "Missing contract.lock.json. Run npm run contract:update after reviewing all contracts.",
+    );
     process.exitCode = 1;
     return;
   }
@@ -418,53 +635,73 @@ function checkLock(actual) {
   const expected = JSON.parse(readFileSync(lockPath, "utf8"));
   const mismatches = Object.entries(actual)
     .filter(([name, value]) => expected[name] !== value)
-    .map(([name, value]) => `${name}: expected ${expected[name] ?? "<missing>"}, received ${value}`);
+    .map(
+      ([name, value]) =>
+        `${name}: expected ${expected[name] ?? "<missing>"}, received ${value}`,
+    );
 
   if (mismatches.length > 0) {
-    console.error("OpenAPI or Call changed without refreshing their reviewed contract lock:\n");
+    console.error(
+      "OpenAPI or a client collection changed without refreshing the reviewed contract lock:\n",
+    );
     for (const mismatch of mismatches) {
       console.error(`- ${mismatch}`);
     }
-    console.error("\nUpdate both contracts, review semantic parity, then run npm run contract:update.");
+    console.error(
+      "\nUpdate OpenAPI and Insomnia, regenerate Postman, review parity, then run npm run contract:update.",
+    );
     process.exitCode = 1;
     return;
   }
 
-  console.log(`OpenAPI and Call agree on ${actual.operation_count} operations and the reviewed contract lock is current.`);
+  console.log(
+    `OpenAPI, Insomnia, and Postman agree on ${actual.operation_count} operations and the reviewed contract lock is current.`,
+  );
 }
 
 function updateContractLock(actual) {
   if (existsSync(lockPath)) {
     const expected = JSON.parse(readFileSync(lockPath, "utf8"));
     const openApiChanged = expected.openapi_sha256 !== actual.openapi_sha256;
-    const callChanged = expected.call_sha256 !== actual.call_sha256;
+    const previousInsomniaHash =
+      expected.insomnia_sha256 ?? expected.call_sha256;
+    const insomniaChanged = previousInsomniaHash !== actual.insomnia_sha256;
 
-    if (openApiChanged !== callChanged) {
+    if (openApiChanged !== insomniaChanged) {
       console.error(
-        "Refusing to refresh the contract lock after a one-sided change. Update commerce.yml and the matching Call collection together, then retry.",
+        "Refusing to refresh the contract lock after a one-sided change. Update commerce.yml and the matching Insomnia collection together, regenerate Postman, then retry.",
       );
       process.exitCode = 1;
       return;
     }
 
-    if (!openApiChanged && !callChanged) {
-      console.log("OpenAPI and Call are unchanged; the reviewed contract lock is already current.");
+    const lockChanged = Object.entries(actual).some(
+      ([name, value]) => expected[name] !== value,
+    );
+    if (!lockChanged) {
+      console.log(
+        "OpenAPI and client collections are unchanged; the reviewed contract lock is already current.",
+      );
       return;
     }
   }
 
   writeFileSync(lockPath, `${JSON.stringify(actual, null, 2)}\n`);
-  console.log(`Updated ${relative(rootDir, lockPath)} for ${actual.operation_count} operations.`);
+  console.log(
+    `Updated ${relative(rootDir, lockPath)} for ${actual.operation_count} operations.`,
+  );
 }
 
 function hashFile(filePath) {
   return createHash("sha256").update(readFileSync(filePath)).digest("hex");
 }
 
-function hashCallArtifacts(directory) {
+function hashArtifacts(directory, include) {
   const files = walkFiles(directory)
-    .filter((filePath) => filePath.endsWith(".insomnia.yaml"))
-    .sort((left, right) => relative(directory, left).localeCompare(relative(directory, right)));
+    .filter(include)
+    .sort((left, right) =>
+      relative(directory, left).localeCompare(relative(directory, right)),
+    );
   const hash = createHash("sha256");
   for (const filePath of files) {
     hash.update(relative(directory, filePath));
@@ -487,7 +724,7 @@ function operationKey(method, pathName) {
 }
 
 function requestLabel(request) {
-  return `${request.fileName} > ${request.name}`;
+  return `${request.client} ${request.fileName} > ${request.name}`;
 }
 
 function isPlainObject(value) {

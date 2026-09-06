@@ -1,0 +1,821 @@
+{
+  "info": {
+    "name": "Inttegro API — Messaging",
+    "description": "Send notifications and manage reusable message templates. Uses the shared Inttegro API global environment. Error reference: https://studio.inttegro.com/error-codes#chimes\n\nGenerated from insomnia/09-messaging.insomnia.yaml. Edit the Insomnia source and run npm run postman:generate.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Messages",
+      "item": [
+        {
+          "name": "Send Chime",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{idempotency_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/chimes/send"
+            },
+            "description": "Public reference: https://studio.inttegro.com/chimes#send-chime",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"request_meta\": {\n    \"idempotency_key\": \"{{idempotency_key}}\"\n  },\n  \"recipient\": {\n    \"customer_id\": \"{{customer_id}}\",\n    \"transport\": \"sms\"\n  },\n  \"full_message\": \"Your order #OR-12345 has been shipped and will arrive in 2-3 business days.\",\n  \"sender_id\": \"YourBrand\",\n  \"purpose\": \"shipping_update\",\n  \"custom_data\": {\n    \"order_id\": \"{{order_id}}\",\n    \"fulfillment_id\": \"ffl_xyz789\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Returns HTTP 200', () => {",
+                  "  pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const jsonBody = pm.response.json();",
+                  "  const chime_id = jsonBody?.chime?.id;",
+                  "  pm.test('Returns chime.id', () => {",
+                  "    pm.expect(chime_id).to.be.a('string').and.not.be.empty;",
+                  "  });",
+                  "  if (chime_id) pm.environment.set(\"chime_id\", chime_id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Lookup Chime",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/chimes/lookup"
+            },
+            "description": "Public reference: https://studio.inttegro.com/chimes#lookup-chime",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"chime_id\": \"{{chime_id}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Returns a complete Chime', () => {",
+                  "  pm.expect(pm.response.code).to.equal(200);",
+                  "  const chime = pm.response.json()?.chime;",
+                  "  pm.expect(chime).to.include.all.keys('id', 'created_at', 'full_message', 'recipient', 'sender_id');",
+                  "  pm.expect(chime).not.to.have.property('delivery');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Page Chimes",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/chimes/page"
+            },
+            "description": "Public reference: https://studio.inttegro.com/chimes#page-chimes",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"page_number\": 1,\n  \"page_size\": 25,\n  \"customer_id\": \"{{customer_id}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Returns a Chime page', () => {",
+                  "  pm.expect(pm.response.code).to.equal(200);",
+                  "  const page = pm.response.json()?.page;",
+                  "  pm.expect(page).to.include.all.keys('number', 'size', 'chimes');",
+                  "  pm.expect(page.chimes).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Schedule Chime",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{idempotency_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/chimes/schedule"
+            },
+            "description": "Public reference: https://studio.inttegro.com/chimes#schedule-chime",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"request_meta\": {\n    \"idempotency_key\": \"{{idempotency_key}}\"\n  },\n  \"recipients\": [\n    {\n      \"customer_id\": \"{{customer_id}}\",\n      \"transport\": \"sms\"\n    },\n    {\n      \"type\": \"phone\",\n      \"phone\": {\n        \"number\": \"{{customer_phone}}\"\n      },\n      \"name\": \"Backup Contact\"\n    }\n  ],\n  \"full_message\": \"Reminder: Your subscription renews tomorrow. Visit https://example.com/billing to update payment details.\",\n  \"send_after\": \"{{future_timestamp}}\",\n  \"sender_id\": \"YourBrand\",\n  \"purpose\": \"reminder\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Returns HTTP 200', () => {",
+                  "  pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const jsonBody = pm.response.json();",
+                  "  const schedule_id = jsonBody?.scheduled_chime?.id;",
+                  "  pm.test('Returns scheduled_chime.id', () => {",
+                  "    pm.expect(schedule_id).to.be.a('string').and.not.be.empty;",
+                  "  });",
+                  "  if (schedule_id) pm.environment.set(\"schedule_id\", schedule_id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Lookup a scheduled Chime",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/schedules/lookup"
+            },
+            "description": "Public reference: https://studio.inttegro.com/chimes#lookup-a-scheduled-chime",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"schedule_id\": \"{{schedule_id}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Returns schedule lookup details', () => {",
+                  "  pm.expect(pm.response.code).to.equal(200);",
+                  "  const schedule = pm.response.json()?.scheduled_chime;",
+                  "  pm.expect(schedule).to.include.all.keys('id', 'content', 'created_at', 'recipients', 'send_after', 'sender_id');",
+                  "  pm.expect(schedule).not.to.have.property('canceled_at');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cancel a scheduled Chime",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{idempotency_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/schedules/cancel"
+            },
+            "description": "Public reference: https://studio.inttegro.com/chimes#cancel-a-scheduled-chime",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"schedule_id\": \"{{schedule_id}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Returns canceled schedule details', () => {",
+                  "  pm.expect(pm.response.code).to.equal(200);",
+                  "  const schedule = pm.response.json()?.scheduled_chime;",
+                  "  pm.expect(schedule).to.include.all.keys('id', 'content', 'created_at', 'recipients', 'send_after', 'sender_id', 'canceled_at');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Broadcast Chimes",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{idempotency_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/chimes/broadcast"
+            },
+            "description": "Public reference: https://studio.inttegro.com/chimes#broadcast-chimes",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"request_meta\": {\n    \"idempotency_key\": \"{{idempotency_key}}\"\n  },\n  \"recipients\": [\n    {\n      \"customer_id\": \"{{customer_id}}\",\n      \"transport\": \"email\"\n    },\n    {\n      \"type\": \"email\",\n      \"email\": {\n        \"address\": \"{{customer_email}}\"\n      },\n      \"name\": \"Backup Contact\"\n    }\n  ],\n  \"email\": {\n    \"subject\": \"Your order #12345 has shipped\",\n    \"text\": \"Your order #12345 has shipped. Track it at https://track.shop.com/abc123.\",\n    \"from\": {\n      \"address\": \"{{email_from}}\"\n    }\n  },\n  \"sender\": \"ShopName\",\n  \"purpose\": \"order_notification\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Returns HTTP 202', () => {",
+                  "  pm.expect(pm.response.code).to.equal(202);",
+                  "});",
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const jsonBody = pm.response.json();",
+                  "  const broadcast_id = jsonBody?.broadcast?.id;",
+                  "  pm.test('Returns broadcast.id', () => {",
+                  "    pm.expect(broadcast_id).to.be.a('string').and.not.be.empty;",
+                  "  });",
+                  "  if (broadcast_id) pm.environment.set(\"broadcast_id\", broadcast_id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Lookup a broadcast",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/broadcasts/lookup"
+            },
+            "description": "Public reference: https://studio.inttegro.com/chimes#lookup-a-broadcast",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"broadcast_id\": \"{{broadcast_id}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Returns broadcast lookup details', () => {",
+                  "  pm.expect(pm.response.code).to.equal(200);",
+                  "  const broadcast = pm.response.json()?.broadcast;",
+                  "  pm.expect(broadcast).to.include.all.keys('id', 'content', 'created_at', 'recipients', 'send_after', 'sender_id');",
+                  "  pm.expect(broadcast).not.to.have.property('canceled_at');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cancel a broadcast",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{idempotency_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/broadcasts/cancel"
+            },
+            "description": "Public reference: https://studio.inttegro.com/chimes#cancel-a-broadcast",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"broadcast_id\": \"{{broadcast_id}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Returns canceled broadcast details', () => {",
+                  "  pm.expect(pm.response.code).to.equal(200);",
+                  "  const broadcast = pm.response.json()?.broadcast;",
+                  "  pm.expect(broadcast).to.include.all.keys('id', 'content', 'created_at', 'recipients', 'send_after', 'sender_id', 'canceled_at');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "description": "Send, schedule, broadcast, retrieve, and cancel customer notifications.",
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{api_key}}",
+            "type": "string"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.variables.set(",
+              "  'future_timestamp',",
+              "  new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),",
+              ");"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Message templates",
+      "item": [
+        {
+          "name": "Create a message template",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Idempotency-Key",
+                "value": "call-template-create-shipping-update-sms",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/message_templates/create"
+            },
+            "description": "Public reference: https://studio.inttegro.com/message-templates#create-a-message-template",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Shipping update SMS\",\n  \"channel\": \"sms\",\n  \"purpose\": \"shipping_update\",\n  \"variables\": [\n    {\n      \"name\": \"customer_name\",\n      \"type\": \"string\",\n      \"required\": true\n    },\n    {\n      \"name\": \"tracking_url\",\n      \"type\": \"url\",\n      \"required\": true\n    }\n  ],\n  \"sms\": {\n    \"message_template\": \"{% raw %}Hi {{customer_name}}, your order shipped. Track it: {{tracking_url}}{% endraw %}\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Creates a draft SMS message template', () => {",
+                  "  pm.expect(pm.response.code).to.equal(200);",
+                  "  const jsonBody = pm.response.json();",
+                  "  const message_template_id = jsonBody?.message_template?.id;",
+                  "  pm.expect(message_template_id).to.be.a('string').and.not.be.empty;",
+                  "  pm.expect(jsonBody?.message_template?.channel).to.equal('sms');",
+                  "  pm.expect(jsonBody?.message_template?.status).to.equal('draft');",
+                  "  if (message_template_id) pm.environment.set(\"message_template_id\", message_template_id);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update a message template",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Idempotency-Key",
+                "value": "call-template-update-{{message_template_id}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/message_templates/update"
+            },
+            "description": "Public reference: https://studio.inttegro.com/message-templates#update-a-message-template",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{message_template_id}}\",\n  \"sms\": {\n    \"message_template\": \"{% raw %}Hi {{customer_name}}, your order shipped. Track: {{tracking_url}}{% endraw %}\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Creates a new message-template draft version', () => {",
+                  "  pm.expect(pm.response.code).to.equal(200);",
+                  "  const template = pm.response.json()?.message_template;",
+                  "  pm.expect(template?.id).to.equal(pm.variables.get('message_template_id'));",
+                  "  pm.expect(template?.status).to.equal('draft');",
+                  "  pm.expect(template?.has_unpublished_changes).to.equal(true);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Render a message template preview",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/message_templates/render_preview"
+            },
+            "description": "Public reference: https://studio.inttegro.com/message-templates#render-a-message-template-preview",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message_template\": {\n    \"template_id\": \"{{message_template_id}}\",\n    \"variables\": {\n      \"customer_name\": \"Gloria\",\n      \"tracking_url\": \"https://track.example.com/OR-12345\"\n    }\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Renders the current draft before publication', () => {",
+                  "  pm.expect(pm.response.code).to.equal(200);",
+                  "  const jsonBody = pm.response.json();",
+                  "  pm.expect(jsonBody?.message_template?.id).to.equal(pm.variables.get('message_template_id'));",
+                  "  pm.expect(jsonBody?.rendered?.channel).to.equal('sms');",
+                  "  pm.expect(jsonBody?.rendered?.sms?.full_message).to.be.a('string').and.not.be.empty;",
+                  "  pm.expect(jsonBody.rendered.sms.full_message.length).to.be.at.most(120);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Publish a message template",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Idempotency-Key",
+                "value": "call-template-publish-{{message_template_id}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/message_templates/publish"
+            },
+            "description": "Public reference: https://studio.inttegro.com/message-templates#publish-a-message-template",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{message_template_id}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Publishes the current message-template draft', () => {",
+                  "  pm.expect(pm.response.code).to.equal(200);",
+                  "  const template = pm.response.json()?.message_template;",
+                  "  pm.expect(template?.id).to.equal(pm.variables.get('message_template_id'));",
+                  "  pm.expect(template?.status).to.equal('published');",
+                  "  pm.expect(template?.published_version).to.be.a('number');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Look up a message template",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/message_templates/lookup"
+            },
+            "description": "Public reference: https://studio.inttegro.com/message-templates#look-up-a-message-template",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{message_template_id}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Returns the published message template', () => {",
+                  "  pm.expect(pm.response.code).to.equal(200);",
+                  "  const template = pm.response.json()?.message_template;",
+                  "  pm.expect(template?.id).to.equal(pm.variables.get('message_template_id'));",
+                  "  pm.expect(template?.status).to.equal('published');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Page message templates",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/message_templates/page"
+            },
+            "description": "Public reference: https://studio.inttegro.com/message-templates#page-message-templates",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"page\": 1,\n  \"size\": 25,\n  \"channel\": \"sms\",\n  \"status\": \"published\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Returns a published message-template page', () => {",
+                  "  pm.expect(pm.response.code).to.equal(200);",
+                  "  const page = pm.response.json()?.page;",
+                  "  pm.expect(page?.number).to.equal(1);",
+                  "  pm.expect(page?.size).to.equal(page?.message_templates?.length);",
+                  "  const updated = page.message_templates.map((template) => Date.parse(template.updated_at));",
+                  "  pm.expect(updated).to.deep.equal([...updated].sort((a, b) => b - a));",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Archive a message template",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Idempotency-Key",
+                "value": "call-template-archive-{{message_template_id}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/message_templates/archive"
+            },
+            "description": "Public reference: https://studio.inttegro.com/message-templates#archive-a-message-template",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{message_template_id}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Archives the message template last', () => {",
+                  "  pm.expect(pm.response.code).to.equal(200);",
+                  "  const template = pm.response.json()?.message_template;",
+                  "  pm.expect(template?.id).to.equal(pm.variables.get('message_template_id'));",
+                  "  pm.expect(template?.status).to.equal('archived');",
+                  "  pm.expect(template?.archived_at).to.be.a('string');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "description": "Create and manage reusable message templates.",
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{api_key}}",
+            "type": "string"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.variables.set(",
+              "  'future_timestamp',",
+              "  new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),",
+              ");"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Returns a successful HTTP status', () => {",
+              "  pm.expect(pm.response.code).to.be.within(200, 299);",
+              "});"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "variable": []
+}

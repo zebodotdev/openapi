@@ -1,0 +1,191 @@
+{
+  "info": {
+    "name": "Inttegro API — One-Time Passwords",
+    "description": "Initiate, verify, and retrieve SMS one-time-password transactions. Uses the shared Inttegro API global environment. Error reference: https://studio.inttegro.com/error-codes#one-time-passwords\n\nGenerated from insomnia/10-otp.insomnia.yaml. Edit the Insomnia source and run npm run postman:generate.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "One-time passwords",
+      "item": [
+        {
+          "name": "Initiate OTP transaction",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "call-otp-initiate-{{customer_phone}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/otp/initiate"
+            },
+            "description": "Public reference: https://studio.inttegro.com/otps#initiate-otp-transaction",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message_template\": \"Your {service} code is {token}.\",\n  \"purpose\": \"transaction_confirm\",\n  \"recipient\": \"{{customer_phone}}\",\n  \"sender\": \"{{otp_sender}}\",\n  \"service_name\": \"{{otp_service_name}}\",\n  \"token_alphabet_type\": \"numeric\",\n  \"token_size\": 6,\n  \"validity_duration_in_minutes\": 10\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Returns an initiated OTP transaction', () => {",
+                  "  pm.expect(pm.response.code).to.equal(200);",
+                  "  const jsonBody = pm.response.json();",
+                  "  const otp_transaction_id = jsonBody?.transaction?.id;",
+                  "  pm.expect(otp_transaction_id).to.be.a('string').and.not.be.empty;",
+                  "  pm.expect(jsonBody?.transaction?.status).to.be.oneOf(['pending', 'pending_delivery', 'pending_verification']);",
+                  "  pm.expect(jsonBody?.transaction?.full_message).to.include('{token}');",
+                  "  if (otp_transaction_id) pm.environment.set(\"otp_transaction_id\", otp_transaction_id);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Verify OTP",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "call-otp-verify-{{otp_transaction_id}}-{{otp_code}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/otp/verify"
+            },
+            "description": "Public reference: https://studio.inttegro.com/otps#verify-otp",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"recipient\": \"{{customer_phone}}\",\n  \"token\": \"{{otp_code}}\",\n  \"transaction_id\": \"{{otp_transaction_id}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Returns a recorded OTP verification attempt', () => {",
+                  "  pm.expect(pm.response.code).to.equal(200);",
+                  "  const jsonBody = pm.response.json();",
+                  "  pm.expect(jsonBody?.verification_attempt?.presented_token).to.equal(pm.variables.get('otp_code'));",
+                  "  pm.expect(jsonBody?.verification_attempt?.result?.verdict).to.be.oneOf(['pass', 'fail']);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Lookup OTP transaction",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/otp/lookup"
+            },
+            "description": "Public reference: https://studio.inttegro.com/otps#lookup-otp-transaction",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"transaction_id\": \"{{otp_transaction_id}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Returns the OTP transaction without a generated token', () => {",
+                  "  pm.expect(pm.response.code).to.equal(200);",
+                  "  const transaction = pm.response.json()?.transaction;",
+                  "  pm.expect(transaction?.id).to.equal(pm.variables.get('otp_transaction_id'));",
+                  "  pm.expect(transaction?.full_message).to.include('{token}');",
+                  "  pm.expect(transaction).not.to.have.property('token');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "description": "Initiate, verify, and retrieve SMS one-time-password transactions.",
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{api_key}}",
+            "type": "string"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.variables.set(",
+              "  'future_timestamp',",
+              "  new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),",
+              ");"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Returns a successful HTTP status', () => {",
+              "  pm.expect(pm.response.code).to.be.within(200, 299);",
+              "});"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "variable": []
+}

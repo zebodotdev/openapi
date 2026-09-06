@@ -1,0 +1,256 @@
+{
+  "info": {
+    "name": "Inttegro API — Balances",
+    "description": "Read balance snapshots and balance ledger entries. Uses the shared Inttegro API global environment.\n\nGenerated from insomnia/07-balances.insomnia.yaml. Edit the Insomnia source and run npm run postman:generate.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Balances",
+      "item": [
+        {
+          "name": "Retrieve your balance",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/balances"
+            },
+            "description": "Public reference: https://studio.inttegro.com/balances#retrieve-your-balance",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Returns the current GHS balance snapshot', () => {",
+                  "  pm.expect(pm.response.code).to.equal(200);",
+                  "  const balances = pm.response.json()?.balances;",
+                  "  pm.expect(balances?.ghs).to.be.an('object');",
+                  "  pm.expect(balances).not.to.have.property('usd');",
+                  "  for (const field of ['available', 'pending', 'refund', 'reserved']) {",
+                  "    pm.expect(balances.ghs?.[field]?.amount).to.be.a('number');",
+                  "  }",
+                  "  pm.expect(balances.ghs?.includes_transactions_before).to.be.a('string');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "description": "Retrieve the current balance snapshot.",
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{api_key}}",
+            "type": "string"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.variables.set(",
+              "  'future_timestamp',",
+              "  new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),",
+              ");"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Returns a successful HTTP status', () => {",
+              "  pm.expect(pm.response.code).to.be.within(200, 299);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Balance transactions",
+      "item": [
+        {
+          "name": "Look up a balance transaction",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/balance_transactions/lookup"
+            },
+            "description": "Public reference: https://studio.inttegro.com/balance-transactions#look-up-a-balance-transaction",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"transaction_id\": \"{{balance_transaction_id}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Returns the requested balance transaction', () => {",
+                  "  pm.expect(pm.response.code).to.equal(200);",
+                  "  const transaction = pm.response.json()?.transaction;",
+                  "  pm.expect(transaction?.id).to.equal(pm.variables.get('balance_transaction_id'));",
+                  "  pm.expect(transaction?.order_id).to.be.a('string');",
+                  "  pm.expect(transaction?.created_at).to.be.a('string');",
+                  "  pm.expect(transaction?.amount?.currency).to.be.a('string');",
+                  "  pm.expect(transaction?.amount?.value).to.be.a('number').and.be.at.least(0);",
+                  "  pm.expect(transaction?.type).to.be.oneOf(['payment', 'refund']);",
+                  "  for (const field of ['application_id', 'sign', 'source_id', 'source_type']) {",
+                  "    pm.expect(transaction).not.to.have.property(field);",
+                  "  }",
+                  "  if (transaction?.type === 'payment') {",
+                  "    pm.expect(transaction?.payment_id).to.be.a('string');",
+                  "    pm.expect(transaction).not.to.have.property('refund_id');",
+                  "  } else {",
+                  "    pm.expect(transaction?.refund_id).to.be.a('string');",
+                  "    pm.expect(transaction).not.to.have.property('payment_id');",
+                  "  }",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Page through balance transactions",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/balance_transactions/page"
+            },
+            "description": "Public reference: https://studio.inttegro.com/balance-transactions#page-through-balance-transactions",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"page_number\": 1,\n  \"page_size\": 2\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Returns the first page newest first', () => {",
+                  "  pm.expect(pm.response.code).to.equal(200);",
+                  "  const jsonBody = pm.response.json();",
+                  "  pm.expect(jsonBody?.page?.number).to.equal(1);",
+                  "  pm.expect(jsonBody?.page?.size).to.be.a('number');",
+                  "  if (jsonBody?.page?.transactions !== undefined) {",
+                  "    pm.expect(jsonBody.page.transactions).to.be.an('array');",
+                  "    const created = jsonBody.page.transactions.map((transaction) => Date.parse(transaction.created_at));",
+                  "    pm.expect(created).to.deep.equal([...created].sort((a, b) => b - a));",
+                  "    for (const transaction of jsonBody.page.transactions) {",
+                  "      pm.expect(transaction?.order_id).to.be.a('string');",
+                  "      pm.expect(transaction?.amount?.value).to.be.a('number').and.be.at.least(0);",
+                  "      pm.expect(transaction?.type).to.be.oneOf(['payment', 'refund']);",
+                  "      for (const field of ['application_id', 'sign', 'source_id', 'source_type']) {",
+                  "        pm.expect(transaction).not.to.have.property(field);",
+                  "      }",
+                  "      if (transaction?.type === 'payment') {",
+                  "        pm.expect(transaction?.payment_id).to.be.a('string');",
+                  "        pm.expect(transaction).not.to.have.property('refund_id');",
+                  "      } else {",
+                  "        pm.expect(transaction?.refund_id).to.be.a('string');",
+                  "        pm.expect(transaction).not.to.have.property('payment_id');",
+                  "      }",
+                  "    }",
+                  "  }",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "description": "Retrieve and page balance ledger entries.",
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{api_key}}",
+            "type": "string"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.variables.set(",
+              "  'future_timestamp',",
+              "  new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),",
+              ");"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Returns a successful HTTP status', () => {",
+              "  pm.expect(pm.response.code).to.be.within(200, 299);",
+              "});"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "variable": []
+}

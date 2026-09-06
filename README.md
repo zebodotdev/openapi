@@ -1,15 +1,16 @@
-# Zebo Commerce API
+# Inttegro API
 
-This repository contains the public, machine-readable contract and ready-to-run HTTP collections for the Zebo Commerce API.
+This repository contains the public, machine-readable contract and ready-to-run HTTP collections for the Inttegro API.
 
 ## Contents
 
 - [`commerce.yml`](commerce.yml) — the public OpenAPI 3.0.3 specification.
-- [`call/`](call/) — Insomnia v5.1 collections covering the public API, including a safe hosted-checkout quickstart.
+- [`insomnia/`](insomnia/) — Insomnia v5.1 collections covering the public API.
+- [`postman/`](postman/) — equivalent Postman Collection v2.1 artifacts generated from Insomnia.
 
 The published files contain no credentials, cookies, private infrastructure details, or live capability URLs.
 
-This contract contains only operations intended for API consumers using documented public authentication. Service-only and operator-only routes do not belong in the specification or Call collections.
+This contract contains only operations intended for API consumers using documented public authentication. Service-only and operator-only routes do not belong in the specification or client collections.
 
 ## Use the OpenAPI specification
 
@@ -23,18 +24,28 @@ npx --yes @redocly/cli@latest lint commerce.yml
 
 ## Use the Insomnia collections
 
-Follow [`call/README.md`](call/README.md) to import the collections, configure a private environment, or run the checkout quickstart with Inso CLI. Keep API keys in a private Insomnia environment, shell environment, or supported external vault; never commit them to this repository.
+Follow [`insomnia/README.md`](insomnia/README.md) to import the collections, configure a private environment, or run the checkout quickstart with Inso CLI. Keep API keys in a private Insomnia environment, shell environment, or supported external vault; never commit them to this repository.
 
 Validate every Insomnia artifact against the published Insomnia v5.1 schema with:
 
 ```sh
-cd call
+cd insomnia
 ./scripts/validate.sh
 ```
 
-## Keep OpenAPI and Call in sync
+## Use the Postman collections
 
-The repository treats `commerce.yml` and the primary Call collections as one public contract. CI requires exact operation coverage, validates Call request examples against the OpenAPI request schemas, and checks a paired digest that cannot be refreshed after a one-sided change.
+Follow [`postman/README.md`](postman/README.md) to import the shared environment and API-area collections or run the safe checkout workflow with Newman.
+
+Postman artifacts are generated from Insomnia. After changing an Insomnia collection, regenerate them with:
+
+```sh
+npm run postman:generate
+```
+
+## Keep OpenAPI and collections in sync
+
+The repository treats `commerce.yml`, Insomnia, and Postman as one public contract. CI requires exact operation coverage, validates request examples against the OpenAPI schemas, checks that Postman is an exact generated counterpart of Insomnia, and verifies a reviewed digest that cannot be refreshed after a one-sided OpenAPI or Insomnia change.
 
 Run the same contract gate locally:
 
@@ -43,7 +54,7 @@ npm ci
 npm test
 ```
 
-When intentionally changing the API contract, update both artifacts, review them together, and then refresh their shared digest:
+When intentionally changing the API contract, update OpenAPI and Insomnia, regenerate Postman, review them together, and refresh their shared digest:
 
 ```sh
 npm run contract:update

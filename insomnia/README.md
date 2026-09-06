@@ -4,22 +4,22 @@ This directory contains the public HTTP collections for the Inttegro API. The fi
 
 ## Collections
 
-| File | Public API area |
-| --- | --- |
-| `00-environment.insomnia.yaml` | Shared connection, example-input, and chained runtime variables |
-| `01-checkout.insomnia.yaml` | Hosted checkout and the complete order lifecycle |
-| `02-customers.insomnia.yaml` | Customers |
-| `03-payment-methods.insomnia.yaml` | Saved payment methods and their lifecycle |
-| `04-catalog.insomnia.yaml` | Products and prices |
-| `05-purchase-intents.insomnia.yaml` | Purchase intents and Buy links |
-| `06-financial-accounts.insomnia.yaml` | Financial accounts |
-| `07-balances.insomnia.yaml` | Balances and balance transactions |
-| `08-payouts.insomnia.yaml` | Payout configuration and execution |
-| `09-messaging.insomnia.yaml` | Notifications, schedules, broadcasts, and message templates |
-| `10-otp.insomnia.yaml` | One-time passwords |
-| `11-files.insomnia.yaml` | Files, file links, and third-party upload requests |
-| `12-platform.insomnia.yaml` | Apps, API keys, and reference data |
-| `13-refunds.insomnia.yaml` | Refund creation, lookup, and history |
+| File                                          | Public API area                                                     |
+| --------------------------------------------- | ------------------------------------------------------------------- |
+| `00-environment.insomnia.yaml`                | Shared connection, example-input, and chained runtime variables     |
+| `01-checkout.insomnia.yaml`                   | Hosted checkout and the complete order lifecycle                    |
+| `02-customers.insomnia.yaml`                  | Customers                                                           |
+| `03-payment-methods.insomnia.yaml`            | Saved payment methods and their lifecycle                           |
+| `04-catalog.insomnia.yaml`                    | Products and prices                                                 |
+| `05-purchase-intents.insomnia.yaml`           | Purchase intents and Buy links                                      |
+| `06-financial-accounts.insomnia.yaml`         | Financial accounts                                                  |
+| `07-balances.insomnia.yaml`                   | Balances and balance transactions                                   |
+| `08-payouts.insomnia.yaml`                    | Payout configuration and execution                                  |
+| `09-messaging.insomnia.yaml`                  | Notifications, schedules, broadcasts, and message templates         |
+| `10-otp.insomnia.yaml`                        | One-time passwords                                                  |
+| `11-files.insomnia.yaml`                      | Files, file links, and third-party upload requests                  |
+| `12-platform.insomnia.yaml`                   | Apps, API keys, and reference data                                  |
+| `13-refunds.insomnia.yaml`                    | Refund creation, lookup, and history                                |
 | `workflows/checkout-quickstart.insomnia.yaml` | Safe create-and-lookup hosted checkout workflow with contract tests |
 
 ## Import and configure
@@ -46,7 +46,7 @@ export INTTEGRO_IDEMPOTENCY_KEY='checkout-unique-stable-value'
 Then pass the values at execution time:
 
 ```sh
-inso -w call/workflows/checkout-quickstart.insomnia.yaml \
+inso -w insomnia/workflows/checkout-quickstart.insomnia.yaml \
   run collection "Inttegro API — Checkout Quickstart" \
   --env-var "api_key=${INTTEGRO_API_KEY}" \
   --env-var "base_url=${INTTEGRO_API_BASE_URL}" \
@@ -94,16 +94,16 @@ Do not indiscriminately run every collection against a live account. Some collec
 
 Every file conforms to Insomnia's v5 format with schema revision `5.1`. Insomnia publishes the format and its JSON Schema in the [import and export reference](https://developer.konghq.com/insomnia/import-export/).
 
-`commerce.yml` and Call are one reviewed contract. A contract change must update both the OpenAPI operation and its matching primary Call request. From the repository root, run:
+`commerce.yml`, Insomnia, and Postman are one reviewed contract. A contract change must update the OpenAPI operation and its matching primary Insomnia request. From the repository root, run:
 
 ```sh
 npm ci
 npm test
 ```
 
-The parity test requires exactly one primary Call request for every OpenAPI operation, rejects undocumented Call requests and duplicate mappings, and validates each Call request example against its OpenAPI request schema. It also checks `openapi.lock.json`, which records the reviewed digest of both artifact sets. A one-sided change cannot refresh that lock.
+The parity test requires exactly one primary request in both Insomnia and Postman for every OpenAPI operation, rejects undocumented requests and duplicate mappings, validates request examples, and requires the generated Postman artifacts to match Insomnia exactly. It also checks the repository-level `contract.lock.json`. A one-sided OpenAPI or Insomnia change cannot refresh that lock.
 
-After updating and reviewing both sides, refresh the paired digest and rerun the test:
+After updating and reviewing the source artifacts, regenerate Postman, refresh the contract digest, and rerun the test:
 
 ```sh
 npm run contract:update

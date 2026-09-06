@@ -1,0 +1,737 @@
+{
+  "info": {
+    "name": "Inttegro API — Files",
+    "description": "Upload files and manage file-link and third-party upload capabilities. Uses the shared Inttegro API global environment. Error reference: https://studio.inttegro.com/error-codes#file-apis\n\nGenerated from insomnia/11-files.insomnia.yaml. Edit the Insomnia source and run npm run postman:generate.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Files",
+      "item": [
+        {
+          "name": "Upload a file",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Idempotency-Key",
+                "value": "{{idempotency_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/files/create"
+            },
+            "description": "Public reference: https://studio.inttegro.com/files#upload-a-file",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "purpose",
+                  "value": "product_image",
+                  "type": "text"
+                },
+                {
+                  "key": "title",
+                  "value": "Hero image",
+                  "type": "text"
+                },
+                {
+                  "key": "custom_data",
+                  "value": "{\"product_ref\":\"SKU-12345\"}",
+                  "type": "text"
+                },
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "{{upload_file_path}}"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const jsonBody = pm.response.json();",
+                  "  const file_id = jsonBody?.file?.id;",
+                  "  pm.test('Returns file.id', () => {",
+                  "    pm.expect(file_id).to.be.a('string').and.not.be.empty;",
+                  "  });",
+                  "  if (file_id) pm.environment.set(\"file_id\", file_id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Lookup a file",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/files/lookup"
+            },
+            "description": "Public reference: https://studio.inttegro.com/files#lookup-a-file",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"file_id\": \"{{file_id}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Page files",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/files/page"
+            },
+            "description": "Public reference: https://studio.inttegro.com/files#page-files",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"purpose\": \"product_image\",\n  \"status\": \"available\",\n  \"page_number\": 1,\n  \"page_size\": 25\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Download file contents",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/files/contents"
+            },
+            "description": "Public reference: https://studio.inttegro.com/files#download-file-contents",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"file_id\": \"{{file_id}}\",\n  \"disposition\": \"attachment\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Delete a file",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Idempotency-Key",
+                "value": "{{idempotency_key}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/files/delete"
+            },
+            "description": "Public reference: https://studio.inttegro.com/files#delete-a-file",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"file_id\": \"{{file_id}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "description": "Upload, retrieve, download, page, and delete files.",
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{api_key}}",
+            "type": "string"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.variables.set(",
+              "  'future_timestamp',",
+              "  new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),",
+              ");"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Returns a successful HTTP status', () => {",
+              "  pm.expect(pm.response.code).to.be.within(200, 299);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "File references",
+      "item": [
+        {
+          "name": "Reconcile file references",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "call-file-references-{{product_id}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/file_references/reconcile"
+            },
+            "description": "Public reference: https://studio.inttegro.com/files#reconcile-file-references\nThis body replaces the complete reference set. Omitted existing references are removed; an empty or omitted list clears the set.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"resource_type\": \"product\",\n  \"resource_id\": \"{{product_id}}\",\n  \"references\": [\n    {\n      \"file_id\": \"{{file_id}}\",\n      \"field\": \"media.gallery[0]\",\n      \"reference\": \"{{file_id}}\",\n      \"reference_kind\": \"file\",\n      \"purpose\": \"product_image\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Replaces the complete file-reference set', () => {",
+                  "  pm.expect(pm.response.code).to.equal(200);",
+                  "  pm.expect(pm.response.json()).to.deep.equal({ reconciled: true });",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "description": "Reconcile the files referenced by an Inttegro resource.",
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{api_key}}",
+            "type": "string"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Returns a successful HTTP status', () => {",
+              "  pm.expect(pm.response.code).to.be.within(200, 299);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "File links",
+      "item": [
+        {
+          "name": "Create a file link",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Idempotency-Key",
+                "value": "{{idempotency_key}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/file_links/create"
+            },
+            "description": "Public reference: https://studio.inttegro.com/file-links#create-a-file-link",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"file_id\": \"{{file_id}}\",\n  \"delivery\": {\n    \"mode\": \"inline\"\n  },\n  \"access\": {\n    \"allow_download\": true,\n    \"max_accesses\": 100\n  },\n  \"expires_at\": \"{{future_timestamp}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const jsonBody = pm.response.json();",
+                  "  const file_link_id = jsonBody?.file_link?.id;",
+                  "  if (file_link_id) pm.environment.set(\"file_link_id\", file_link_id);",
+                  "  const file_link_url = jsonBody?.url;",
+                  "  if (file_link_url) pm.environment.set(\"file_link_url\", file_link_url);",
+                  "  pm.test('Returns file_link.id', () => {",
+                  "    pm.expect(file_link_id).to.be.a('string').and.not.be.empty;",
+                  "  });",
+                  "  pm.test('Returns a file-link capability URL', () => {",
+                  "    pm.expect(file_link_url).to.be.a('string').and.match(/^https?:\\/\\//);",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Lookup a file link",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/file_links/lookup"
+            },
+            "description": "Public reference: https://studio.inttegro.com/file-links#lookup-a-file-link",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{file_link_id}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Page file links",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/file_links/page"
+            },
+            "description": "Public reference: https://studio.inttegro.com/file-links#page-file-links",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"file_id\": \"{{file_id}}\",\n  \"status\": \"active\",\n  \"page_number\": 1,\n  \"page_size\": 25\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Revoke a file link",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Idempotency-Key",
+                "value": "{{idempotency_key}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/file_links/revoke"
+            },
+            "description": "Public reference: https://studio.inttegro.com/file-links#revoke-a-file-link",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{file_link_id}}\",\n  \"revoked_by\": {\n    \"type\": \"user\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Open a file link",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{file_link_url}}"
+            },
+            "description": "Public reference: https://studio.inttegro.com/file-links#open-a-file-link\nOpenAPI operation: GET /file_links/open",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        }
+      ],
+      "description": "Create and manage capability URLs for file delivery. Open uses the complete returned URL without API-key authentication.",
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{api_key}}",
+            "type": "string"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.variables.set(",
+              "  'future_timestamp',",
+              "  new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),",
+              ");"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Returns a successful HTTP status', () => {",
+              "  pm.expect(pm.response.code).to.be.within(200, 299);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Upload requests",
+      "item": [
+        {
+          "name": "Create an upload request",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Idempotency-Key",
+                "value": "{{idempotency_key}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/upload_requests/create"
+            },
+            "description": "Public reference: https://studio.inttegro.com/file-uploads#create-an-upload-request",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"purpose\": \"support_document\",\n  \"constraints\": {\n    \"content_types\": [\n      \"application/pdf\"\n    ],\n    \"max_size\": 10485760\n  },\n  \"display\": {\n    \"title\": \"Upload dispute evidence\",\n    \"help_text\": \"Attach a PDF under 10 MB.\"\n  },\n  \"recipient\": {\n    \"type\": \"customer\",\n    \"email\": \"ama@example.com\"\n  },\n  \"resource\": {\n    \"type\": \"dispute\",\n    \"id\": \"case_1001\"\n  },\n  \"custom_data\": {\n    \"case_id\": \"CASE-1001\"\n  },\n  \"expires_at\": \"{{future_timestamp}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const jsonBody = pm.response.json();",
+                  "  const upload_request_id = jsonBody?.upload_request?.id;",
+                  "  if (upload_request_id) pm.environment.set(\"upload_request_id\", upload_request_id);",
+                  "  const upload_url = jsonBody?.upload_request?.upload_url;",
+                  "  if (upload_url) pm.environment.set(\"upload_url\", upload_url);",
+                  "  pm.test('Returns upload_request.id', () => {",
+                  "    pm.expect(upload_request_id).to.be.a('string').and.not.be.empty;",
+                  "  });",
+                  "  pm.test('Returns an upload capability URL', () => {",
+                  "    pm.expect(upload_url).to.be.a('string').and.match(/^https?:\\/\\//);",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Fulfill an upload request",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{upload_url}}"
+            },
+            "description": "Public reference: https://studio.inttegro.com/file-uploads#fulfill-an-upload-request\nOpenAPI operation: POST /upload_requests/upload",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "{{upload_file_path}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Lookup an upload request",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/upload_requests/lookup"
+            },
+            "description": "Public reference: https://studio.inttegro.com/file-uploads#lookup-an-upload-request",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{upload_request_id}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Review an upload request attempt",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Idempotency-Key",
+                "value": "call-upload-review-{{upload_request_id}}-1",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/upload_requests/review"
+            },
+            "description": "Public reference: https://studio.inttegro.com/file-uploads#review-an-upload-request-attempt",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{upload_request_id}}\",\n  \"attempt_ordinal\": 1,\n  \"decision\": \"rejected\",\n  \"reasons\": [\n    {\n      \"code\": \"document_unreadable\",\n      \"message\": \"The document is too blurry to read.\"\n    }\n  ],\n  \"public_message\": \"Please upload a clearer copy.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Rejects the latest fulfilled upload attempt and reopens the request', () => {",
+                  "  pm.expect(pm.response.code).to.equal(200);",
+                  "  const uploadRequest = pm.response.json()?.upload_request;",
+                  "  pm.expect(uploadRequest?.id).to.equal(pm.variables.get('upload_request_id'));",
+                  "  pm.expect(uploadRequest?.attempt?.ordinal).to.equal(1);",
+                  "  pm.expect(uploadRequest?.attempt?.review?.decision).to.equal('rejected');",
+                  "  pm.expect(uploadRequest?.attempt?.review?.public_message).to.equal('Please upload a clearer copy.');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Page upload requests",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/upload_requests/page"
+            },
+            "description": "Public reference: https://studio.inttegro.com/file-uploads#page-upload-requests",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"purpose\": \"support_document\",\n  \"status\": \"pending\",\n  \"page_number\": 1,\n  \"page_size\": 25\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Cancel an upload request",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Idempotency-Key",
+                "value": "{{idempotency_key}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/upload_requests/cancel"
+            },
+            "description": "Public reference: https://studio.inttegro.com/file-uploads#cancel-an-upload-request",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{upload_request_id}}\",\n  \"canceled_by\": {\n    \"type\": \"user\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "description": "Create and manage capability URLs for third-party uploads. Fulfillment uses the complete returned URL without API-key authentication.",
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{api_key}}",
+            "type": "string"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.variables.set(",
+              "  'future_timestamp',",
+              "  new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),",
+              ");"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Returns a successful HTTP status', () => {",
+              "  pm.expect(pm.response.code).to.be.within(200, 299);",
+              "});"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "variable": []
+}

@@ -1,0 +1,252 @@
+{
+  "info": {
+    "name": "Inttegro API — Purchase Intents",
+    "description": "Create controlled, shareable hosted Buy links for catalog products, then manage their availability and usage. Uses the shared Inttegro API global environment. Error reference: https://studio.inttegro.com/error-codes#purchase-intents\n\nGenerated from insomnia/05-purchase-intents.insomnia.yaml. Edit the Insomnia source and run npm run postman:generate.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Purchase intents",
+      "item": [
+        {
+          "name": "Create a purchase intent",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "call-purchase-intent-create-001",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/purchase_intents/create"
+            },
+            "description": "Public reference: https://studio.inttegro.com/purchase-intents#create-a-purchase-intent",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"product_id\": \"{{product_id}}\",\n  \"price_id\": \"{{price_id}}\",\n  \"quantity\": {\n    \"max\": 5,\n    \"min\": 1\n  },\n  \"usage\": {\n    \"multi_use\": true\n  },\n  \"expires_at\": \"{{future_timestamp}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const jsonBody = pm.response.json();",
+                  "  const purchase_intent_id = jsonBody?.purchase_intent?.id;",
+                  "  pm.test('Returns purchase_intent.id', () => {",
+                  "    pm.expect(purchase_intent_id).to.be.a('string').and.not.be.empty;",
+                  "  });",
+                  "  if (purchase_intent_id) {",
+                  "    const configured_base_url = pm.variables.get(\"hosted_buy_base_url\");",
+                  "    const hosted_buy_base_url = (",
+                  "      typeof configured_base_url === \"string\" && configured_base_url.trim()",
+                  "        ? configured_base_url.trim()",
+                  "        : \"https://pages.inttegro.com/buy\"",
+                  "    ).replace(/\\/+$/, \"\");",
+                  "    pm.environment.set(\"purchase_intent_id\", purchase_intent_id);",
+                  "    pm.environment.set(",
+                  "      \"purchase_intent_url\",",
+                  "      `${hosted_buy_base_url}/${encodeURIComponent(purchase_intent_id)}`,",
+                  "    );",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update a purchase intent",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "call-purchase-intent-update-{{purchase_intent_id}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/purchase_intents/update"
+            },
+            "description": "Public reference: https://studio.inttegro.com/purchase-intents#update-a-purchase-intent",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{purchase_intent_id}}\",\n  \"quantity\": {\n    \"min\": 2,\n    \"max\": 8\n  },\n  \"reactivate\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Cancel a purchase intent",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "call-purchase-intent-cancel-{{purchase_intent_id}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/purchase_intents/cancel"
+            },
+            "description": "Public reference: https://studio.inttegro.com/purchase-intents#cancel-a-purchase-intent",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{purchase_intent_id}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Lookup a purchase intent",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/purchase_intents/lookup"
+            },
+            "description": "Public reference: https://studio.inttegro.com/purchase-intents#lookup-a-purchase-intent",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{purchase_intent_id}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const purchase_intent = pm.response.json()?.purchase_intent;",
+                  "  pm.test('Public lookup returns a purchase intent without owner activity', () => {",
+                  "    pm.expect(purchase_intent?.id).to.equal(pm.variables.get('purchase_intent_id'));",
+                  "    pm.expect(purchase_intent).not.to.have.property('activity');",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List purchase intents",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/purchase_intents/page"
+            },
+            "description": "Public reference: https://studio.inttegro.com/purchase-intents#list-purchase-intents",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"page_number\": 1,\n  \"page_size\": 20\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "description": "Create and manage hosted Buy links. The returned sale_ ID becomes https://pages.inttegro.com/buy/{purchase_intent_id}. Lookup is intentionally public and does not use API-key authentication.",
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{api_key}}",
+            "type": "string"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.variables.set(",
+              "  'future_timestamp',",
+              "  new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),",
+              ");"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Returns a successful HTTP status', () => {",
+              "  pm.expect(pm.response.code).to.be.within(200, 299);",
+              "});"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "hosted_buy_base_url",
+      "value": "https://pages.inttegro.com/buy",
+      "type": "string"
+    }
+  ]
+}

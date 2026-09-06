@@ -1,0 +1,199 @@
+{
+  "info": {
+    "name": "Inttegro API — Checkout Quickstart",
+    "description": "Create a hosted checkout and look it up without requesting or confirming payment. Includes portable defaults for desktop and Inso CLI use.\n\nGenerated from insomnia/workflows/checkout-quickstart.insomnia.yaml. Edit the Insomnia source and run npm run postman:generate.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Safe checkout workflow",
+      "item": [
+        {
+          "name": "Create hosted checkout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/orders/create"
+            },
+            "description": "Creates and finalizes an order so the response contains a hosted checkout URL. This request does not execute payment.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"request_meta\": {\n    \"idempotency_key\": \"{{idempotency_key}}\"\n  },\n  \"number\": \"{{order_number}}\",\n  \"finalize\": true,\n  \"checkout_settings\": {\n    \"redirect_url\": \"{{checkout_success_url}}\",\n    \"cancel_url\": \"{{checkout_cancel_url}}\"\n  },\n  \"customer_data\": {\n    \"name\": \"{{customer_name}}\",\n    \"email_address\": \"{{customer_email}}\",\n    \"phone_number\": \"{{customer_phone}}\"\n  },\n  \"line_items\": [\n    {\n      \"type\": \"product\",\n      \"product\": {\n        \"type\": \"physical\",\n        \"name\": \"{{product_name}}\",\n        \"quantity\": 1,\n        \"price\": {\n          \"currency\": \"{{currency}}\",\n          \"value\": 20000\n        }\n      }\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const jsonBody = pm.response.json();",
+                  "  const orderId = jsonBody?.order?.id;",
+                  "  const checkoutUrl = jsonBody?.order?.invoice?.format?.web?.url;",
+                  "",
+                  "  pm.test('Returns an order identifier', () => {",
+                  "    pm.expect(orderId).to.be.a('string').and.not.be.empty;",
+                  "  });",
+                  "  pm.test('Returns a hosted checkout URL', () => {",
+                  "    pm.expect(checkoutUrl).to.be.a('string').and.match(/^https?:\\/\\//);",
+                  "  });",
+                  "",
+                  "  if (orderId) pm.environment.set('order_id', orderId);",
+                  "  if (checkoutUrl) pm.environment.set('checkout_url', checkoutUrl);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Look up created order",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/orders/lookup"
+            },
+            "description": "Looks up the order captured by Create hosted checkout and verifies that the same order is returned.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"order_id\": \"{{order_id}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const jsonBody = pm.response.json();",
+                  "  const expectedOrderId = pm.variables.get('order_id');",
+                  "  pm.test('Returns the created order', () => {",
+                  "    pm.expect(jsonBody?.order?.id).to.equal(expectedOrderId);",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "description": "Run these two requests in order. The first stores order_id and checkout_url for the lookup request.",
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{api_key}}",
+            "type": "string"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Returns a successful HTTP status', () => {",
+              "  pm.expect(pm.response.code).to.be.within(200, 299);",
+              "});"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "https://api.inttegro.com",
+      "type": "string"
+    },
+    {
+      "key": "api_key",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "idempotency_key",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "checkout_success_url",
+      "value": "https://example.com/checkout/success",
+      "type": "string"
+    },
+    {
+      "key": "checkout_cancel_url",
+      "value": "https://example.com/checkout/cancel",
+      "type": "string"
+    },
+    {
+      "key": "order_number",
+      "value": "INSOMNIA-ORDER-001",
+      "type": "string"
+    },
+    {
+      "key": "product_name",
+      "value": "Example product",
+      "type": "string"
+    },
+    {
+      "key": "currency",
+      "value": "ghs",
+      "type": "string"
+    },
+    {
+      "key": "customer_name",
+      "value": "Example Customer",
+      "type": "string"
+    },
+    {
+      "key": "customer_email",
+      "value": "customer@example.com",
+      "type": "string"
+    },
+    {
+      "key": "customer_phone",
+      "value": "+233241234567",
+      "type": "string"
+    },
+    {
+      "key": "order_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "checkout_url",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}

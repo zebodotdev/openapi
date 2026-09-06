@@ -1,0 +1,622 @@
+{
+  "info": {
+    "name": "Inttegro API — Checkout and Orders",
+    "description": "Create hosted checkout sessions and manage the complete order lifecycle. Uses the shared Inttegro API global environment.\n\nGenerated from insomnia/01-checkout.insomnia.yaml. Edit the Insomnia source and run npm run postman:generate.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Checkout and orders",
+      "item": [
+        {
+          "name": "Create an order",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/orders/create"
+            },
+            "description": "Public reference: https://studio.inttegro.com/orders#create-an-order. To execute immediately, provide payment_method_data together with execute_payment. Conflict reference: https://studio.inttegro.com/e/payment_transition_conflict",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"request_meta\": {\n    \"idempotency_key\": \"{{idempotency_key}}\"\n  },\n  \"number\": \"{{order_number}}\",\n  \"finalize\": true,\n  \"checkout_settings\": {\n    \"redirect_url\": \"{{checkout_success_url}}\",\n    \"cancel_url\": \"{{checkout_cancel_url}}\"\n  },\n  \"customer_data\": {\n    \"name\": \"{{customer_name}}\",\n    \"email_address\": \"{{customer_email}}\",\n    \"phone_number\": \"{{customer_phone}}\"\n  },\n  \"line_items\": [\n    {\n      \"type\": \"product\",\n      \"product\": {\n        \"type\": \"physical\",\n        \"name\": \"{{product_name}}\",\n        \"quantity\": 1,\n        \"price\": {\n          \"currency\": \"{{currency}}\",\n          \"value\": 20000\n        }\n      }\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const jsonBody = pm.response.json();",
+                  "  const order_id = jsonBody?.order?.id;",
+                  "  if (order_id) pm.environment.set(\"order_id\", order_id);",
+                  "  const payment_id = jsonBody?.order?.payment?.id;",
+                  "  if (payment_id) pm.environment.set(\"payment_id\", payment_id);",
+                  "  const confirmation_id = jsonBody?.order?.payment?.next_action?.confirm_payment?.request?.id;",
+                  "  if (confirmation_id) pm.environment.set(\"confirmation_id\", confirmation_id);",
+                  "  const checkout_url = jsonBody?.order?.invoice?.format?.web?.url;",
+                  "  if (checkout_url) pm.environment.set(\"checkout_url\", checkout_url);",
+                  "  pm.test('Returns an order identifier', () => {",
+                  "    pm.expect(order_id).to.be.a('string').and.not.be.empty;",
+                  "  });",
+                  "  pm.test('Returns a hosted checkout URL', () => {",
+                  "    pm.expect(checkout_url).to.be.a('string').and.match(/^https?:\\/\\//);",
+                  "  });",
+                  "  const line_items = jsonBody?.order?.line_item_group?.line_items ?? [];",
+                  "  const line_item_ids = line_items",
+                  "    .map((line_item) => line_item?.product?.id ?? line_item?.fee?.id ?? line_item?.shipping?.id)",
+                  "    .filter(Boolean);",
+                  "  if (line_item_ids[0]) pm.environment.set(\"order_line_item_id\", line_item_ids[0]);",
+                  "  pm.test('Returns typed order line item identifiers', () => {",
+                  "    pm.expect(line_items).to.be.an('array').and.not.be.empty;",
+                  "    pm.expect(line_item_ids.length).to.equal(line_items.length);",
+                  "    for (const line_item_id of line_item_ids) {",
+                  "      pm.expect(line_item_id).to.match(/^oli_/);",
+                  "    }",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Pay for an order",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "call-order-pay-{{order_id}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/orders/pay"
+            },
+            "description": "Public reference: https://studio.inttegro.com/orders#pay-for-an-order. Conflict reference: https://studio.inttegro.com/e/payment_transition_conflict",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"order_id\": \"{{order_id}}\",\n  \"payment_method_data\": {\n    \"type\": \"mobile_money\",\n    \"mobile_money\": {\n      \"network\": \"mtn\",\n      \"account_number\": \"{{mobile_money_account_number}}\"\n    }\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const jsonBody = pm.response.json();",
+                  "  const payment_id = jsonBody?.order?.payment?.id;",
+                  "  if (payment_id) pm.environment.set(\"payment_id\", payment_id);",
+                  "  const confirmation_id = jsonBody?.order?.payment?.next_action?.confirm_payment?.request?.id;",
+                  "  if (confirmation_id) pm.environment.set(\"confirmation_id\", confirmation_id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Confirm a payment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "call-order-confirm-{{confirmation_id}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/orders/confirm_payment"
+            },
+            "description": "Public reference: https://studio.inttegro.com/orders#confirm-a-payment. Conflict reference: https://studio.inttegro.com/e/payment_transition_conflict",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"confirmation_id\": \"{{confirmation_id}}\",\n  \"order_id\": \"{{order_id}}\",\n  \"payment_id\": \"{{payment_id}}\",\n  \"token\": \"{{confirmation_token}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Request confirmation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "call-order-request-confirmation-{{order_id}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/orders/request_confirmation"
+            },
+            "description": "Public reference: https://studio.inttegro.com/orders#request-confirmation",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"order_id\": \"{{order_id}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const jsonBody = pm.response.json();",
+                  "  const payment_id = jsonBody?.order?.payment?.id;",
+                  "  if (payment_id) pm.environment.set(\"payment_id\", payment_id);",
+                  "  const confirmation_id = jsonBody?.order?.payment?.next_action?.confirm_payment?.request?.id;",
+                  "  if (confirmation_id) pm.environment.set(\"confirmation_id\", confirmation_id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update an order",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "call-order-update-{{order_id}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/orders/update"
+            },
+            "description": "Public reference: https://studio.inttegro.com/orders#update-an-order",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"order_id\": \"{{order_id}}\",\n  \"receipt_number\": \"RCPT-2025-041-REV1\",\n  \"line_items\": [\n    {\n      \"type\": \"product\",\n      \"product\": {\n        \"name\": \"Quarterly support retainer\",\n        \"type\": \"digital\",\n        \"price\": {\n          \"currency\": \"ghs\",\n          \"value\": 15000\n        },\n        \"quantity\": 1\n      }\n    },\n    {\n      \"type\": \"fee\",\n      \"fee\": {\n        \"label\": \"Service fee\",\n        \"amount\": {\n          \"currency\": \"ghs\",\n          \"value\": 500\n        }\n      }\n    }\n  ],\n  \"statement_descriptor\": \"ORDER REVISION\",\n  \"custom_data\": {\n    \"channel\": \"dashboard\",\n    \"edited_by\": \"ops\"\n  },\n  \"finalize\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Finalize an order",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "call-order-finalize-{{order_id}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/orders/finalize"
+            },
+            "description": "Public reference: https://studio.inttegro.com/orders#finalize-an-order",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"order_id\": \"{{order_id}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Send an invoice",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "call-order-send-invoice-{{order_id}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/orders/send_invoice"
+            },
+            "description": "Public reference: https://studio.inttegro.com/orders#send-an-invoice",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"order_id\": \"{{order_id}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Send a receipt",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "call-order-send-receipt-{{order_id}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/orders/send_receipt"
+            },
+            "description": "Public reference: https://studio.inttegro.com/orders#send-a-receipt",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"order_id\": \"{{order_id}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Complete an order",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "call-order-complete-{{order_id}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/orders/complete"
+            },
+            "description": "Public reference: https://studio.inttegro.com/orders#complete-an-order. Conflict reference: https://studio.inttegro.com/e/payment_transition_conflict",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"order_id\": \"{{order_id}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Lookup an order",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/orders/lookup"
+            },
+            "description": "Public reference: https://studio.inttegro.com/orders#lookup-an-order",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"order_id\": \"{{order_id}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Cancel an order",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "call-order-cancel-{{order_id}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/orders/cancel"
+            },
+            "description": "Public reference: https://studio.inttegro.com/orders#cancel-an-order",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"order_id\": \"{{order_id}}\",\n  \"reason\": \"customer_request\",\n  \"execute_refund\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Page through orders",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/orders/page"
+            },
+            "description": "Public reference: https://studio.inttegro.com/orders#page-through-orders",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"page_number\": 0,\n  \"page_size\": 25\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "description": "Create and manage orders. Start with Create an order, then open checkout_url or use Lookup an order to poll status.",
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{api_key}}",
+            "type": "string"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.variables.set(",
+              "  'future_timestamp',",
+              "  new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),",
+              ");"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Returns a successful HTTP status', () => {",
+              "  pm.expect(pm.response.code).to.be.within(200, 299);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Public checkout",
+      "item": [
+        {
+          "name": "Look up a public checkout order",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/checkout/lookup"
+            },
+            "description": "OpenAPI operation: POST /checkout/lookup",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"order_id\": \"{{order_id}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Pay a public checkout order",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "call-checkout-pay-{{order_id}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/checkout/pay"
+            },
+            "description": "OpenAPI operation: POST /checkout/pay\nThis example supplies payer billing details for a new payment method without changing shipping or saving the method.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"order_id\": \"{{order_id}}\",\n  \"payment_method_data\": {\n    \"type\": \"mobile_money\",\n    \"mobile_money\": {\n      \"network\": \"mtn\",\n      \"account_number\": \"+233544998605\"\n    },\n    \"billing_details\": {\n      \"name\": \"Ama Mensah\",\n      \"phone_number\": \"+233544998605\",\n      \"address\": {\n        \"line1\": \"15 Main Street\",\n        \"city\": \"Accra\",\n        \"region\": \"Greater Accra\",\n        \"country\": \"GH\"\n      }\n    }\n  },\n  \"save_payment_method\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Request public checkout confirmation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "call-checkout-request-confirmation-{{order_id}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/checkout/request_confirmation"
+            },
+            "description": "OpenAPI operation: POST /checkout/request_confirmation",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"order_id\": \"{{order_id}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Confirm a public checkout payment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "call-checkout-confirm-payment-{{order_id}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/checkout/confirm_payment"
+            },
+            "description": "OpenAPI operation: POST /checkout/confirm_payment",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"order_id\": \"{{order_id}}\",\n  \"token\": \"{{confirmation_token}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "description": "Inspect and pay a finalized Order from a client application without an Inttegro secret API key.",
+      "auth": {
+        "type": "noauth"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Returns a handled HTTP status', () => {",
+              "  pm.expect(pm.response.code).to.be.within(200, 504);",
+              "});"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "variable": []
+}

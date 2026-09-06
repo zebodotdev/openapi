@@ -1,0 +1,299 @@
+{
+  "info": {
+    "name": "Inttegro API — Refunds",
+    "description": "Create, cancel, and inspect refunds for paid order line items. Uses the shared Inttegro API global environment. Error reference: https://studio.inttegro.com/error-codes#refunds\n\nGenerated from insomnia/13-refunds.insomnia.yaml. Edit the Insomnia source and run npm run postman:generate.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Refunds",
+      "item": [
+        {
+          "name": "Create a refund",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "call-refund-{{order_id}}-{{order_line_item_id}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/refunds/create"
+            },
+            "description": "Public reference: https://studio.inttegro.com/refunds#create-a-refund",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"order_id\": \"{{order_id}}\",\n  \"reason\": \"requested_by_customer\",\n  \"reference\": \"call-refund-{{order_id}}\",\n  \"line_items\": [\n    {\n      \"order_line_item_id\": \"{{order_line_item_id}}\",\n      \"refund_amount\": {\n        \"currency\": \"{{currency}}\",\n        \"value\": 100\n      }\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const jsonBody = pm.response.json();",
+                  "  const refund = jsonBody?.refund;",
+                  "  pm.test('Returns the created pending refund', () => {",
+                  "    pm.expect(jsonBody).to.have.all.keys('refund');",
+                  "    pm.expect(refund?.id).to.be.a('string').and.match(/^rf_/);",
+                  "    pm.expect(refund?.order_id).to.equal(pm.variables.get('order_id'));",
+                  "    pm.expect(refund?.status).to.equal('pending');",
+                  "    pm.expect(refund?.line_items).to.be.an('array');",
+                  "    pm.expect(refund?.line_items?.length).to.be.greaterThan(0);",
+                  "  });",
+                  "  if (refund?.id) pm.environment.set('refund_id', refund.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Replay through the compatibility URL",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "call-refund-{{order_id}}-{{order_line_item_id}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/orders/refund"
+            },
+            "description": "Public reference: https://studio.inttegro.com/refunds#compatibility-alias",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"order_id\": \"{{order_id}}\",\n  \"reason\": \"requested_by_customer\",\n  \"reference\": \"call-refund-{{order_id}}\",\n  \"line_items\": [\n    {\n      \"order_line_item_id\": \"{{order_line_item_id}}\",\n      \"refund_amount\": {\n        \"currency\": \"{{currency}}\",\n        \"value\": 100\n      }\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const jsonBody = pm.response.json();",
+                  "  pm.test('The compatibility URL replays the same refund', () => {",
+                  "    pm.expect(jsonBody).to.have.all.keys('refund');",
+                  "    pm.expect(jsonBody?.refund?.id).to.equal(pm.variables.get('refund_id'));",
+                  "    pm.expect(jsonBody?.refund?.order_id).to.equal(pm.variables.get('order_id'));",
+                  "    pm.expect(jsonBody?.refund?.total).to.be.an('object');",
+                  "    pm.expect(jsonBody?.refund?.line_items).to.be.an('array');",
+                  "    for (const line of jsonBody?.refund?.line_items ?? []) {",
+                  "      pm.expect(line?.id).to.be.a('string').and.match(/^rli_/);",
+                  "      pm.expect(line).to.have.property('order_line_item_id');",
+                  "      pm.expect(line).to.have.property('original_amount_paid');",
+                  "      pm.expect(line).to.have.property('refund_amount');",
+                  "    }",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cancel a refund",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "call-refund-cancel-{{refund_id}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/refunds/cancel"
+            },
+            "description": "Public reference: https://studio.inttegro.com/refunds#cancel-a-refund",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refund_id\": \"{{refund_id}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const jsonBody = pm.response.json();",
+                  "  const refund = jsonBody?.refund;",
+                  "  pm.test('Returns the canceled refund', () => {",
+                  "    pm.expect(jsonBody).to.have.all.keys('refund');",
+                  "    pm.expect(refund?.id).to.equal(pm.variables.get('refund_id'));",
+                  "    pm.expect(refund?.status).to.equal('canceled');",
+                  "    pm.expect(refund?.canceled_at).to.be.a('string');",
+                  "    pm.expect(refund?.total).to.be.an('object');",
+                  "    pm.expect(refund).not.to.have.property('refund_amount');",
+                  "    pm.expect(refund?.line_items).to.be.an('array');",
+                  "    pm.expect(refund?.line_items?.length).to.be.greaterThan(0);",
+                  "    for (const line of refund?.line_items ?? []) {",
+                  "      pm.expect(line).to.have.property('refund_amount');",
+                  "      pm.expect(line).to.have.property('original_amount_paid');",
+                  "    }",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Lookup a refund",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/refunds/lookup"
+            },
+            "description": "Public reference: https://studio.inttegro.com/refunds#lookup-a-refund",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refund_id\": \"{{refund_id}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const jsonBody = pm.response.json();",
+                  "  pm.test('Returns the requested refund', () => {",
+                  "    pm.expect(jsonBody).to.have.all.keys('refund');",
+                  "    pm.expect(jsonBody?.refund?.id).to.equal(pm.variables.get('refund_id'));",
+                  "    pm.expect(jsonBody?.refund?.status).to.be.oneOf(['canceled', 'pending', 'processing', 'succeeded', 'failed']);",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List refunds",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/refunds/page"
+            },
+            "description": "Public reference: https://studio.inttegro.com/refunds#list-refunds",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"page_number\": 1,\n  \"page_size\": 20\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const jsonBody = pm.response.json();",
+                  "  const page = jsonBody?.page;",
+                  "  pm.test('Returns a one-based refund page', () => {",
+                  "    pm.expect(jsonBody).to.have.all.keys('page');",
+                  "    pm.expect(page).to.have.all.keys('number', 'refunds', 'size');",
+                  "    pm.expect(page?.number).to.equal(1);",
+                  "    pm.expect(page?.refunds).to.be.an('array');",
+                  "    pm.expect(page?.size).to.equal(page?.refunds?.length);",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "description": "Run after a checkout order has been paid. Create and cancel use stable retry keys; the create URL and its compatibility alias share one key and body.",
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{api_key}}",
+            "type": "string"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Returns HTTP 200', () => {",
+              "  pm.expect(pm.response.code).to.equal(200);",
+              "});"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

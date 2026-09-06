@@ -1,0 +1,418 @@
+{
+  "info": {
+    "name": "Inttegro API — Financial Accounts",
+    "description": "Connect and manage collection and payout accounts. Uses the shared Inttegro API global environment.\n\nGenerated from insomnia/06-financial-accounts.insomnia.yaml. Edit the Insomnia source and run npm run postman:generate.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Financial accounts",
+      "item": [
+        {
+          "name": "Connect a financial account",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{idempotency_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/financial_accounts/connect"
+            },
+            "description": "Public reference: https://studio.inttegro.com/financial-accounts#connect-a-financial-account",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"label\": \"Konadu Tailoring Collections\",\n  \"reference\": \"KONADU-MOMO-SETTLEMENT\",\n  \"description\": \"Primary settlement wallet for Konadu B2C operations.\",\n  \"type\": \"wallet\",\n  \"currency\": \"ghs\",\n  \"owner\": {\n    \"name\": \"{{customer_name}}\",\n    \"address\": {\n      \"country\": \"GH\"\n    }\n  },\n  \"wallet\": {\n    \"type\": \"mobile_money\",\n    \"mobile_money\": {\n      \"network\": \"mtn\",\n      \"account_number\": \"{{mobile_money_account_number}}\"\n    }\n  },\n  \"push_configuration\": {\n    \"enabled\": true\n  },\n  \"pull_configuration\": {\n    \"enabled\": false\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const jsonBody = pm.response.json();",
+                  "  const financial_account_id = jsonBody?.account?.id;",
+                  "  pm.test('Returns account.id', () => {",
+                  "    pm.expect(financial_account_id).to.be.a('string').and.not.be.empty;",
+                  "  });",
+                  "  if (financial_account_id) pm.environment.set(\"financial_account_id\", financial_account_id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Disconnect a financial account",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{idempotency_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/financial_accounts/disconnect"
+            },
+            "description": "Public reference: https://studio.inttegro.com/financial-accounts#disconnect-a-financial-account",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"account_id\": \"{{financial_account_id}}\",\n  \"unset_as_payout_destination\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Reconnect a financial account",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{idempotency_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/financial_accounts/reconnect"
+            },
+            "description": "Public reference: https://studio.inttegro.com/financial-accounts#reconnect-a-financial-account",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"account_id\": \"{{financial_account_id}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Create a financial account",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{idempotency_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/financial_accounts/create"
+            },
+            "description": "Public reference: https://studio.inttegro.com/financial-accounts#create-a-financial-account",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"label\": \"Marketplace Seller Sub-Account\",\n  \"reference\": \"SELLER-001-COLLECTION\",\n  \"description\": \"Dedicated collection account for seller 001.\",\n  \"type\": \"wallet\",\n  \"currency\": \"ghs\",\n  \"owner\": {\n    \"name\": \"{{customer_name}}\",\n    \"address\": {\n      \"country\": \"GH\"\n    }\n  },\n  \"wallet\": {\n    \"type\": \"mobile_money\",\n    \"mobile_money\": {\n      \"network\": \"mtn\",\n      \"account_number\": \"{{mobile_money_account_number}}\"\n    }\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const jsonBody = pm.response.json();",
+                  "  const financial_account_id = jsonBody?.account?.id;",
+                  "  pm.test('Returns account.id', () => {",
+                  "    pm.expect(financial_account_id).to.be.a('string').and.not.be.empty;",
+                  "  });",
+                  "  if (financial_account_id) pm.environment.set(\"financial_account_id\", financial_account_id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Lookup a financial account",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/financial_accounts/lookup"
+            },
+            "description": "Public reference: https://studio.inttegro.com/financial-accounts#lookup-a-financial-account",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"account_id\": \"{{financial_account_id}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Update a financial account",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{idempotency_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/financial_accounts/update"
+            },
+            "description": "Public reference: https://studio.inttegro.com/financial-accounts#update-a-financial-account",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"account_id\": \"{{financial_account_id}}\",\n  \"label\": \"Konadu Tailoring - Primary\",\n  \"custom_data\": {\n    \"vendor_id\": \"VNDR-001\",\n    \"region\": \"Greater Accra\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Enable pull capability",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{idempotency_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/financial_accounts/enable_pull"
+            },
+            "description": "Public reference: https://studio.inttegro.com/financial-accounts#enable-pull-capability",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"account_id\": \"{{financial_account_id}}\",\n  \"ip_address\": \"203.0.113.10\",\n  \"user_agent\": \"Inttegro API example\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Disable pull capability",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{idempotency_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/financial_accounts/disable_pull"
+            },
+            "description": "Public reference: https://studio.inttegro.com/financial-accounts#disable-pull-capability",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"account_id\": \"{{financial_account_id}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Enable push capability",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{idempotency_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/financial_accounts/enable_push"
+            },
+            "description": "Public reference: https://studio.inttegro.com/financial-accounts#enable-push-capability",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"account_id\": \"{{financial_account_id}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Disable push capability",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{idempotency_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/financial_accounts/disable_push"
+            },
+            "description": "Public reference: https://studio.inttegro.com/financial-accounts#disable-push-capability",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"account_id\": \"{{financial_account_id}}\",\n  \"unset_as_payout_destination\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Page through financial accounts",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/financial_accounts/page"
+            },
+            "description": "Public reference: https://studio.inttegro.com/financial-accounts#page-through-financial-accounts",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"page_number\": 1,\n  \"page_size\": 50\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "description": "Connect and manage financial accounts used for collections and payouts.",
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{api_key}}",
+            "type": "string"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.variables.set(",
+              "  'future_timestamp',",
+              "  new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),",
+              ");"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Returns a successful HTTP status', () => {",
+              "  pm.expect(pm.response.code).to.be.within(200, 299);",
+              "});"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "variable": []
+}

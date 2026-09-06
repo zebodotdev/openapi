@@ -1,0 +1,250 @@
+{
+  "info": {
+    "name": "Inttegro API — Customers",
+    "description": "Create, retrieve, update, and page customer records. Uses the shared Inttegro API global environment.\n\nGenerated from insomnia/02-customers.insomnia.yaml. Edit the Insomnia source and run npm run postman:generate.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Customers",
+      "item": [
+        {
+          "name": "Create customer",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{idempotency_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/customers/create"
+            },
+            "description": "Public reference: https://studio.inttegro.com/customers#create-customer",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Jane Mensah\",\n  \"title\": \"Ms.\",\n  \"reference\": \"user_123456\",\n  \"email_address\": \"{{customer_email}}\",\n  \"phone_number\": \"{{customer_phone}}\",\n  \"custom_data\": {\n    \"loyalty_tier\": \"gold\",\n    \"account_manager\": \"am_789\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const jsonBody = pm.response.json();",
+                  "  const customer_id = jsonBody?.customer?.id;",
+                  "  const balance = jsonBody?.customer?.balance;",
+                  "  pm.test('Returns customer.id', () => {",
+                  "    pm.expect(customer_id).to.be.a('string').and.not.be.empty;",
+                  "  });",
+                  "  pm.test('Returns customer.balance as an object', () => {",
+                  "    pm.expect(balance).to.be.an('object');",
+                  "  });",
+                  "  pm.test('Returns required customer.guest', () => {",
+                  "    pm.expect(jsonBody?.customer?.guest).to.be.a('boolean');",
+                  "  });",
+                  "  if (customer_id) pm.environment.set(\"customer_id\", customer_id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Lookup customer",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/customers/lookup"
+            },
+            "description": "Public reference: https://studio.inttegro.com/customers#lookup-customer",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customer_id\": \"{{customer_id}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const jsonBody = pm.response.json();",
+                  "  pm.test('Returns customer.balance as an object', () => {",
+                  "    pm.expect(jsonBody?.customer?.balance).to.be.an('object');",
+                  "  });",
+                  "  pm.test('Returns required customer.guest', () => {",
+                  "    pm.expect(jsonBody?.customer?.guest).to.be.a('boolean');",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update customer",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{idempotency_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/customers/update"
+            },
+            "description": "Public reference: https://studio.inttegro.com/customers#update-customer",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customer_id\": \"{{customer_id}}\",\n  \"title\": \"Dr.\",\n  \"reference\": \"user_123456_updated\",\n  \"custom_data\": {\n    \"loyalty_tier\": \"platinum\"\n  },\n  \"shipping_address\": {\n    \"country\": \"GH\",\n    \"city\": \"Accra\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Returns the replacement customer data', () => {",
+                  "  pm.expect(pm.response.code).to.equal(200);",
+                  "  const customer = pm.response.json()?.customer;",
+                  "  pm.expect(customer?.guest).to.be.a('boolean');",
+                  "  pm.expect(customer?.balance).to.be.an('object');",
+                  "  pm.expect(customer?.updated_at).to.be.a('string');",
+                  "  pm.expect(customer?.reference).to.equal('user_123456_updated');",
+                  "  pm.expect(customer?.custom_data).to.deep.equal({ loyalty_tier: 'platinum' });",
+                  "  pm.expect(customer?.shipping_address?.country).to.equal('GH');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Page through customers",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/customers/page"
+            },
+            "description": "Public reference: https://studio.inttegro.com/customers#page-through-customers",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"page_number\": 1,\n  \"page_size\": 50\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const jsonBody = pm.response.json();",
+                  "  const customers = jsonBody?.page?.customers;",
+                  "  pm.test('Returns customer balances as objects', () => {",
+                  "    pm.expect(customers).to.be.an('array');",
+                  "    for (const customer of customers) {",
+                  "      pm.expect(customer?.balance).to.be.an('object');",
+                  "      pm.expect(customer?.guest).to.be.a('boolean');",
+                  "    }",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "description": "Create, retrieve, update, and list customer records.",
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{api_key}}",
+            "type": "string"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.variables.set(",
+              "  'future_timestamp',",
+              "  new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),",
+              ");"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Returns a successful HTTP status', () => {",
+              "  pm.expect(pm.response.code).to.be.within(200, 299);",
+              "});"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "variable": []
+}

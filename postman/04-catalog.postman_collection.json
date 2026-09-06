@@ -1,0 +1,597 @@
+{
+  "info": {
+    "name": "Inttegro API — Catalog",
+    "description": "Create and manage products and prices. Uses the shared Inttegro API global environment.\n\nGenerated from insomnia/04-catalog.insomnia.yaml. Edit the Insomnia source and run npm run postman:generate.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Products",
+      "item": [
+        {
+          "name": "Create a product",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "call-product-create-001",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/products/create"
+            },
+            "description": "Public reference: https://studio.inttegro.com/products#create-a-product",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Premium Cotton T-Shirt\",\n  \"type\": \"physical\",\n  \"description\": \"Comfortable everyday wear\",\n  \"about\": \"Our premium cotton t-shirt is made from 100% organic cotton...\",\n  \"category\": \"clothing\",\n  \"attributes\": [\n    {\n      \"name\": \"Size\",\n      \"value\": \"Medium\"\n    },\n    {\n      \"name\": \"Color\",\n      \"value\": \"Blue\"\n    }\n  ],\n  \"media\": {\n    \"hero_image\": \"https://example.com/products/premium-shirt/hero.jpg\",\n    \"gallery\": [\n      \"https://example.com/products/premium-shirt/front.jpg\",\n      \"https://example.com/products/premium-shirt/back.jpg\"\n    ]\n  },\n  \"custom_data\": {\n    \"season\": \"summer\",\n    \"material\": \"organic_cotton\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const jsonBody = pm.response.json();",
+                  "  const product_id = jsonBody?.product?.id;",
+                  "  pm.test('Returns product.id', () => {",
+                  "    pm.expect(product_id).to.be.a('string').and.not.be.empty;",
+                  "  });",
+                  "  if (product_id) pm.environment.set(\"product_id\", product_id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Lookup a product",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/products/lookup"
+            },
+            "description": "Public reference: https://studio.inttegro.com/products#lookup-a-product",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"product_id\": \"{{product_id}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Add a price to a product",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "call-product-add-price-{{product_id}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/products/add_price"
+            },
+            "description": "Public reference: https://studio.inttegro.com/products#add-a-price-to-a-product",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"product_id\": \"{{product_id}}\",\n  \"label\": \"Wholesale\",\n  \"about\": \"Preferred rate for repeat buyers\",\n  \"amount\": {\n    \"currency\": \"ghs\",\n    \"value\": 85000\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const jsonBody = pm.response.json();",
+                  "  const price_id = jsonBody?.price?.id;",
+                  "  pm.test('Returns price.id', () => {",
+                  "    pm.expect(price_id).to.be.a('string').and.not.be.empty;",
+                  "  });",
+                  "  pm.test('Returns a catalog price with a nominal amount', () => {",
+                  "    pm.expect(jsonBody?.price?.active).to.be.a('boolean');",
+                  "    pm.expect(jsonBody?.price?.nominal?.currency).to.be.a('string').and.not.be.empty;",
+                  "    pm.expect(jsonBody?.price?.nominal?.value).to.be.a('number');",
+                  "    pm.expect(jsonBody?.price?.product_id).to.be.a('string').and.not.be.empty;",
+                  "  });",
+                  "  if (price_id) pm.environment.set(\"price_id\", price_id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update a product",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "call-product-update-{{product_id}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/products/update"
+            },
+            "description": "Public reference: https://studio.inttegro.com/products#update-a-product",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"product_id\": \"{{product_id}}\",\n  \"description\": \"Premium everyday comfort\",\n  \"category\": \"apparel\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Publish a product",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "call-product-publish-{{product_id}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/products/publish"
+            },
+            "description": "Public reference: https://studio.inttegro.com/products#publish-a-product",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"product_id\": \"{{product_id}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Unpublish a product",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "call-product-unpublish-{{product_id}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/products/unpublish"
+            },
+            "description": "Public reference: https://studio.inttegro.com/products#unpublish-a-product",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"product_id\": \"{{product_id}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Archive a product",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "call-product-archive-{{product_id}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/products/archive"
+            },
+            "description": "Public reference: https://studio.inttegro.com/products#archive-a-product",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"product_id\": \"{{product_id}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Page through products",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/products/page"
+            },
+            "description": "Public reference: https://studio.inttegro.com/products#page-through-products",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"page_number\": 1,\n  \"page_size\": 50\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "description": "Create and manage products in the catalog.",
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{api_key}}",
+            "type": "string"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.variables.set(",
+              "  'future_timestamp',",
+              "  new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),",
+              ");"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Returns a successful HTTP status', () => {",
+              "  pm.expect(pm.response.code).to.be.within(200, 299);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Prices",
+      "item": [
+        {
+          "name": "Create a price",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "call-price-create-{{product_id}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/prices/create"
+            },
+            "description": "Public reference: https://studio.inttegro.com/prices#create-a-price",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": {\n    \"currency\": \"ghs\",\n    \"value\": 2999\n  },\n  \"label\": \"Monthly\",\n  \"about\": \"Standard monthly subscription price\",\n  \"product_id\": \"{{product_id}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const jsonBody = pm.response.json();",
+                  "  const price_id = jsonBody?.price?.id;",
+                  "  pm.test('Returns price.id', () => {",
+                  "    pm.expect(price_id).to.be.a('string').and.not.be.empty;",
+                  "  });",
+                  "  if (price_id) pm.environment.set(\"price_id\", price_id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Lookup a price",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/prices/lookup"
+            },
+            "description": "Public reference: https://studio.inttegro.com/prices#lookup-a-price",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"price_id\": \"{{price_id}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Page through prices",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/prices/page"
+            },
+            "description": "Public reference: https://studio.inttegro.com/prices#page-through-prices",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"page_number\": 1,\n  \"page_size\": 2,\n  \"product_id\": \"{{product_id}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Update a price",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "call-price-update-{{price_id}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/prices/update"
+            },
+            "description": "Public reference: https://studio.inttegro.com/prices#update-a-price",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"price_id\": \"{{price_id}}\",\n  \"label\": \"Monthly (discounted)\",\n  \"about\": \"Promotional monthly rate for early adopters\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Activate a price",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "call-price-activate-{{price_id}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/prices/activate"
+            },
+            "description": "Public reference: https://studio.inttegro.com/prices#activate-a-price",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"price_id\": \"{{price_id}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Deactivate a price",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "call-price-deactivate-{{price_id}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/prices/deactivate"
+            },
+            "description": "Public reference: https://studio.inttegro.com/prices#deactivate-a-price",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"price_id\": \"{{price_id}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Archive a price",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "call-price-archive-{{price_id}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/prices/archive"
+            },
+            "description": "Public reference: https://studio.inttegro.com/prices#archive-a-price",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"price_id\": \"{{price_id}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "description": "Create and manage catalog prices.",
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{api_key}}",
+            "type": "string"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.variables.set(",
+              "  'future_timestamp',",
+              "  new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),",
+              ");"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Returns a successful HTTP status', () => {",
+              "  pm.expect(pm.response.code).to.be.within(200, 299);",
+              "});"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "variable": []
+}

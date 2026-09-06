@@ -2,8 +2,8 @@
 set -eu
 
 script_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
-call_dir=$(dirname -- "$script_dir")
-schema_dir=$(mktemp -d "${TMPDIR:-/tmp}/commerce-call-schema.XXXXXX")
+insomnia_dir=$(dirname -- "$script_dir")
+schema_dir=$(mktemp -d "${TMPDIR:-/tmp}/inttegro-insomnia-schema.XXXXXX")
 schema_file="$schema_dir/insomnia.schema.5.1.json"
 
 cleanup() {
@@ -19,4 +19,4 @@ curl -fsSL \
 npx --yes ajv-cli@5 validate \
   --spec=draft2020 \
   -s "$schema_file" \
-  -d "$call_dir/**/*.insomnia.yaml"
+  -d "$insomnia_dir/**/*.insomnia.yaml"
