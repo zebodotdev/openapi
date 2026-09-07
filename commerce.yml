@@ -8967,9 +8967,6 @@ components:
             type: object
             description: Merchant identity captured for the hosted checkout. Individual fields are omitted when unavailable.
             properties:
-                app_id:
-                    type: string
-                    example: "app_xyz789"
                 app_name:
                     type: string
                     example: "Tea House"
@@ -9142,7 +9139,6 @@ components:
             type: object
             required:
                 - allow_variants
-                - application_id
                 - created_at
                 - id
                 - quantity
@@ -9157,10 +9153,6 @@ components:
                     type: boolean
                     description: Whether the intent was configured with a variant set
                     example: false
-                application_id:
-                    type: string
-                    description: Application that owns the configured offer
-                    example: "app_xyz789"
                 created_at:
                     type: string
                     format: date-time
