@@ -12253,10 +12253,6 @@ components:
             type: object
             required: [created_at, currency, id, type]
             properties:
-                app_customer_local_fingerprint:
-                    type: string
-                app_local_fingerprint:
-                    type: string
                 archived_at:
                     type: string
                     format: date-time
@@ -12287,8 +12283,6 @@ components:
                 type:
                     type: string
                     enum: [wallet, bank_account, dosh_account]
-                universal_fingerprint:
-                    type: string
                 verification:
                     $ref: '#/components/schemas/FinancialAccountVerification'
         FinancialAccountVerification:
@@ -12960,12 +12954,6 @@ components:
                     type: boolean
                     description: Whether this payment method is active and reusable in new payment flows
                     example: true
-                app_customer_local_fingerprint:
-                    type: string
-                    description: Stable duplicate-detection fingerprint scoped to this application and customer.
-                app_local_fingerprint:
-                    type: string
-                    description: Stable duplicate-detection fingerprint scoped to this application.
                 archived_at:
                     type: string
                     format: date-time
@@ -13124,9 +13112,6 @@ components:
                         supplied_at:
                             type: string
                             format: date-time
-                universal_fingerprint:
-                    type: string
-                    description: Stable duplicate-detection fingerprint across applications when available.
                 verification:
                     type: object
                     description: Most recent verification record when the payment method has entered a verification flow.
