@@ -2,6 +2,11 @@
 
 This directory contains Postman Collection v2.1 equivalents of every public request in `insomnia/`. It includes 13 API-area collections, a shared environment, and a safe hosted-checkout workflow.
 
+Every collection carries the Inttegro collection bundle version in
+`info.version`, and the shared environment exposes the same value as
+`collection_version`. Postman Collection 2.1 is the file-format version, not
+the Inttegro collection bundle version.
+
 ## Import and configure
 
 1. Import `00-environment.postman_environment.json` into Postman.

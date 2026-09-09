@@ -2,6 +2,7 @@
   "info": {
     "name": "Inttegro API — Files",
     "description": "Upload files and manage file-link and third-party upload capabilities. Uses the shared Inttegro API global environment. Error reference: https://studio.inttegro.com/error-codes#file-apis\n\nGenerated from insomnia/11-files.insomnia.yaml. Edit the Insomnia source and run npm run postman:generate.",
+    "version": "0.1.0-beta2",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [

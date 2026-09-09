@@ -2,6 +2,7 @@
   "info": {
     "name": "Inttegro API — Platform",
     "description": "Manage applications and keys and retrieve reference data. Uses the shared Inttegro API global environment. Error reference: https://studio.inttegro.com/error-codes#applications\n\nGenerated from insomnia/12-platform.insomnia.yaml. Edit the Insomnia source and run npm run postman:generate.",
+    "version": "0.1.0-beta2",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [

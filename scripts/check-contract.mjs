@@ -39,6 +39,7 @@ const insomniaRequests = collectInsomniaRequests(insomniaDir);
 const postmanRequests = collectPostmanRequests(postmanDir);
 const errors = [
   ...validateGeneratedPostmanArtifacts(insomniaDir, postmanDir),
+  ...validateCollectionVersions(spec, insomniaDir, postmanDir),
   ...compareOperationCoverage(operations, insomniaRequests, "Insomnia", true),
   ...compareOperationCoverage(operations, postmanRequests, "Postman", false),
   ...validatePublicCheckoutOperations(operations),
@@ -228,6 +229,50 @@ function validateGeneratedPostmanArtifacts(sourceDirectory, outputDirectory) {
           `Postman contains unexpected generated artifact postman/${relativePath}`,
         );
       }
+    }
+  }
+
+  return errors;
+}
+
+function validateCollectionVersions(
+  document,
+  sourceDirectory,
+  outputDirectory,
+) {
+  const errors = [];
+  const apiVersion = document.info?.version;
+  const collectionVersion = document.info?.["x-inttegro-collection-version"];
+  const environment = parse(
+    readFileSync(join(sourceDirectory, "00-environment.insomnia.yaml"), "utf8"),
+  );
+  const insomniaVersion = environment.environments?.data?.collection_version;
+
+  if (typeof collectionVersion !== "string" || collectionVersion.length === 0) {
+    errors.push("commerce.yml must declare info.x-inttegro-collection-version");
+  }
+  if (collectionVersion !== apiVersion) {
+    errors.push(
+      `Collection version ${collectionVersion ?? "<missing>"} does not match OpenAPI info.version ${apiVersion ?? "<missing>"}`,
+    );
+  }
+  if (insomniaVersion !== collectionVersion) {
+    errors.push(
+      `Insomnia collection_version ${insomniaVersion ?? "<missing>"} does not match collection version ${collectionVersion ?? "<missing>"}`,
+    );
+  }
+
+  for (const fileName of walkFiles(outputDirectory)
+    .map((filePath) => relative(outputDirectory, filePath))
+    .filter((name) => name.endsWith(".postman_collection.json"))
+    .sort()) {
+    const postman = JSON.parse(
+      readFileSync(join(outputDirectory, fileName), "utf8"),
+    );
+    if (postman.info?.version !== collectionVersion) {
+      errors.push(
+        `Postman ${fileName} version ${postman.info?.version ?? "<missing>"} does not match collection version ${collectionVersion ?? "<missing>"}`,
+      );
     }
   }
 
@@ -609,7 +654,8 @@ function inferType(schema) {
 
 function buildLock(operations, insomniaRequests, postmanRequests) {
   return {
-    version: 2,
+    version: 3,
+    collection_version: spec.info?.["x-inttegro-collection-version"] ?? "",
     openapi_sha256: hashFile(specPath),
     insomnia_sha256: hashArtifacts(insomniaDir, (filePath) =>
       filePath.endsWith(".insomnia.yaml"),
@@ -666,10 +712,23 @@ function updateContractLock(actual) {
     const previousInsomniaHash =
       expected.insomnia_sha256 ?? expected.call_sha256;
     const insomniaChanged = previousInsomniaHash !== actual.insomnia_sha256;
+    const postmanChanged = expected.postman_sha256 !== actual.postman_sha256;
 
     if (openApiChanged !== insomniaChanged) {
       console.error(
         "Refusing to refresh the contract lock after a one-sided change. Update commerce.yml and the matching Insomnia collection together, regenerate Postman, then retry.",
+      );
+      process.exitCode = 1;
+      return;
+    }
+
+    if (
+      expected.collection_version &&
+      expected.collection_version === actual.collection_version &&
+      (openApiChanged || insomniaChanged || postmanChanged)
+    ) {
+      console.error(
+        `Refusing to refresh changed collection artifacts without bumping collection version ${actual.collection_version}.`,
       );
       process.exitCode = 1;
       return;

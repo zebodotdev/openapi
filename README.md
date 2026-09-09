@@ -12,6 +12,12 @@ The published files contain no credentials, cookies, private infrastructure deta
 
 This contract contains only operations intended for API consumers using documented public authentication. Service-only and operator-only routes do not belong in the specification or client collections.
 
+## Versions
+
+OpenAPI, Insomnia, and Postman are released as one collection bundle. The bundle version is declared by `info.version` and `info.x-inttegro-collection-version` in `commerce.yml`, exposed as `collection_version` in the shared client environment, and written to every generated Postman collection.
+
+The contract test requires all representations to carry the same version. It also refuses to refresh the reviewed contract lock after an artifact changes unless the collection version is bumped. Insomnia schema 5.1 and Postman Collection 2.1 are file-format versions; they are independent of the Inttegro collection bundle version.
+
 ## Use the OpenAPI specification
 
 Import `commerce.yml` into any OpenAPI 3.0-compatible client, generator, or validator. The production server URL is declared in the specification.

@@ -2,6 +2,7 @@
   "info": {
     "name": "Inttegro API — Refunds",
     "description": "Create, cancel, and inspect refunds for paid order line items. Uses the shared Inttegro API global environment. Error reference: https://studio.inttegro.com/error-codes#refunds\n\nGenerated from insomnia/13-refunds.insomnia.yaml. Edit the Insomnia source and run npm run postman:generate.",
+    "version": "0.1.0-beta2",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [

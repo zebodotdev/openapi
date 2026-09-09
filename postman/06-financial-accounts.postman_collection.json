@@ -2,6 +2,7 @@
   "info": {
     "name": "Inttegro API — Financial Accounts",
     "description": "Connect and manage collection and payout accounts. Uses the shared Inttegro API global environment.\n\nGenerated from insomnia/06-financial-accounts.insomnia.yaml. Edit the Insomnia source and run npm run postman:generate.",
+    "version": "0.1.0-beta2",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [

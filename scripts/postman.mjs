@@ -12,6 +12,7 @@ export function buildPostmanArtifacts(insomniaDir) {
   const artifacts = new Map();
   const environmentPath = join(insomniaDir, "00-environment.insomnia.yaml");
   const environment = readInsomniaDocument(environmentPath);
+  const collectionVersion = environment.environments?.data?.collection_version;
 
   artifacts.set(
     "00-environment.postman_environment.json",
@@ -33,6 +34,7 @@ export function buildPostmanArtifacts(insomniaDir) {
       convertCollection(
         readInsomniaDocument(sourcePath),
         `insomnia/${fileName}`,
+        collectionVersion,
       ),
     );
   }
@@ -51,6 +53,7 @@ export function buildPostmanArtifacts(insomniaDir) {
       convertCollection(
         readInsomniaDocument(sourcePath),
         `insomnia/workflows/${fileName}`,
+        collectionVersion,
       ),
     );
   }
@@ -88,7 +91,7 @@ function convertEnvironment(document) {
   };
 }
 
-function convertCollection(document, sourcePath) {
+function convertCollection(document, sourcePath, collectionVersion) {
   const description = [
     document.meta?.description,
     `Generated from ${sourcePath}. Edit the Insomnia source and run npm run postman:generate.`,
@@ -99,6 +102,7 @@ function convertCollection(document, sourcePath) {
     info: {
       name: document.name ?? basename(sourcePath),
       description,
+      version: collectionVersion,
       schema: POSTMAN_COLLECTION_SCHEMA,
     },
     item: (document.collection ?? []).map(convertNode),

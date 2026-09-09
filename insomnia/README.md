@@ -76,6 +76,7 @@ For the shortest verification path, import and run `workflows/checkout-quickstar
 
 The base environment separates three kinds of values:
 
+- Bundle metadata: `collection_version`, which matches the public API contract.
 - Connection values: `base_url`, `api_key`, and `idempotency_key`.
 - Safe example inputs: customer contact fields, checkout return URLs, currency, account-number examples, and `upload_file_path`.
 - Chained runtime values: IDs such as `customer_id`, `order_id`, and `file_id`, plus bearer capability URLs such as `checkout_url`, `file_link_url`, and `upload_url`.
@@ -100,6 +101,11 @@ Every file conforms to Insomnia's v5 format with schema revision `5.1`. Insomnia
 npm ci
 npm test
 ```
+
+The collection bundle version follows `commerce.yml` and is shared by every
+API-area collection and workflow. Bump it whenever the reviewed contract or
+collection artifacts change; the parity test rejects a changed bundle that
+keeps the previous version.
 
 The parity test requires exactly one primary request in both Insomnia and Postman for every OpenAPI operation, rejects undocumented requests and duplicate mappings, validates request examples, and requires the generated Postman artifacts to match Insomnia exactly. It also checks the repository-level `contract.lock.json`. A one-sided OpenAPI or Insomnia change cannot refresh that lock.
 
