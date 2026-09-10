@@ -3,8 +3,8 @@ openapi: 3.0.3
 info:
     title: Inttegro API
     description: Machine-readable reference for the public Inttegro API
-    version: 0.1.0-beta2
-    x-inttegro-collection-version: 0.1.0-beta2
+    version: 0.1.0-beta6
+    x-inttegro-collection-version: 0.1.0-beta6
     contact:
         name: Inttegro Engineering
         url: "https://inttegro.com"
@@ -2180,63 +2180,6 @@ paths:
                 asynchronous: a successful request returns the new refund in `pending` status.
                 Retry an uncertain request with the same URL, idempotency key, and body.
             operationId: createRefund
-            tags:
-                - Refunds
-            parameters:
-                - $ref: '#/components/parameters/IdempotencyKey'
-            requestBody:
-                required: true
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/CreateRefundRequest'
-            responses:
-                '200':
-                    description: Refund created
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/RefundResponse'
-                '400':
-                    description: Invalid refund request
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ErrorEnvelope'
-                '401':
-                    description: Authorization is required
-                '409':
-                    description: The refund conflicts with current order or line-item state
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ErrorEnvelope'
-                '422':
-                    description: The refund could not be accepted
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ErrorEnvelope'
-                '500':
-                    description: Refund creation failed unexpectedly
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ErrorEnvelope'
-                '503':
-                    description: Refund creation hit a transient dependency failure
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ErrorEnvelope'
-    /orders/refund:
-        post:
-            summary: Create a refund using the compatibility URL
-            description: |
-                Compatibility alias for `/refunds/create`. It accepts the same request and returns
-                the same response. New integrations should use `/refunds/create`. Choose one URL for
-                a logical refund and use that same URL, idempotency key, and body for every retry.
-            operationId: createRefundAlias
             tags:
                 - Refunds
             parameters:
@@ -6359,9 +6302,12 @@ components:
                 type: string
         BalanceSnapshot:
             type: object
-            description: Balance snapshots keyed by lowercase currency code.
-            additionalProperties:
-                $ref: '#/components/schemas/CurrencyBalanceSnapshot'
+            description: The latest GHS balance snapshot for the application.
+            additionalProperties: false
+            required: [ghs]
+            properties:
+                ghs:
+                    $ref: '#/components/schemas/CurrencyBalanceSnapshot'
         CustomerBalanceValue:
             type: object
             required: [as_of, available]
@@ -7713,6 +7659,7 @@ components:
                     enum: [true]
         PaymentNextAction:
             type: object
+            additionalProperties: false
             description: Next action required to complete a payment
             nullable: true
             required:
@@ -7720,12 +7667,14 @@ components:
             properties:
                 type:
                     type: string
-                    enum: [confirm_payment, execute, redirect, authorize, none]
+                    enum: [confirm_payment, execute, redirect, authorize_payment, request_confirmation]
                     description: Type of action required
                     example: "confirm_payment"
                 confirm_payment:
                     type: object
+                    additionalProperties: false
                     description: Details for customer payment confirmation
+                    required: [expires_at, scheme, confirmed, status]
                     properties:
                         expires_at:
                             type: string
@@ -7738,7 +7687,9 @@ components:
                             example: "zcommerce_defined_auth"
                         request:
                             type: object
+                            additionalProperties: false
                             description: Confirmation request details
+                            required: [id, recipient, sent_via, token_size, sender_id]
                             properties:
                                 id:
                                     type: string
@@ -7761,9 +7712,14 @@ components:
                                     type: string
                                     description: Sender ID for the message
                                     example: "zverify"
+                                status:
+                                    type: string
+                                    description: Current request status
                         attempt:
                             type: object
+                            additionalProperties: false
                             description: Latest confirmation attempt
+                            required: [status, confirmed, reason, created_at]
                             properties:
                                 status:
                                     type: string
@@ -7777,10 +7733,6 @@ components:
                                     type: string
                                     description: Reason for the current attempt state
                                     example: "awaiting_customer_confirmation"
-                                token:
-                                    type: string
-                                    description: Confirmation token submitted by the customer
-                                    example: "123456"
                                 executed_at:
                                     type: string
                                     format: date-time
@@ -7797,12 +7749,11 @@ components:
                             type: string
                             description: Confirmation status
                             example: "pending"
-                execute:
-                    $ref: '#/components/schemas/JSONData'
-                    description: Details for execution action
                 redirect:
                     type: object
+                    additionalProperties: false
                     description: Details for redirect action
+                    required: [redirect_url, valid_until]
                     properties:
                         redirect_url:
                             type: string
@@ -7815,7 +7766,9 @@ components:
                             description: When the redirect URL expires
                         latest_visit:
                             type: object
+                            additionalProperties: false
                             description: Latest redirect visit details
+                            required: [user_agent, ip_address, at]
                             properties:
                                 user_agent:
                                     type: string
@@ -7826,7 +7779,9 @@ components:
                                     format: date-time
                 authorize:
                     type: object
+                    additionalProperties: false
                     description: Details for authorization action
+                    required: [beneficiary, scheme, expires_at]
                     properties:
                         beneficiary:
                             type: string
@@ -7838,6 +7793,32 @@ components:
                             type: string
                             format: date-time
                             description: When the authorization request expires
+                request_confirmation:
+                    type: object
+                    additionalProperties: false
+                    description: Details for requesting a fresh customer confirmation.
+                    properties:
+                        last_request:
+                            type: object
+                            additionalProperties: false
+                            required: [id, recipient, sent_via, token_size, sender_id]
+                            properties:
+                                id:
+                                    type: string
+                                recipient:
+                                    type: string
+                                sent_via:
+                                    type: string
+                                    enum: [sms, email, push]
+                                token_size:
+                                    type: integer
+                                sender_id:
+                                    type: string
+                                status:
+                                    type: string
+                        after:
+                            type: string
+                            format: date-time
         CreateOrderNewCustomer:
             type: object
             required:
@@ -8325,21 +8306,42 @@ components:
                     enum: [delivery, download, render, stream]
         ProductShipment:
             type: object
+            additionalProperties: false
             required: [type]
             properties:
                 type:
                     type: string
                     enum: [delivery, download, render, service, stream]
                 delivery:
-                    $ref: '#/components/schemas/JSONData'
+                    $ref: '#/components/schemas/ProductDelivery'
                 download:
-                    $ref: '#/components/schemas/JSONData'
+                    $ref: '#/components/schemas/ProductDownload'
                 render:
-                    $ref: '#/components/schemas/JSONData'
+                    $ref: '#/components/schemas/ProductRender'
                 service:
-                    $ref: '#/components/schemas/JSONData'
+                    $ref: '#/components/schemas/ProductService'
                 stream:
-                    $ref: '#/components/schemas/JSONData'
+                    $ref: '#/components/schemas/ProductStream'
+        ProductDelivery:
+            type: object
+            additionalProperties: false
+            description: Delivery fulfillment marker.
+        ProductDownload:
+            type: object
+            additionalProperties: false
+            description: Download fulfillment marker.
+        ProductRender:
+            type: object
+            additionalProperties: false
+            description: Rendered fulfillment marker.
+        ProductService:
+            type: object
+            additionalProperties: false
+            description: Service fulfillment marker.
+        ProductStream:
+            type: object
+            additionalProperties: false
+            description: Streaming fulfillment marker.
         CreateProductRequest:
             type: object
             required:
@@ -8794,11 +8796,13 @@ components:
                     example: 20
         PagePurchaseIntentsResponse:
             type: object
+            additionalProperties: false
             required:
                 - page
             properties:
                 page:
                     type: object
+                    additionalProperties: false
                     required:
                         - number
                         - purchase_intents
@@ -8818,6 +8822,7 @@ components:
                             example: 2
         PurchaseIntentResponse:
             type: object
+            additionalProperties: false
             required:
                 - purchase_intent
             properties:
@@ -8825,6 +8830,8 @@ components:
                     $ref: '#/components/schemas/PurchaseIntent'
         PurchaseIntentActivityLog:
             type: object
+            description: Recent authenticated-owner activity for the purchase intent.
+            additionalProperties: false
             properties:
                 recent:
                     type: array
@@ -9116,6 +9123,7 @@ components:
                         $ref: '#/components/schemas/PurchaseIntentVariant'
         PurchaseIntent:
             type: object
+            additionalProperties: false
             required:
                 - allow_variants
                 - created_at
@@ -9125,9 +9133,7 @@ components:
                 - usage
             properties:
                 activity:
-                    allOf:
-                        - $ref: '#/components/schemas/PurchaseIntentActivityLog'
-                    description: Recent activity for authenticated owner lookups and list responses. Omitted from public lookup.
+                    $ref: '#/components/schemas/PurchaseIntentActivityLog'
                 allow_variants:
                     type: boolean
                     description: Whether the intent was configured with a variant set
@@ -9182,9 +9188,7 @@ components:
                 usage:
                     $ref: '#/components/schemas/PurchaseIntentUsage'
                 variant_set:
-                    allOf:
-                        - $ref: '#/components/schemas/PurchaseIntentVariantSet'
-                    description: Hydrated active variants when available. It may be omitted even when allow_variants is true.
+                    $ref: '#/components/schemas/PurchaseIntentVariantSet'
         Product:
             type: object
             required:
@@ -9333,13 +9337,11 @@ components:
                     description: Short description
                     example: "Standard monthly subscription"
                 dimensions:
-                    type: object
-                    nullable: true
                     description: Product dimensions and size metadata
+                    $ref: '#/components/schemas/ProductDimensions'
                 media:
-                    type: object
-                    nullable: true
                     description: Product media assets
+                    $ref: '#/components/schemas/ProductMedia'
                 name:
                     type: string
                     description: Product name
@@ -9355,9 +9357,8 @@ components:
                     description: External reference or SKU
                     example: "plan-starter-monthly"
                 shipment:
-                    type: object
-                    nullable: true
                     description: Shipment and fulfillment details
+                    $ref: '#/components/schemas/ProductShipment'
                 tax_code:
                     type: string
                     description: Tax classification code
@@ -9582,12 +9583,14 @@ components:
                 - $ref: '#/components/schemas/OrderProductLineItem'
                 - $ref: '#/components/schemas/OrderFeeLineItem'
                 - $ref: '#/components/schemas/OrderShippingLineItem'
+                - $ref: '#/components/schemas/OrderDiscountLineItem'
             discriminator:
                 propertyName: type
                 mapping:
                     product: '#/components/schemas/OrderProductLineItem'
                     fee: '#/components/schemas/OrderFeeLineItem'
                     shipping: '#/components/schemas/OrderShippingLineItem'
+                    discount: '#/components/schemas/OrderDiscountLineItem'
         OrderProductLineItem:
             type: object
             required: [type, product]
@@ -9669,6 +9672,19 @@ components:
                             type: string
                         fee:
                             $ref: '#/components/schemas/Amount'
+        OrderDiscountLineItem:
+            type: object
+            additionalProperties: false
+            required: [type, discount]
+            properties:
+                type:
+                    type: string
+                    enum: [discount]
+                discount:
+                    $ref: '#/components/schemas/OrderDiscount'
+        OrderDiscount:
+            type: object
+            additionalProperties: false
         LineItem:
             oneOf:
                 - $ref: '#/components/schemas/ProductLineItem'
@@ -11348,8 +11364,7 @@ components:
                                 swift_code:
                                     type: string
                 card:
-                    type: object
-                    description: Card marker. Nested card credentials are not returned.
+                    $ref: '#/components/schemas/PaymentMethodCard'
                 created_at:
                     type: string
                     format: date-time
@@ -11468,6 +11483,7 @@ components:
                     description: When order processing began
                 invoice:
                     type: object
+                    required: [format]
                     properties:
                         number:
                             type: string
@@ -11549,9 +11565,43 @@ components:
                             $ref: '#/components/schemas/BalanceTransaction'
                         payment_method:
                             $ref: '#/components/schemas/OrderPaymentMethod'
+                        billing_details:
+                            type: object
+                            additionalProperties: false
+                            properties:
+                                owner:
+                                    type: object
+                                    additionalProperties: false
+                                    required: [name]
+                                    properties:
+                                        name:
+                                            type: string
+                                        address:
+                                            $ref: '#/components/schemas/OrderAddress'
+                        customer:
+                            type: object
+                            additionalProperties: false
+                            required: [id, guest, name]
+                            properties:
+                                id:
+                                    type: string
+                                guest:
+                                    type: boolean
+                                name:
+                                    type: string
+                                email_address:
+                                    type: string
+                                    format: email
+                                phone_number:
+                                    type: string
+                                billing_address:
+                                    $ref: '#/components/schemas/OrderAddress'
+                                shipping_address:
+                                    $ref: '#/components/schemas/OrderAddress'
                         latest_attempt:
                             type: object
                             description: Most recent payment attempt details
+                            required: [status, initiated_at]
                             properties:
                                 payment_method_type:
                                     type: string
@@ -11559,6 +11609,13 @@ components:
                                 payment_method_id:
                                     type: string
                                     example: "pm_hg7D2A5qT6g6mVDSJu6zweKXwsiiNWf3Q85book6"
+                                error:
+                                    type: object
+                                    additionalProperties: false
+                                    required: [message]
+                                    properties:
+                                        message:
+                                            type: string
                                 reference:
                                     type: string
                                     description: External payment reference
@@ -11575,6 +11632,22 @@ components:
                                     format: date-time
                         next_action:
                             $ref: '#/components/schemas/PaymentNextAction'
+                        latest_error:
+                            type: object
+                            additionalProperties: false
+                            required: [message, docs_url, source, type, code]
+                            properties:
+                                message:
+                                    type: string
+                                docs_url:
+                                    type: string
+                                    format: uri
+                                source:
+                                    type: string
+                                type:
+                                    type: string
+                                code:
+                                    type: string
                         initiated_at:
                             type: string
                             format: date-time
@@ -11614,6 +11687,7 @@ components:
                             type: object
                             description: Payout configuration for this payment
                             nullable: true
+                            required: [enable_fx, destination]
                             properties:
                                 enable_fx:
                                     type: boolean
@@ -11623,6 +11697,7 @@ components:
                                 destination:
                                     type: object
                                     description: Where the funds will be paid out
+                                    required: [financial_account_id]
                                     properties:
                                         financial_account_id:
                                             type: string
@@ -11636,13 +11711,9 @@ components:
                     type: string
                     format: date-time
                     description: When the order payment becomes overdue
-                payout_settings:
-                    $ref: '#/components/schemas/OrderPayoutSettingsRequest'
                 reference:
                     type: string
                     description: External order reference when present
-                shipping:
-                    $ref: '#/components/schemas/Shipping'
         OrderDocumentFormat:
             type: object
             required:
@@ -11912,6 +11983,7 @@ components:
                     $ref: '#/components/schemas/RefundPage'
         BalanceSnapshotResponse:
             type: object
+            additionalProperties: false
             required: [balances]
             properties:
                 balances:
@@ -11993,6 +12065,21 @@ components:
                 payout_id:
                     type: string
                     example: po_zyxwvutsrqponmlkjihgfedcbaABCDEFGHIJKLMN
+                payout_configuration:
+                    type: object
+                    additionalProperties: false
+                    required: [enable_fx, destination]
+                    properties:
+                        enable_fx:
+                            type: boolean
+                            enum: [false]
+                        destination:
+                            type: object
+                            additionalProperties: false
+                            required: [financial_account_id]
+                            properties:
+                                financial_account_id:
+                                    type: string
                 refund_id:
                     type: string
                     description: Present when `type` is `refund`; omitted when `type` is `payment`.
@@ -12996,6 +13083,8 @@ components:
                             description: Bank account sub-type
                             enum: [ghana_bank_account]
                             example: "ghana_bank_account"
+                card:
+                    $ref: '#/components/schemas/PaymentMethodCard'
                 created_at:
                     type: string
                     format: date-time
@@ -13148,6 +13237,11 @@ components:
                     format: date-time
                     description: When ownership verification was completed
                     example: "2025-11-23T13:07:00Z"
+
+        PaymentMethodCard:
+            type: object
+            additionalProperties: false
+            description: Card marker. Nested card credentials are not returned.
 
         PaymentMethodData:
             type: object

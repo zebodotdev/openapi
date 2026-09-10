@@ -40,13 +40,13 @@ collection:
       afterResponse: |-
         insomnia.test('Returns the current GHS balance snapshot', () => {
           insomnia.expect(insomnia.response.code).to.equal(200);
-          const balances = insomnia.response.json()?.balances;
-          insomnia.expect(balances?.ghs).to.be.an('object');
+          const balances = insomnia.response.json().balances;
+          insomnia.expect(balances.ghs).to.be.an('object');
           insomnia.expect(balances).not.to.have.property('usd');
           for (const field of ['available', 'pending', 'refund', 'reserved']) {
-            insomnia.expect(balances.ghs?.[field]?.amount).to.be.a('number');
+            insomnia.expect(balances.ghs[field].amount).to.be.a('number');
           }
-          insomnia.expect(balances.ghs?.includes_transactions_before).to.be.a('string');
+          insomnia.expect(balances.ghs.includes_transactions_before).to.be.a('string');
         });
 - name: Balance transactions
   meta:
