@@ -43,11 +43,6 @@ const errors = [
   ...compareOperationCoverage(operations, insomniaRequests, "Insomnia", true),
   ...compareOperationCoverage(operations, postmanRequests, "Postman", false),
   ...validatePublicCheckoutOperations(operations),
-  ...compareEquivalentJsonContracts(
-    operations,
-    "POST /refunds/create",
-    "POST /orders/refund",
-  ),
   ...validateRequestExamples(spec, operations, insomniaRequests),
   ...validateRequestExamples(spec, operations, postmanRequests),
 ];
@@ -388,35 +383,6 @@ function validatePublicCheckoutOperations(operations) {
         `${key} must declare security: [] because checkout is a public capability`,
       );
     }
-  }
-
-  return errors;
-}
-
-function compareEquivalentJsonContracts(operations, canonicalKey, aliasKey) {
-  const canonical = operations.get(canonicalKey)?.operation;
-  const alias = operations.get(aliasKey)?.operation;
-  if (!canonical || !alias) {
-    return [];
-  }
-
-  const errors = [];
-
-  if (
-    JSON.stringify(canonical.parameters ?? []) !==
-    JSON.stringify(alias.parameters ?? [])
-  ) {
-    errors.push(`${aliasKey} must use the same parameters as ${canonicalKey}`);
-  }
-  if (
-    JSON.stringify(canonical.requestBody) !== JSON.stringify(alias.requestBody)
-  ) {
-    errors.push(
-      `${aliasKey} must use the same request body as ${canonicalKey}`,
-    );
-  }
-  if (JSON.stringify(canonical.responses) !== JSON.stringify(alias.responses)) {
-    errors.push(`${aliasKey} must use the same responses as ${canonicalKey}`);
   }
 
   return errors;

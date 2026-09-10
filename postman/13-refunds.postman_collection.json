@@ -2,7 +2,7 @@
   "info": {
     "name": "Inttegro API — Refunds",
     "description": "Create, cancel, and inspect refunds for paid order line items. Uses the shared Inttegro API global environment. Error reference: https://studio.inttegro.com/error-codes#refunds\n\nGenerated from insomnia/13-refunds.insomnia.yaml. Edit the Insomnia source and run npm run postman:generate.",
-    "version": "0.1.0-beta2",
+    "version": "0.1.0-beta6",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -57,63 +57,6 @@
                   "    pm.expect(refund?.line_items?.length).to.be.greaterThan(0);",
                   "  });",
                   "  if (refund?.id) pm.environment.set('refund_id', refund.id);",
-                  "}"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Replay through the compatibility URL",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json",
-                "type": "text"
-              },
-              {
-                "key": "Idempotency-Key",
-                "value": "call-refund-{{order_id}}-{{order_line_item_id}}",
-                "type": "text"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/orders/refund"
-            },
-            "description": "Public reference: https://studio.inttegro.com/refunds#compatibility-alias",
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"order_id\": \"{{order_id}}\",\n  \"reason\": \"requested_by_customer\",\n  \"reference\": \"call-refund-{{order_id}}\",\n  \"line_items\": [\n    {\n      \"order_line_item_id\": \"{{order_line_item_id}}\",\n      \"refund_amount\": {\n        \"currency\": \"{{currency}}\",\n        \"value\": 100\n      }\n    }\n  ]\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "if (pm.response.code === 200) {",
-                  "  const jsonBody = pm.response.json();",
-                  "  pm.test('The compatibility URL replays the same refund', () => {",
-                  "    pm.expect(jsonBody).to.have.all.keys('refund');",
-                  "    pm.expect(jsonBody?.refund?.id).to.equal(pm.variables.get('refund_id'));",
-                  "    pm.expect(jsonBody?.refund?.order_id).to.equal(pm.variables.get('order_id'));",
-                  "    pm.expect(jsonBody?.refund?.total).to.be.an('object');",
-                  "    pm.expect(jsonBody?.refund?.line_items).to.be.an('array');",
-                  "    for (const line of jsonBody?.refund?.line_items ?? []) {",
-                  "      pm.expect(line?.id).to.be.a('string').and.match(/^rli_/);",
-                  "      pm.expect(line).to.have.property('order_line_item_id');",
-                  "      pm.expect(line).to.have.property('original_amount_paid');",
-                  "      pm.expect(line).to.have.property('refund_amount');",
-                  "    }",
-                  "  });",
                   "}"
                 ]
               }
@@ -271,7 +214,7 @@
           ]
         }
       ],
-      "description": "Run after a checkout order has been paid. Create and cancel use stable retry keys; the create URL and its compatibility alias share one key and body.",
+      "description": "Run after a checkout order has been paid. Create and cancel use stable retry keys.",
       "auth": {
         "type": "bearer",
         "bearer": [
