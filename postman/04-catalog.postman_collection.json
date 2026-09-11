@@ -2,7 +2,7 @@
   "info": {
     "name": "Inttegro API — Catalog",
     "description": "Create and manage products and prices. Uses the shared Inttegro API global environment.\n\nGenerated from insomnia/04-catalog.insomnia.yaml. Edit the Insomnia source and run npm run postman:generate.",
-    "version": "0.1.0-beta6",
+    "version": "0.1.0-beta7",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [

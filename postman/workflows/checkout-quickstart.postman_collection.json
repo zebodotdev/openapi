@@ -2,7 +2,7 @@
   "info": {
     "name": "Inttegro API — Checkout Quickstart",
     "description": "Create a hosted checkout and look it up without requesting or confirming payment. Includes portable defaults for desktop and Inso CLI use.\n\nGenerated from insomnia/workflows/checkout-quickstart.insomnia.yaml. Edit the Insomnia source and run npm run postman:generate.",
-    "version": "0.1.0-beta6",
+    "version": "0.1.0-beta7",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
